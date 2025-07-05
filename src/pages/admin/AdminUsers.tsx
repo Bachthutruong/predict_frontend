@@ -413,7 +413,7 @@ const AdminUsers: React.FC = () => {
       </Card>
 
       {/* Users List */}
-      <Card>
+      <Card className=" max-w-[350px] md:max-w-full">
         <CardHeader>
           <CardTitle>All Users ({filteredUsers.length})</CardTitle>
           <CardDescription>

@@ -20,6 +20,10 @@ const StaffUsers: React.FC = () => {
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     loadUsers();
@@ -84,6 +88,89 @@ const StaffUsers: React.FC = () => {
 
   const getInitials = (name: string) => {
     return name.split(' ').map(part => part[0]).join('').toUpperCase().slice(0, 2);
+  };
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const paginatedUsers = filteredUsers.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // Reset to first page when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
+  // Pagination component
+  const PaginationControls: React.FC<{
+    currentPage: number;
+    totalPages: number;
+    onPageChange: (page: number) => void;
+  }> = ({ currentPage, totalPages, onPageChange }) => {
+    if (totalPages <= 1) return null;
+
+    const pages = [];
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage < maxVisiblePages - 1) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+
+    return (
+      <div className="flex items-center justify-center gap-2 mt-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage <= 1}
+        >
+          Previous
+        </Button>
+        
+        {startPage > 1 && (
+          <>
+            <Button variant="outline" size="sm" onClick={() => onPageChange(1)}>1</Button>
+            {startPage > 2 && <span className="px-2">...</span>}
+          </>
+        )}
+        
+        {pages.map((page) => (
+          <Button
+            key={page}
+            variant={currentPage === page ? "default" : "outline"}
+            size="sm"
+            onClick={() => onPageChange(page)}
+          >
+            {page}
+          </Button>
+        ))}
+        
+        {endPage < totalPages && (
+          <>
+            {endPage < totalPages - 1 && <span className="px-2">...</span>}
+            <Button variant="outline" size="sm" onClick={() => onPageChange(totalPages)}>
+              {totalPages}
+            </Button>
+          </>
+        )}
+        
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage >= totalPages}
+        >
+          Next
+        </Button>
+      </div>
+    );
   };
 
   return (
@@ -184,7 +271,7 @@ const StaffUsers: React.FC = () => {
       </Card>
 
       {/* Users List */}
-      <Card>
+      <Card className=" max-w-[350px] md:max-w-full">
         <CardHeader>
           <CardTitle>Users ({filteredUsers.length})</CardTitle>
           <CardDescription>
@@ -193,65 +280,103 @@ const StaffUsers: React.FC = () => {
         </CardHeader>
         <CardContent>
           {filteredUsers.length > 0 ? (
-            <div className="space-y-4">
-              {filteredUsers.map((user) => (
-                <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg hover:shadow-md transition-shadow">
-                  <div className="flex items-center gap-4">
-                    <div className="relative">
-                      <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-medium">
-                        {getInitials(user.name)}
-                      </div>
-                      {user.isEmailVerified && (
-                        <div className="absolute -bottom-1 -right-1 bg-green-500 text-white rounded-full p-1">
-                          <UserCheck className="h-3 w-3" />
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-medium">{user.name}</h3>
-                        {!user.isEmailVerified && (
-                          <Badge variant="secondary">Unverified</Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-500">{user.email}</p>
-                      <div className="flex items-center gap-4 text-xs text-gray-400">
-                        <span>Joined {new Date(user.createdAt).toLocaleDateString()}</span>
-                        {user.lastCheckInDate && (
-                          <span>Last check-in {new Date(user.lastCheckInDate).toLocaleDateString()}</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="font-mono">
-                          {user.points} pts
-                        </Badge>
-                      </div>
-                      <div className="text-xs text-gray-500 mt-1">
-                        <div>{user.consecutiveCheckIns || 0} day streak</div>
-                        {user.referralCode && (
-                          <div>Ref: {user.referralCode}</div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {/* Staff can toggle verification status */}
-                    <Button
-                      size="sm"
-                      variant={user.isEmailVerified ? "destructive" : "default"}
-                      onClick={() => handleUserStatusUpdate(user.id, !user.isEmailVerified)}
-                    >
-                      {user.isEmailVerified ? 'Unverify' : 'Verify'}
-                    </Button>
-                  </div>
+            <>
+              <div className="w-full overflow-x-auto -mx-4 sm:mx-0">
+                <div className="min-w-full inline-block align-middle">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[180px]">User</th>
+                        <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Points</th>
+                        <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">Activity</th>
+                        <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
+                        <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {paginatedUsers.map((user) => (
+                        <tr key={user.id} className="hover:bg-gray-50">
+                          <td className="px-2 sm:px-4 py-3">
+                            <div className="flex items-center gap-3">
+                              <div className="relative">
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-medium text-xs sm:text-sm">
+                                  {getInitials(user.name)}
+                                </div>
+                                {user.isEmailVerified && (
+                                  <div className="absolute -bottom-1 -right-1 bg-green-500 text-white rounded-full p-1">
+                                    <UserCheck className="h-3 w-3" />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="font-medium truncate text-xs sm:text-sm">{user.name}</p>
+                                <p className="text-xs text-gray-500 truncate hidden sm:block">{user.email}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                            {user.isEmailVerified ? (
+                              <Badge variant="default" className="text-xs">
+                                <UserCheck className="h-3 w-3 mr-1" />
+                                <span className="hidden sm:inline">Verified</span>
+                              </Badge>
+                            ) : (
+                              <Badge variant="secondary" className="text-xs">
+                                <span className="hidden sm:inline">Unverified</span>
+                              </Badge>
+                            )}
+                          </td>
+                          <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                            <div className="text-center">
+                              <Badge variant="outline" className="font-mono text-xs">
+                                {user.points}
+                              </Badge>
+                            </div>
+                          </td>
+                          <td className="px-2 sm:px-4 py-3">
+                            <div className="space-y-1 text-xs">
+                              <div>{user.consecutiveCheckIns || 0} day</div>
+                              {user.lastCheckInDate && (
+                                <div className="text-gray-500 hidden sm:block">
+                                  Last: {new Date(user.lastCheckInDate).toLocaleDateString()}
+                                </div>
+                              )}
+                              {user.referralCode && (
+                                <div className="text-gray-500 hidden sm:block">Ref: {user.referralCode}</div>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                            <span className="text-xs sm:text-sm">{new Date(user.createdAt).toLocaleDateString()}</span>
+                          </td>
+                          <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                            <Button
+                              size="sm"
+                              variant={user.isEmailVerified ? "destructive" : "default"}
+                              onClick={() => handleUserStatusUpdate(user.id, !user.isEmailVerified)}
+                              className="text-xs p-2"
+                            >
+                              <span className="hidden sm:inline">
+                                {user.isEmailVerified ? 'Unverify' : 'Verify'}
+                              </span>
+                              <span className="sm:hidden">
+                                {user.isEmailVerified ? 'Un' : 'V'}
+                              </span>
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              ))}
-            </div>
+              </div>
+              <PaginationControls
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            </>
           ) : (
             <div className="text-center py-12">
               <Users className="h-12 w-12 mx-auto text-gray-400 mb-3" />

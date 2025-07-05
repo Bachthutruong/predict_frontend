@@ -511,7 +511,7 @@ const AdminQuestions: React.FC = () => {
         </TabsList>
 
         <TabsContent value="active">
-          <Card>
+          <Card className=" max-w-[350px] md:max-w-full">
             <CardHeader>
               <CardTitle>Active Questions</CardTitle>
               <CardDescription>Questions currently available for check-ins</CardDescription>
@@ -534,7 +534,7 @@ const AdminQuestions: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="inactive">
-          <Card>
+          <Card className=" max-w-[350px] md:max-w-full">
             <CardHeader>
               <CardTitle>Inactive Questions</CardTitle>
               <CardDescription>Questions that are currently disabled</CardDescription>
@@ -557,7 +557,7 @@ const AdminQuestions: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="priority">
-          <Card>
+          <Card className=" max-w-[350px] md:max-w-full">
             <CardHeader>
               <CardTitle>Priority Questions</CardTitle>
               <CardDescription>High priority questions shown more frequently</CardDescription>
@@ -580,7 +580,7 @@ const AdminQuestions: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="all">
-          <Card>
+          <Card className=" max-w-[350px] md:max-w-full">
             <CardHeader>
               <CardTitle>All Questions</CardTitle>
               <CardDescription>Complete list of all questions</CardDescription>
@@ -728,122 +728,124 @@ function QuestionsTable({
   }
 
   return (
-    <div className="relative w-full overflow-auto">
-      <table className="w-full caption-bottom text-sm">
-        <thead className="[&_tr]:border-b">
-          <tr className="border-b transition-colors hover:bg-muted/50">
-            <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Image</th>
-            <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Question</th>
-            <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Answer</th>
-            <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Points</th>
-            <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Status</th>
-            <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Stats</th>
-            <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="[&_tr:last-child]:border-0">
-          {questions.map((question) => (
-            <tr key={question.id} className="border-b transition-colors hover:bg-muted/50">
-              <td className="p-4 align-middle">
-                {question.imageUrl ? (
-                  <img 
-                    src={question.imageUrl} 
-                    alt="Question"
-                    className="w-12 h-12 object-cover rounded-md"
-                  />
-                ) : (
-                  <div className="w-12 h-12 bg-gray-200 rounded-md flex items-center justify-center">
-                    <HelpCircle className="h-6 w-6 text-gray-400" />
-                  </div>
-                )}
-              </td>
-              <td className="p-4 align-middle">
-                <div className="max-w-xs">
-                  <p className="font-medium text-sm line-clamp-2">{question.questionText}</p>
-                  <div className="flex items-center gap-1 mt-1">
-                    {question.isPriority && (
-                      <Badge variant="outline" className="text-xs">
-                        <Star className="h-3 w-3 mr-1" />
-                        Priority
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              </td>
-              <td className="p-4 align-middle">
-                <span className="text-sm font-medium">{question.answer}</span>
-              </td>
-              <td className="p-4 align-middle">
-                <div className="flex items-center gap-1">
-                  <Coins className="h-4 w-4 text-gray-500" />
-                  <span>{question.points}</span>
-                </div>
-              </td>
-              <td className="p-4 align-middle">
-                <Badge 
-                  variant={question.status === 'active' ? 'default' : 'secondary'}
-                  className="text-xs"
-                >
-                  {question.status === 'active' ? (
-                    <CheckCircle className="h-3 w-3 mr-1" />
-                  ) : (
-                    <XCircle className="h-3 w-3 mr-1" />
-                  )}
-                  {question.status}
-                </Badge>
-              </td>
-              <td className="p-4 align-middle">
-                <div className="space-y-1 text-xs">
-                  <div className="flex items-center gap-1">
-                    <Eye className="h-3 w-3" />
-                    <span>{question.displayCount} views</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <CheckCircle className="h-3 w-3" />
-                    <span>{question.correctAnswerCount} correct</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <BarChart3 className="h-3 w-3" />
-                    <span>
-                      {question.displayCount > 0 
-                        ? Math.round((question.correctAnswerCount / question.displayCount) * 100)
-                        : 0}% accuracy
-                    </span>
-                  </div>
-                </div>
-              </td>
-              <td className="p-4 align-middle">
-                <div className="flex gap-1">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => onEdit(question)}
-                    className="text-xs"
-                  >
-                    <Edit2 className="h-3 w-3" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => onStatusToggle(question.id, question.status)}
-                    className="text-xs"
-                  >
-                    {question.status === 'active' ? <XCircle className="h-3 w-3" /> : <CheckCircle className="h-3 w-3" />}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => onPriorityToggle(question.id, question.isPriority)}
-                    className="text-xs"
-                  >
-                    <Star className="h-3 w-3" />
-                  </Button>
-                </div>
-              </td>
+    <div className="w-full overflow-x-auto -mx-4 sm:mx-0">
+      <div className="min-w-full inline-block align-middle">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
+              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px]">Question</th>
+              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">Answer</th>
+              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Points</th>
+              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">Stats</th>
+              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {questions.map((question) => (
+              <tr key={question.id} className="hover:bg-gray-50">
+                <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                  {question.imageUrl ? (
+                    <img 
+                      src={question.imageUrl} 
+                      alt="Question"
+                      className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-md"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-200 rounded-md flex items-center justify-center">
+                      <HelpCircle className="h-5 w-5 sm:h-6 sm:w-6 text-gray-400" />
+                    </div>
+                  )}
+                </td>
+                <td className="px-2 sm:px-4 py-3">
+                  <div className="max-w-xs">
+                    <p className="font-medium text-xs sm:text-sm line-clamp-2">{question.questionText}</p>
+                    <div className="flex items-center gap-1 mt-1">
+                      {question.isPriority && (
+                        <Badge variant="outline" className="text-xs">
+                          <Star className="h-3 w-3 mr-1" />
+                          Priority
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                </td>
+                <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                  <span className="text-xs sm:text-sm font-medium truncate block max-w-[100px]">{question.answer}</span>
+                </td>
+                <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                  <div className="flex items-center gap-1">
+                    <Coins className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500" />
+                    <span className="text-xs sm:text-sm">{question.points}</span>
+                  </div>
+                </td>
+                <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                  <Badge 
+                    variant={question.status === 'active' ? 'default' : 'secondary'}
+                    className="text-xs"
+                  >
+                    {question.status === 'active' ? (
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                    ) : (
+                      <XCircle className="h-3 w-3 mr-1" />
+                    )}
+                    <span className="hidden sm:inline">{question.status}</span>
+                  </Badge>
+                </td>
+                <td className="px-2 sm:px-4 py-3">
+                  <div className="space-y-1 text-xs">
+                    <div className="flex items-center gap-1">
+                      <Eye className="h-3 w-3" />
+                      <span>{question.displayCount}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <CheckCircle className="h-3 w-3" />
+                      <span>{question.correctAnswerCount}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <BarChart3 className="h-3 w-3" />
+                      <span>
+                        {question.displayCount > 0 
+                          ? Math.round((question.correctAnswerCount / question.displayCount) * 100)
+                          : 0}%
+                      </span>
+                    </div>
+                  </div>
+                </td>
+                <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                  <div className="flex gap-1">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => onEdit(question)}
+                      className="text-xs p-2 "
+                    >
+                      <Edit2 className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => onStatusToggle(question.id, question.status)}
+                      className="text-xs p-2"
+                    >
+                      {question.status === 'active' ? <XCircle className="h-3 w-3" /> : <CheckCircle className="h-3 w-3" />}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => onPriorityToggle(question.id, question.isPriority)}
+                      className="text-xs p-2"
+                    >
+                      <Star className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

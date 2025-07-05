@@ -40,6 +40,13 @@ const StaffQuestions: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [result, setResult] = useState<{success: boolean, message?: string} | null>(null);
   
+  // Pagination states
+  const [activeCurrentPage, setActiveCurrentPage] = useState(1);
+  const [inactiveCurrentPage, setInactiveCurrentPage] = useState(1);
+  const [priorityCurrentPage, setPriorityCurrentPage] = useState(1);
+  const [allCurrentPage, setAllCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  
   const [newQuestion, setNewQuestion] = useState<QuestionFormData>({
     questionText: '',
     imageUrl: '',
@@ -176,6 +183,100 @@ const StaffQuestions: React.FC = () => {
   const activeQuestions = questions.filter(q => q.status === 'active');
   const inactiveQuestions = questions.filter(q => q.status === 'inactive');
   const priorityQuestions = questions.filter(q => q.isPriority);
+
+  // Pagination calculations
+  const activeTotalPages = Math.ceil(activeQuestions.length / itemsPerPage);
+  const inactiveTotalPages = Math.ceil(inactiveQuestions.length / itemsPerPage);
+  const priorityTotalPages = Math.ceil(priorityQuestions.length / itemsPerPage);
+  const allTotalPages = Math.ceil(questions.length / itemsPerPage);
+  
+  const paginatedActiveQuestions = activeQuestions.slice(
+    (activeCurrentPage - 1) * itemsPerPage,
+    activeCurrentPage * itemsPerPage
+  );
+  const paginatedInactiveQuestions = inactiveQuestions.slice(
+    (inactiveCurrentPage - 1) * itemsPerPage,
+    inactiveCurrentPage * itemsPerPage
+  );
+  const paginatedPriorityQuestions = priorityQuestions.slice(
+    (priorityCurrentPage - 1) * itemsPerPage,
+    priorityCurrentPage * itemsPerPage
+  );
+  const paginatedAllQuestions = questions.slice(
+    (allCurrentPage - 1) * itemsPerPage,
+    allCurrentPage * itemsPerPage
+  );
+
+  // Pagination component
+  const PaginationControls: React.FC<{
+    currentPage: number;
+    totalPages: number;
+    onPageChange: (page: number) => void;
+  }> = ({ currentPage, totalPages, onPageChange }) => {
+    if (totalPages <= 1) return null;
+
+    const pages = [];
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage < maxVisiblePages - 1) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+
+    return (
+      <div className="flex items-center justify-center gap-2 mt-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage <= 1}
+        >
+          Previous
+        </Button>
+        
+        {startPage > 1 && (
+          <>
+            <Button variant="outline" size="sm" onClick={() => onPageChange(1)}>1</Button>
+            {startPage > 2 && <span className="px-2">...</span>}
+          </>
+        )}
+        
+        {pages.map((page) => (
+          <Button
+            key={page}
+            variant={currentPage === page ? "default" : "outline"}
+            size="sm"
+            onClick={() => onPageChange(page)}
+          >
+            {page}
+          </Button>
+        ))}
+        
+        {endPage < totalPages && (
+          <>
+            {endPage < totalPages - 1 && <span className="px-2">...</span>}
+            <Button variant="outline" size="sm" onClick={() => onPageChange(totalPages)}>
+              {totalPages}
+            </Button>
+          </>
+        )}
+        
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage >= totalPages}
+        >
+          Next
+        </Button>
+      </div>
+    );
+  };
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-8">
@@ -368,43 +469,91 @@ const StaffQuestions: React.FC = () => {
         </TabsList>
 
         <TabsContent value="active">
-          <QuestionsList 
-            questions={activeQuestions} 
-            onStatusToggle={handleStatusToggle}
-            onPriorityToggle={handlePriorityToggle}
-            onEdit={openEditDialog}
-            emptyMessage="No active questions"
-          />
+          <Card className=" max-w-[350px] md:max-w-full">
+            <CardHeader>
+              <CardTitle>Active Questions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <QuestionsTable 
+                questions={paginatedActiveQuestions} 
+                onStatusToggle={handleStatusToggle}
+                onPriorityToggle={handlePriorityToggle}
+                onEdit={openEditDialog}
+                emptyMessage="No active questions"
+              />
+              <PaginationControls
+                currentPage={activeCurrentPage}
+                totalPages={activeTotalPages}
+                onPageChange={setActiveCurrentPage}
+              />
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="inactive">
-          <QuestionsList 
-            questions={inactiveQuestions} 
-            onStatusToggle={handleStatusToggle}
-            onPriorityToggle={handlePriorityToggle}
-            onEdit={openEditDialog}
-            emptyMessage="No inactive questions"
-          />
+          <Card className=" max-w-[350px] md:max-w-full">
+            <CardHeader>
+              <CardTitle>Inactive Questions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <QuestionsTable 
+                questions={paginatedInactiveQuestions} 
+                onStatusToggle={handleStatusToggle}
+                onPriorityToggle={handlePriorityToggle}
+                onEdit={openEditDialog}
+                emptyMessage="No inactive questions"
+              />
+              <PaginationControls
+                currentPage={inactiveCurrentPage}
+                totalPages={inactiveTotalPages}
+                onPageChange={setInactiveCurrentPage}
+              />
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="priority">
-          <QuestionsList 
-            questions={priorityQuestions} 
-            onStatusToggle={handleStatusToggle}
-            onPriorityToggle={handlePriorityToggle}
-            onEdit={openEditDialog}
-            emptyMessage="No priority questions"
-          />
+          <Card className=" max-w-[350px] md:max-w-full">
+            <CardHeader>
+              <CardTitle>Priority Questions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <QuestionsTable 
+                questions={paginatedPriorityQuestions} 
+                onStatusToggle={handleStatusToggle}
+                onPriorityToggle={handlePriorityToggle}
+                onEdit={openEditDialog}
+                emptyMessage="No priority questions"
+              />
+              <PaginationControls
+                currentPage={priorityCurrentPage}
+                totalPages={priorityTotalPages}
+                onPageChange={setPriorityCurrentPage}
+              />
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="all">
-          <QuestionsList 
-            questions={questions} 
-            onStatusToggle={handleStatusToggle}
-            onPriorityToggle={handlePriorityToggle}
-            onEdit={openEditDialog}
-            emptyMessage="No questions created yet"
-          />
+          <Card className=" max-w-[350px] md:max-w-full">
+            <CardHeader>
+              <CardTitle>All Questions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <QuestionsTable 
+                questions={paginatedAllQuestions} 
+                onStatusToggle={handleStatusToggle}
+                onPriorityToggle={handlePriorityToggle}
+                onEdit={openEditDialog}
+                emptyMessage="No questions created yet"
+              />
+              <PaginationControls
+                currentPage={allCurrentPage}
+                totalPages={allTotalPages}
+                onPageChange={setAllCurrentPage}
+              />
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
 
@@ -513,7 +662,7 @@ const StaffQuestions: React.FC = () => {
   );
 };
 
-interface QuestionsListProps {
+interface QuestionsTableProps {
   questions: Question[];
   onStatusToggle: (id: string, status: string) => void;
   onPriorityToggle: (id: string, priority: boolean) => void;
@@ -521,7 +670,7 @@ interface QuestionsListProps {
   emptyMessage: string;
 }
 
-const QuestionsList: React.FC<QuestionsListProps> = ({ 
+const QuestionsTable: React.FC<QuestionsTableProps> = ({ 
   questions, 
   onStatusToggle, 
   onPriorityToggle, 
@@ -530,94 +679,112 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
 }) => {
   if (questions.length === 0) {
     return (
-      <Card>
-        <CardContent className="text-center py-8">
-          <HelpCircle className="h-12 w-12 mx-auto text-gray-400 mb-3" />
-          <p className="text-gray-500">{emptyMessage}</p>
-        </CardContent>
-      </Card>
+      <div className="text-center py-8">
+        <HelpCircle className="h-12 w-12 mx-auto text-gray-400 mb-3" />
+        <p className="text-gray-500">{emptyMessage}</p>
+      </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      {questions.map((question) => (
-        <Card key={question.id} className="p-4">
-          <div className="space-y-4">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <Badge variant={question.status === 'active' ? 'default' : 'secondary'}>
-                    {question.status === 'active' ? (
-                      <>
-                        <CheckCircle className="h-3 w-3 mr-1" />
-                        Active
-                      </>
-                    ) : (
-                      <>
-                        <XCircle className="h-3 w-3 mr-1" />
-                        Inactive
-                      </>
-                    )}
-                  </Badge>
-                  {question.isPriority && (
-                    <Badge variant="outline" className="text-orange-600">
-                      <Star className="h-3 w-3 mr-1" />
-                      Priority
-                    </Badge>
-                  )}
-                  <Badge variant="outline">
-                    <Coins className="h-3 w-3 mr-1" />
-                    {question.points} pts
-                  </Badge>
-                </div>
-                <h3 className="font-medium mb-2">{question.questionText}</h3>
-                <p className="text-sm text-gray-500">
-                  <strong>Answer:</strong> {question.answer}
-                </p>
-                {question.imageUrl && (
-                  <div className="mt-2">
+    <div className="w-full overflow-x-auto -mx-4 sm:mx-0">
+      <div className="min-w-full inline-block align-middle">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
+              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px]">Question</th>
+              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">Answer</th>
+              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Points</th>
+              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {questions.map((question) => (
+              <tr key={question.id} className="hover:bg-gray-50">
+                <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                  {question.imageUrl ? (
                     <img 
                       src={question.imageUrl} 
-                      alt="Question" 
-                      className="w-32 h-20 object-cover rounded border"
+                      alt="Question"
+                      className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-md"
                     />
+                  ) : (
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-200 rounded-md flex items-center justify-center">
+                      <HelpCircle className="h-5 w-5 sm:h-6 sm:w-6 text-gray-400" />
+                    </div>
+                  )}
+                </td>
+                <td className="px-2 sm:px-4 py-3">
+                  <div className="max-w-xs">
+                    <p className="font-medium text-xs sm:text-sm line-clamp-2">{question.questionText}</p>
+                    <div className="flex items-center gap-1 mt-1">
+                      {question.isPriority && (
+                        <Badge variant="outline" className="text-xs text-orange-600">
+                          <Star className="h-3 w-3 mr-1" />
+                          <span className="hidden sm:inline">Priority</span>
+                        </Badge>
+                      )}
+                    </div>
                   </div>
-                )}
-                <p className="text-xs text-gray-400 mt-2">
-                  Created {new Date(question.createdAt).toLocaleDateString()}
-                </p>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => onEdit(question)}
-                >
-                  <Edit2 className="h-4 w-4 mr-1" />
-                  Edit
-                </Button>
-                <Button
-                  size="sm"
-                  variant={question.status === 'active' ? 'destructive' : 'default'}
-                  onClick={() => onStatusToggle(question.id, question.status)}
-                >
-                  {question.status === 'active' ? 'Deactivate' : 'Activate'}
-                </Button>
-                <Button
-                  size="sm"
-                  variant={question.isPriority ? 'secondary' : 'outline'}
-                  onClick={() => onPriorityToggle(question.id, question.isPriority)}
-                >
-                  <Star className="h-4 w-4 mr-1" />
-                  {question.isPriority ? 'Remove Priority' : 'Set Priority'}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </Card>
-      ))}
+                </td>
+                <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                  <span className="text-xs sm:text-sm font-medium truncate block max-w-[100px]">{question.answer}</span>
+                </td>
+                <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                  <div className="flex items-center gap-1">
+                    <Coins className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500" />
+                    <span className="text-xs sm:text-sm">{question.points}</span>
+                  </div>
+                </td>
+                <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                  <Badge variant={question.status === 'active' ? 'default' : 'secondary'} className="text-xs">
+                    {question.status === 'active' ? (
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                    ) : (
+                      <XCircle className="h-3 w-3 mr-1" />
+                    )}
+                    <span className="hidden sm:inline">{question.status}</span>
+                  </Badge>
+                </td>
+                <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                  <span className="text-xs sm:text-sm">{new Date(question.createdAt).toLocaleDateString()}</span>
+                </td>
+                <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                  <div className="flex gap-1">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => onEdit(question)}
+                      className="text-xs p-1 sm:p-2"
+                    >
+                      <Edit2 className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={question.status === 'active' ? 'destructive' : 'default'}
+                      onClick={() => onStatusToggle(question.id, question.status)}
+                      className="text-xs p-1 sm:p-2"
+                    >
+                      {question.status === 'active' ? <XCircle className="h-3 w-3" /> : <CheckCircle className="h-3 w-3" />}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={question.isPriority ? 'secondary' : 'outline'}
+                      onClick={() => onPriorityToggle(question.id, question.isPriority)}
+                      className="text-xs p-1 sm:p-2"
+                    >
+                      <Star className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };

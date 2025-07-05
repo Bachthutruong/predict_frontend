@@ -299,7 +299,7 @@ const AdminFeedback: React.FC = () => {
         </TabsList>
 
         <TabsContent value="pending">
-          <Card>
+          <Card className=" max-w-[350px] md:max-w-full">
             <CardHeader>
               <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
                 <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-orange-500" />
@@ -330,7 +330,7 @@ const AdminFeedback: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="approved">
-          <Card>
+          <Card className=" max-w-[350px] md:max-w-full">
             <CardHeader>
               <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />
@@ -356,7 +356,7 @@ const AdminFeedback: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="rejected">
-          <Card>
+          <Card className=" max-w-[350px] md:max-w-full">
             <CardHeader>
               <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
                 <XCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-500" />
@@ -382,7 +382,7 @@ const AdminFeedback: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="all">
-          <Card>
+          <Card className=" max-w-[350px] md:max-w-full">
             <CardHeader>
               <CardTitle className="text-lg sm:text-xl">All Feedback</CardTitle>
               <CardDescription className="text-sm">
@@ -500,90 +500,94 @@ const FeedbackTable: React.FC<FeedbackListProps> = ({
   }
 
   return (
-    <div className="relative w-full overflow-auto">
-      <table className="w-full caption-bottom text-sm">
-        <thead className="[&_tr]:border-b">
-          <tr className="border-b transition-colors hover:bg-muted/50">
-            <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">User</th>
-            <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Feedback</th>
-            <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Status</th>
-            <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Points</th>
-            <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Date</th>
-            {showActions && (
-              <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Actions</th>
-            )}
-          </tr>
-        </thead>
-        <tbody className="[&_tr:last-child]:border-0">
-          {feedbackList.map((feedback) => (
-            <tr key={feedback.id} className="border-b transition-colors hover:bg-muted/50">
-              <td className="p-4 align-middle">
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-8 w-8 flex-shrink-0">
-                    <AvatarFallback>{getInitials(feedback.user?.name || 'Unknown User')}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-medium text-sm">{feedback.user?.name || 'Unknown User'}</p>
-                  </div>
-                </div>
-              </td>
-              <td className="p-4 align-middle">
-                <p className="text-sm leading-relaxed max-w-xs line-clamp-3">{feedback.feedbackText}</p>
-              </td>
-              <td className="p-4 align-middle">
-                <Badge 
-                  variant={
-                    feedback.status === 'pending' ? 'secondary' :
-                    feedback.status === 'approved' ? 'default' : 'destructive'
-                  }
-                  className="text-xs"
-                >
-                  {feedback.status === 'pending' && <Clock className="h-3 w-3 mr-1" />}
-                  {feedback.status === 'approved' && <CheckCircle className="h-3 w-3 mr-1" />}
-                  {feedback.status === 'rejected' && <XCircle className="h-3 w-3 mr-1" />}
-                  {feedback.status}
-                </Badge>
-              </td>
-              <td className="p-4 align-middle">
-                {feedback.awardedPoints ? (
-                  <Badge variant="outline" className="text-xs">
-                    <Coins className="h-3 w-3 mr-1" />
-                    +{feedback.awardedPoints}
-                  </Badge>
-                ) : (
-                  <span className="text-sm text-gray-400">-</span>
-                )}
-              </td>
-              <td className="p-4 align-middle">
-                <span className="text-sm">{new Date(feedback.createdAt).toLocaleDateString()}</span>
-              </td>
+    <div className="w-full overflow-x-auto -mx-4 sm:mx-0">
+      <div className="min-w-full inline-block align-middle">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">User</th>
+              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px]">Feedback</th>
+              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Points</th>
+              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
               {showActions && (
-                <td className="p-4 align-middle">
-                  {feedback.status === 'pending' && (
-                    <div className="flex gap-1">
-                      <Button
-                        size="sm"
-                        onClick={() => onApprove?.(feedback)}
-                        disabled={processingId === feedback.id}
-                      >
-                        <ThumbsUp className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => onReject?.(feedback.id)}
-                        disabled={processingId === feedback.id}
-                      >
-                        <ThumbsDown className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  )}
-                </td>
+                <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px]">Actions</th>
               )}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {feedbackList.map((feedback) => (
+              <tr key={feedback.id} className="hover:bg-gray-50">
+                <td className="px-2 sm:px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-6 w-6 sm:h-8 sm:w-8 flex-shrink-0">
+                      <AvatarFallback className="text-xs sm:text-sm">{getInitials(feedback.user?.name || 'Unknown User')}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-medium text-xs sm:text-sm truncate max-w-[80px] sm:max-w-none">{feedback.user?.name || 'Unknown User'}</p>
+                    </div>
+                  </div>
+                </td>
+                <td className="px-2 sm:px-4 py-3">
+                  <p className="text-xs sm:text-sm leading-relaxed max-w-xs line-clamp-3">{feedback.feedbackText}</p>
+                </td>
+                <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                  <Badge 
+                    variant={
+                      feedback.status === 'pending' ? 'secondary' :
+                      feedback.status === 'approved' ? 'default' : 'destructive'
+                    }
+                    className="text-xs"
+                  >
+                    {feedback.status === 'pending' && <Clock className="h-3 w-3 mr-1" />}
+                    {feedback.status === 'approved' && <CheckCircle className="h-3 w-3 mr-1" />}
+                    {feedback.status === 'rejected' && <XCircle className="h-3 w-3 mr-1" />}
+                    <span className="hidden sm:inline">{feedback.status}</span>
+                  </Badge>
+                </td>
+                <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                  {feedback.awardedPoints ? (
+                    <Badge variant="outline" className="text-xs">
+                      <Coins className="h-3 w-3 mr-1" />
+                      <span className="hidden sm:inline">+</span>{feedback.awardedPoints}
+                    </Badge>
+                  ) : (
+                    <span className="text-xs sm:text-sm text-gray-400">-</span>
+                  )}
+                </td>
+                <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                  <span className="text-xs sm:text-sm">{new Date(feedback.createdAt).toLocaleDateString()}</span>
+                </td>
+                {showActions && (
+                  <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                    {feedback.status === 'pending' && (
+                      <div className="flex gap-1">
+                        <Button
+                          size="sm"
+                          onClick={() => onApprove?.(feedback)}
+                          disabled={processingId === feedback.id}
+                          className="text-xs p-1 sm:p-2"
+                        >
+                          <ThumbsUp className="h-3 w-3 sm:h-4 sm:w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => onReject?.(feedback.id)}
+                          disabled={processingId === feedback.id}
+                          className="text-xs p-1 sm:p-2"
+                        >
+                          <ThumbsDown className="h-3 w-3 sm:h-4 sm:w-4" />
+                        </Button>
+                      </div>
+                    )}
+                  </td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };

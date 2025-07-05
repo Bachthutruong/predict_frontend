@@ -1,18 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
+import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
 import { Trophy, Clock, CheckCircle, Coins, Image as ImageIcon, Shield } from 'lucide-react';
 import apiService from '../../services/api';
 import type { Prediction } from '../../types';
 
-interface StaffPredictionCardProps {
-  prediction: Prediction;
-}
-
 const StaffPredictions: React.FC = () => {
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Pagination states
+  const [activeCurrentPage, setActiveCurrentPage] = useState(1);
+  const [finishedCurrentPage, setFinishedCurrentPage] = useState(1);
+  const [allCurrentPage, setAllCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     loadPredictions();
@@ -50,6 +53,95 @@ const StaffPredictions: React.FC = () => {
 
   const activePredictions = predictions.filter(p => p.status === 'active');
   const finishedPredictions = predictions.filter(p => p.status === 'finished');
+
+  // Pagination calculations
+  const activeTotalPages = Math.ceil(activePredictions.length / itemsPerPage);
+  const finishedTotalPages = Math.ceil(finishedPredictions.length / itemsPerPage);
+  const allTotalPages = Math.ceil(predictions.length / itemsPerPage);
+  
+  const paginatedActivePredictions = activePredictions.slice(
+    (activeCurrentPage - 1) * itemsPerPage,
+    activeCurrentPage * itemsPerPage
+  );
+  const paginatedFinishedPredictions = finishedPredictions.slice(
+    (finishedCurrentPage - 1) * itemsPerPage,
+    finishedCurrentPage * itemsPerPage
+  );
+  const paginatedAllPredictions = predictions.slice(
+    (allCurrentPage - 1) * itemsPerPage,
+    allCurrentPage * itemsPerPage
+  );
+
+  // Pagination component
+  const PaginationControls: React.FC<{
+    currentPage: number;
+    totalPages: number;
+    onPageChange: (page: number) => void;
+  }> = ({ currentPage, totalPages, onPageChange }) => {
+    if (totalPages <= 1) return null;
+
+    const pages = [];
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage < maxVisiblePages - 1) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+
+    return (
+      <div className="flex items-center justify-center gap-2 mt-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage <= 1}
+        >
+          Previous
+        </Button>
+        
+        {startPage > 1 && (
+          <>
+            <Button variant="outline" size="sm" onClick={() => onPageChange(1)}>1</Button>
+            {startPage > 2 && <span className="px-2">...</span>}
+          </>
+        )}
+        
+        {pages.map((page) => (
+          <Button
+            key={page}
+            variant={currentPage === page ? "default" : "outline"}
+            size="sm"
+            onClick={() => onPageChange(page)}
+          >
+            {page}
+          </Button>
+        ))}
+        
+        {endPage < totalPages && (
+          <>
+            {endPage < totalPages - 1 && <span className="px-2">...</span>}
+            <Button variant="outline" size="sm" onClick={() => onPageChange(totalPages)}>
+              {totalPages}
+            </Button>
+          </>
+        )}
+        
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage >= totalPages}
+        >
+          Next
+        </Button>
+      </div>
+    );
+  };
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-8">
@@ -111,7 +203,7 @@ const StaffPredictions: React.FC = () => {
         </TabsList>
 
         <TabsContent value="active">
-          <Card>
+          <Card className=" max-w-[350px] md:max-w-full">
             <CardHeader>
               <CardTitle>Active Predictions</CardTitle>
               <CardDescription>
@@ -120,11 +212,14 @@ const StaffPredictions: React.FC = () => {
             </CardHeader>
             <CardContent>
               {activePredictions.length > 0 ? (
-                <div className="space-y-4">
-                  {activePredictions.map((prediction) => (
-                    <StaffPredictionCard key={prediction.id} prediction={prediction} />
-                  ))}
-                </div>
+                <>
+                  <StaffPredictionsTable predictions={paginatedActivePredictions} />
+                  <PaginationControls
+                    currentPage={activeCurrentPage}
+                    totalPages={activeTotalPages}
+                    onPageChange={setActiveCurrentPage}
+                  />
+                </>
               ) : (
                 <div className="text-center py-8">
                   <Clock className="h-12 w-12 mx-auto text-gray-400 mb-3" />
@@ -136,7 +231,7 @@ const StaffPredictions: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="finished">
-          <Card>
+          <Card className=" max-w-[350px] md:max-w-full">
             <CardHeader>
               <CardTitle>Finished Predictions</CardTitle>
               <CardDescription>
@@ -145,11 +240,14 @@ const StaffPredictions: React.FC = () => {
             </CardHeader>
             <CardContent>
               {finishedPredictions.length > 0 ? (
-                <div className="space-y-4">
-                  {finishedPredictions.map((prediction) => (
-                    <StaffPredictionCard key={prediction.id} prediction={prediction} />
-                  ))}
-                </div>
+                <>
+                  <StaffPredictionsTable predictions={paginatedFinishedPredictions} />
+                  <PaginationControls
+                    currentPage={finishedCurrentPage}
+                    totalPages={finishedTotalPages}
+                    onPageChange={setFinishedCurrentPage}
+                  />
+                </>
               ) : (
                 <div className="text-center py-8">
                   <CheckCircle className="h-12 w-12 mx-auto text-gray-400 mb-3" />
@@ -161,7 +259,7 @@ const StaffPredictions: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="all">
-          <Card>
+          <Card className=" max-w-[350px] md:max-w-full">
             <CardHeader>
               <CardTitle>All Predictions</CardTitle>
               <CardDescription>
@@ -170,11 +268,14 @@ const StaffPredictions: React.FC = () => {
             </CardHeader>
             <CardContent>
               {predictions.length > 0 ? (
-                <div className="space-y-4">
-                  {predictions.map((prediction) => (
-                    <StaffPredictionCard key={prediction.id} prediction={prediction} />
-                  ))}
-                </div>
+                <>
+                  <StaffPredictionsTable predictions={paginatedAllPredictions} />
+                  <PaginationControls
+                    currentPage={allCurrentPage}
+                    totalPages={allTotalPages}
+                    onPageChange={setAllCurrentPage}
+                  />
+                </>
               ) : (
                 <div className="text-center py-8">
                   <Trophy className="h-12 w-12 mx-auto text-gray-400 mb-3" />
@@ -189,57 +290,78 @@ const StaffPredictions: React.FC = () => {
   );
 };
 
-const StaffPredictionCard: React.FC<StaffPredictionCardProps> = ({ prediction }) => {
+interface StaffPredictionsTableProps {
+  predictions: Prediction[];
+}
+
+const StaffPredictionsTable: React.FC<StaffPredictionsTableProps> = ({ predictions }) => {
   return (
-    <div className="flex items-start gap-4 p-4 border rounded-lg">
-      {/* Image */}
-      {prediction.imageUrl ? (
-        <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
-          <img 
-            src={prediction.imageUrl} 
-            alt={prediction.title}
-            className="w-full h-full object-cover"
-          />
-        </div>
-      ) : (
-        <div className="w-20 h-20 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
-          <ImageIcon className="h-8 w-8 text-gray-400" />
-        </div>
-      )}
-
-      {/* Content */}
-      <div className="flex-1 space-y-2">
-        <div className="flex items-start justify-between">
-          <div>
-            <h3 className="font-medium line-clamp-1">{prediction.title}</h3>
-            <p className="text-sm text-gray-500 line-clamp-2">{prediction.description}</p>
-          </div>
-          <div className="flex items-center gap-2 ml-4">
-            <Badge variant={prediction.status === 'active' ? 'default' : 'secondary'}>
-              {prediction.status === 'active' ? (
-                <Clock className="h-3 w-3 mr-1" />
-              ) : (
-                <CheckCircle className="h-3 w-3 mr-1" />
-              )}
-              {prediction.status}
-            </Badge>
-            <Badge variant="outline">
-              <Coins className="h-3 w-3 mr-1" />
-              {prediction.pointsCost}
-            </Badge>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between text-sm text-gray-500">
-          <span>Created {new Date(prediction.createdAt).toLocaleDateString()}</span>
-          <div className="flex items-center gap-4">
-            {/* Staff cannot see the answer */}
-            <span className="text-gray-500">Answer: Hidden for staff</span>
-            {prediction.winnerId && (
-              <span className="text-green-600">Winner found!</span>
-            )}
-          </div>
-        </div>
+    <div className="w-full overflow-x-auto -mx-4 sm:mx-0">
+      <div className="min-w-full inline-block align-middle">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
+              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px]">Title</th>
+              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Points Cost</th>
+              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">Winner Status</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {predictions.map((prediction) => (
+              <tr key={prediction.id} className="hover:bg-gray-50">
+                <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                  {prediction.imageUrl ? (
+                    <img 
+                      src={prediction.imageUrl} 
+                      alt={prediction.title}
+                      className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-md"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-200 rounded-md flex items-center justify-center">
+                      <Trophy className="h-5 w-5 sm:h-6 sm:w-6 text-gray-400" />
+                    </div>
+                  )}
+                </td>
+                <td className="px-2 sm:px-4 py-3">
+                  <div className="max-w-xs">
+                    <p className="font-medium text-xs sm:text-sm line-clamp-2">{prediction.title}</p>
+                    <p className="text-xs text-gray-500 line-clamp-2 mt-1 hidden sm:block">{prediction.description}</p>
+                  </div>
+                </td>
+                <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                  <Badge variant={prediction.status === 'active' ? 'default' : 'secondary'} className="text-xs">
+                    {prediction.status === 'active' ? (
+                      <Clock className="h-3 w-3 mr-1" />
+                    ) : (
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                    )}
+                    <span className="hidden sm:inline">{prediction.status}</span>
+                  </Badge>
+                </td>
+                <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                  <div className="flex items-center gap-1">
+                    <Coins className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500" />
+                    <span className="text-xs sm:text-sm">{prediction.pointsCost}</span>
+                  </div>
+                </td>
+                <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                  <span className="text-xs sm:text-sm">{new Date(prediction.createdAt).toLocaleDateString()}</span>
+                </td>
+                <td className="px-2 sm:px-4 py-3">
+                  <div className="space-y-1">
+                    <div className="text-xs text-gray-500 hidden sm:block">Answer: Hidden for staff</div>
+                    {prediction.winnerId && (
+                      <div className="text-xs sm:text-sm text-green-600 font-medium">Winner found!</div>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );

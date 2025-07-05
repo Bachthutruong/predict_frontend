@@ -526,7 +526,7 @@ const AdminPredictions: React.FC = () => {
         </TabsList>
 
         <TabsContent value="active">
-          <Card>
+          <Card className=" max-w-[350px] md:max-w-full">
             <CardHeader>
               <CardTitle className="text-lg sm:text-xl">Active Predictions</CardTitle>
               <CardDescription className="text-sm">
@@ -536,120 +536,122 @@ const AdminPredictions: React.FC = () => {
             <CardContent>
               {paginatedActivePredictions.length > 0 ? (
                 <div className="space-y-4">
-                  <div className="relative w-full overflow-auto">
-                    <table className="w-full caption-bottom text-sm">
-                      <thead className="[&_tr]:border-b">
-                        <tr className="border-b transition-colors hover:bg-muted/50">
-                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
-                            Image
-                          </th>
-                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
-                            Title
-                          </th>
-                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
-                            Points Cost
-                          </th>
-                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
-                            Stats
-                          </th>
-                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
-                            Created
-                          </th>
-                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
-                            Actions
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="[&_tr:last-child]:border-0">
-                        {paginatedActivePredictions.map((prediction) => (
-                          <tr key={prediction.id} className="border-b transition-colors hover:bg-muted/50">
-                            <td className="p-4 align-middle">
-                              {prediction.imageUrl ? (
-                                <img 
-                                  src={prediction.imageUrl} 
-                                  alt={prediction.title}
-                                  className="w-12 h-12 object-cover rounded-md"
-                                />
-                              ) : (
-                                <div className="w-12 h-12 bg-gray-200 rounded-md flex items-center justify-center">
-                                  <Trophy className="h-6 w-6 text-gray-400" />
-                                </div>
-                              )}
-                            </td>
-                            <td className="p-4 align-middle">
-                              <div>
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span className="font-medium">{prediction.title}</span>
-                                  <Badge variant="default" className="text-xs">Active</Badge>
-                                </div>
-                                <p className="text-xs text-gray-600 line-clamp-2 max-w-xs">
-                                  {prediction.description}
-                                </p>
-                              </div>
-                            </td>
-                            <td className="p-4 align-middle">
-                              <div className="flex items-center gap-1">
-                                <DollarSign className="h-4 w-4 text-gray-500" />
-                                <span>{prediction.pointsCost}</span>
-                              </div>
-                            </td>
-                            <td className="p-4 align-middle">
-                              <div className="space-y-1 text-xs">
-                                <div className="flex items-center gap-1">
-                                  <Users className="h-3 w-3" />
-                                  <span>{prediction.totalPredictions || 0} predictions</span>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <CheckCircle className="h-3 w-3" />
-                                  <span>{prediction.correctPredictions || 0} correct</span>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="p-4 align-middle">
-                              <span className="text-sm">
-                                {new Date(prediction.createdAt).toLocaleDateString()}
-                              </span>
-                            </td>
-                            <td className="p-4 align-middle">
-                              <div className="flex gap-1">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => loadPredictionDetails(prediction.id)}
-                                  className="text-xs"
-                                >
-                                  <Eye className="h-3 w-3" />
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => openEditDialog(prediction)}
-                                  className="text-xs"
-                                >
-                                  <Edit2 className="h-3 w-3" />
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleStatusToggle(prediction.id, prediction.status)}
-                                  className="text-xs"
-                                >
-                                  <Clock className="h-3 w-3" />
-                                </Button>
-                                <Button
-                                  variant="destructive"
-                                  size="sm"
-                                  onClick={() => handleDelete(prediction.id, prediction.title)}
-                                  className="text-xs"
-                                >
-                                  <Trash2 className="h-3 w-3" />
-                                </Button>
-                              </div>
-                            </td>
+                  <div className="w-full overflow-x-auto -mx-4 sm:mx-0">
+                    <div className="min-w-full inline-block align-middle">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Image
+                            </th>
+                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px]">
+                              Title
+                            </th>
+                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Points Cost
+                            </th>
+                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">
+                              Stats
+                            </th>
+                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Created
+                            </th>
+                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[160px]">
+                              Actions
+                            </th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {paginatedActivePredictions.map((prediction) => (
+                            <tr key={prediction.id} className="hover:bg-gray-50">
+                              <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                                {prediction.imageUrl ? (
+                                  <img 
+                                    src={prediction.imageUrl} 
+                                    alt={prediction.title}
+                                    className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-md"
+                                  />
+                                ) : (
+                                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-200 rounded-md flex items-center justify-center">
+                                    <Trophy className="h-5 w-5 sm:h-6 sm:w-6 text-gray-400" />
+                                  </div>
+                                )}
+                              </td>
+                              <td className="px-2 sm:px-4 py-3">
+                                <div>
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className="font-medium text-xs sm:text-sm">{prediction.title}</span>
+                                    <Badge variant="default" className="text-xs">Active</Badge>
+                                  </div>
+                                  <p className="text-xs text-gray-600 line-clamp-2 max-w-xs hidden sm:block">
+                                    {prediction.description}
+                                  </p>
+                                </div>
+                              </td>
+                              <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                                <div className="flex items-center gap-1">
+                                  <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500" />
+                                  <span className="text-xs sm:text-sm">{prediction.pointsCost}</span>
+                                </div>
+                              </td>
+                              <td className="px-2 sm:px-4 py-3">
+                                <div className="space-y-1 text-xs">
+                                  <div className="flex items-center gap-1">
+                                    <Users className="h-3 w-3" />
+                                    <span>{prediction.totalPredictions || 0}</span>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <CheckCircle className="h-3 w-3" />
+                                    <span>{prediction.correctPredictions || 0}</span>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                                <span className="text-xs sm:text-sm">
+                                  {new Date(prediction.createdAt).toLocaleDateString()}
+                                </span>
+                              </td>
+                              <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                                <div className="flex gap-1">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => loadPredictionDetails(prediction.id)}
+                                    className="text-xs p-2"
+                                  >
+                                    <Eye className="h-3 w-3" />
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => openEditDialog(prediction)}
+                                    className="text-xs p-2"
+                                  >
+                                    <Edit2 className="h-3 w-3" />
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleStatusToggle(prediction.id, prediction.status)}
+                                    className="text-xs p-2"
+                                  >
+                                    <Clock className="h-3 w-3" />
+                                  </Button>
+                                  <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    onClick={() => handleDelete(prediction.id, prediction.title)}
+                                    className="text-xs p-2"
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                   
                   <PaginationControls
@@ -669,7 +671,7 @@ const AdminPredictions: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="finished">
-          <Card>
+          <Card className=" max-w-[350px] md:max-w-full">
             <CardHeader>
               <CardTitle className="text-lg sm:text-xl">Finished Predictions</CardTitle>
               <CardDescription className="text-sm">
@@ -679,124 +681,126 @@ const AdminPredictions: React.FC = () => {
             <CardContent>
               {paginatedFinishedPredictions.length > 0 ? (
                 <div className="space-y-4">
-                  <div className="relative w-full overflow-auto">
-                    <table className="w-full caption-bottom text-sm">
-                      <thead className="[&_tr]:border-b">
-                        <tr className="border-b transition-colors hover:bg-muted/50">
-                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
-                            Image
-                          </th>
-                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
-                            Title
-                          </th>
-                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
-                            Points Cost
-                          </th>
-                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
-                            Stats
-                          </th>
-                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
-                            Created
-                          </th>
-                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
-                            Actions
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="[&_tr:last-child]:border-0">
-                        {paginatedFinishedPredictions.map((prediction) => (
-                          <tr key={prediction.id} className="border-b transition-colors hover:bg-muted/50">
-                            <td className="p-4 align-middle">
-                              {prediction.imageUrl ? (
-                                <img 
-                                  src={prediction.imageUrl} 
-                                  alt={prediction.title}
-                                  className="w-12 h-12 object-cover rounded-md"
-                                />
-                              ) : (
-                                <div className="w-12 h-12 bg-gray-200 rounded-md flex items-center justify-center">
-                                  <Trophy className="h-6 w-6 text-gray-400" />
-                                </div>
-                              )}
-                            </td>
-                            <td className="p-4 align-middle">
-                              <div>
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span className="font-medium">{prediction.title}</span>
-                                  <Badge variant="secondary" className="text-xs">Finished</Badge>
-                                </div>
-                                <p className="text-xs text-gray-600 line-clamp-2 max-w-xs">
-                                  {prediction.description}
-                                </p>
-                              </div>
-                            </td>
-                            <td className="p-4 align-middle">
-                              <div className="flex items-center gap-1">
-                                <DollarSign className="h-4 w-4 text-gray-500" />
-                                <span>{prediction.pointsCost}</span>
-                              </div>
-                            </td>
-                            <td className="p-4 align-middle">
-                              <div className="space-y-1 text-xs">
-                                <div className="flex items-center gap-1">
-                                  <Users className="h-3 w-3" />
-                                  <span>{prediction.totalPredictions || 0} predictions</span>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <CheckCircle className="h-3 w-3" />
-                                  <span>{prediction.correctPredictions || 0} correct</span>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <TrendingUp className="h-3 w-3" />
-                                  <span>{prediction.totalPointsAwarded || 0} pts</span>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="p-4 align-middle">
-                              <span className="text-sm">
-                                {new Date(prediction.createdAt).toLocaleDateString()}
-                              </span>
-                            </td>
-                            <td className="p-4 align-middle">
-                              <div className="flex gap-1">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => loadPredictionDetails(prediction.id)}
-                                  className="text-xs"
-                                >
-                                  <Eye className="h-3 w-3" />
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => openEditDialog(prediction)}
-                                  className="text-xs"
-                                >
-                                  <Edit2 className="h-3 w-3" />
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleStatusToggle(prediction.id, prediction.status)}
-                                  className="text-xs"
-                                >
-                                  <Activity className="h-3 w-3" />
-                                </Button>
-                                <Button
-                                  variant="destructive"
-                                  size="sm"
-                                  onClick={() => handleDelete(prediction.id, prediction.title)}
-                                  className="text-xs"
-                                >
-                                  <Trash2 className="h-3 w-3" />
-                                </Button>
-                              </div>
-                            </td>
+                  <div className="w-full overflow-x-auto -mx-4 sm:mx-0">
+                    <div className="min-w-full inline-block align-middle">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Image
+                            </th>
+                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px]">
+                              Title
+                            </th>
+                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Points Cost
+                            </th>
+                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">
+                              Stats
+                            </th>
+                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Created
+                            </th>
+                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[160px]">
+                              Actions
+                            </th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {paginatedFinishedPredictions.map((prediction) => (
+                            <tr key={prediction.id} className="hover:bg-gray-50">
+                              <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                                {prediction.imageUrl ? (
+                                  <img 
+                                    src={prediction.imageUrl} 
+                                    alt={prediction.title}
+                                    className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-md"
+                                  />
+                                ) : (
+                                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-200 rounded-md flex items-center justify-center">
+                                    <Trophy className="h-5 w-5 sm:h-6 sm:w-6 text-gray-400" />
+                                  </div>
+                                )}
+                              </td>
+                              <td className="px-2 sm:px-4 py-3">
+                                <div>
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className="font-medium text-xs sm:text-sm">{prediction.title}</span>
+                                    <Badge variant="secondary" className="text-xs">Finished</Badge>
+                                  </div>
+                                  <p className="text-xs text-gray-600 line-clamp-2 max-w-xs hidden sm:block">
+                                    {prediction.description}
+                                  </p>
+                                </div>
+                              </td>
+                              <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                                <div className="flex items-center gap-1">
+                                  <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500" />
+                                  <span className="text-xs sm:text-sm">{prediction.pointsCost}</span>
+                                </div>
+                              </td>
+                              <td className="px-2 sm:px-4 py-3">
+                                <div className="space-y-1 text-xs">
+                                  <div className="flex items-center gap-1">
+                                    <Users className="h-3 w-3" />
+                                    <span>{prediction.totalPredictions || 0}</span>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <CheckCircle className="h-3 w-3" />
+                                    <span>{prediction.correctPredictions || 0}</span>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <TrendingUp className="h-3 w-3" />
+                                    <span>{prediction.totalPointsAwarded || 0}</span>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                                <span className="text-xs sm:text-sm">
+                                  {new Date(prediction.createdAt).toLocaleDateString()}
+                                </span>
+                              </td>
+                              <td className="px-2 py-3 whitespace-nowrap">
+                                <div className="flex gap-1">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => loadPredictionDetails(prediction.id)}
+                                    className="text-xs p-2"
+                                  >
+                                    <Eye className="h-3 w-3" />
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => openEditDialog(prediction)}
+                                    className="text-xs p-2"
+                                  >
+                                    <Edit2 className="h-3 w-3" />
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleStatusToggle(prediction.id, prediction.status)}
+                                    className="text-xs p-2"
+                                  >
+                                    <Activity className="h-3 w-3" />
+                                  </Button>
+                                  <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    onClick={() => handleDelete(prediction.id, prediction.title)}
+                                    className="text-xs p-2"
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                   
                   <PaginationControls

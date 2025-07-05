@@ -415,7 +415,7 @@ const AdminGrantPoints: React.FC = () => {
         </TabsList>
 
         <TabsContent value="users">
-          <Card>
+          <Card className=" max-w-[350px] md:max-w-full">
             <CardHeader>
               <CardTitle>All Users</CardTitle>
               <CardDescription>
@@ -425,61 +425,64 @@ const AdminGrantPoints: React.FC = () => {
             <CardContent>
               {users.length > 0 ? (
                 <>
-                  <div className="relative w-full overflow-auto">
-                    <table className="w-full caption-bottom text-sm">
-                      <thead className="[&_tr]:border-b">
-                        <tr className="border-b transition-colors hover:bg-muted/50">
-                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">User</th>
-                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Role</th>
-                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Points</th>
-                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Joined</th>
-                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="[&_tr:last-child]:border-0">
-                        {paginatedUsers.map((user) => (
-                          <tr key={user.id} className="border-b transition-colors hover:bg-muted/50">
-                            <td className="p-4 align-middle">
-                              <div className="flex items-center gap-3">
-                                <Avatar className="h-10 w-10 flex-shrink-0">
-                                  <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
-                                </Avatar>
-                                <div className="min-w-0 flex-1">
-                                  <p className="font-medium truncate">{user.name}</p>
-                                  <p className="text-sm text-gray-500 truncate">{user.email}</p>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="p-4 align-middle">
-                              <Badge variant={user.role === 'staff' ? 'secondary' : 'outline'} className="text-xs">
-                                {user.role}
-                              </Badge>
-                            </td>
-                            <td className="p-4 align-middle">
-                              <div className="text-center">
-                                <p className="font-bold text-lg">{user.points}</p>
-                                <p className="text-xs text-gray-500">points</p>
-                              </div>
-                            </td>
-                            <td className="p-4 align-middle">
-                              <span className="text-sm">{new Date(user.createdAt).toLocaleDateString()}</span>
-                            </td>
-                            <td className="p-4 align-middle">
-                              <Button
-                                size="sm"
-                                onClick={() => {
-                                  setGrantData(prev => ({ ...prev, userId: user.id }));
-                                  setIsDialogOpen(true);
-                                }}
-                              >
-                                <Coins className="h-4 w-4 mr-1" />
-                                Grant
-                              </Button>
-                            </td>
+                  <div className="w-full overflow-x-auto -mx-4 sm:mx-0">
+                    <div className="min-w-full inline-block align-middle">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[180px]">User</th>
+                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Points</th>
+                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
+                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {paginatedUsers.map((user) => (
+                            <tr key={user.id} className="hover:bg-gray-50">
+                              <td className="px-2 sm:px-4 py-3">
+                                <div className="flex items-center gap-3">
+                                  <Avatar className="h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0">
+                                    <AvatarFallback className="text-xs sm:text-sm">{getInitials(user.name)}</AvatarFallback>
+                                  </Avatar>
+                                  <div className="min-w-0 flex-1">
+                                    <p className="font-medium truncate text-xs sm:text-sm">{user.name}</p>
+                                    <p className="text-xs text-gray-500 truncate hidden sm:block">{user.email}</p>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                                <Badge variant={user.role === 'staff' ? 'secondary' : 'outline'} className="text-xs">
+                                  {user.role}
+                                </Badge>
+                              </td>
+                              <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                                <div className="text-center">
+                                  <p className="font-bold text-sm sm:text-lg">{user.points}</p>
+                                  <p className="text-xs text-gray-500 hidden sm:block">points</p>
+                                </div>
+                              </td>
+                              <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                                <span className="text-xs sm:text-sm">{new Date(user.createdAt).toLocaleDateString()}</span>
+                              </td>
+                              <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                                <Button
+                                  size="sm"
+                                  onClick={() => {
+                                    setGrantData(prev => ({ ...prev, userId: user.id }));
+                                    setIsDialogOpen(true);
+                                  }}
+                                  className="text-xs p-1 sm:p-2"
+                                >
+                                  <Coins className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                                  <span className="hidden sm:inline">Grant</span>
+                                </Button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                   <PaginationControls
                     currentPage={usersCurrentPage}
@@ -498,7 +501,7 @@ const AdminGrantPoints: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="transactions">
-          <Card>
+          <Card className=" max-w-[350px] md:max-w-full">
             <CardHeader>
               <CardTitle>Recent Point Transactions</CardTitle>
               <CardDescription>
@@ -508,61 +511,63 @@ const AdminGrantPoints: React.FC = () => {
             <CardContent>
               {transactions.length > 0 ? (
                 <>
-                  <div className="relative w-full overflow-auto">
-                    <table className="w-full caption-bottom text-sm">
-                      <thead className="[&_tr]:border-b">
-                        <tr className="border-b transition-colors hover:bg-muted/50">
-                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Type</th>
-                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">User</th>
-                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Amount</th>
-                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Notes</th>
-                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Date</th>
-                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Admin</th>
-                        </tr>
-                      </thead>
-                      <tbody className="[&_tr:last-child]:border-0">
-                        {paginatedTransactions.map((transaction) => (
-                          <tr key={transaction.id} className="border-b transition-colors hover:bg-muted/50">
-                            <td className="p-4 align-middle">
-                              <div className="flex items-center gap-2">
-                                <div className={`p-2 rounded-full flex-shrink-0 ${transaction.amount > 0 ? 'bg-green-100' : 'bg-red-100'}`}>
-                                  {transaction.amount > 0 ? (
-                                    <TrendingUp className="h-4 w-4 text-green-600" />
-                                  ) : (
-                                    <TrendingDown className="h-4 w-4 text-red-600" />
-                                  )}
-                                </div>
-                                <span className="font-medium">
-                                  {transaction.amount > 0 ? 'Granted' : 'Deducted'}
-                                </span>
-                              </div>
-                            </td>
-                            <td className="p-4 align-middle">
-                              <span className="font-medium">{transaction.user?.name || 'Unknown User'}</span>
-                            </td>
-                            <td className="p-4 align-middle">
-                              <div className="text-center">
-                                <p className={`font-bold text-lg ${transaction.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                  {transaction.amount > 0 ? '+' : ''}{transaction.amount}
-                                </p>
-                                <p className="text-xs text-gray-500">points</p>
-                              </div>
-                            </td>
-                            <td className="p-4 align-middle">
-                              <span className="text-sm max-w-xs truncate block">
-                                {transaction.notes || 'No notes'}
-                              </span>
-                            </td>
-                            <td className="p-4 align-middle">
-                              <span className="text-sm">{new Date(transaction.createdAt).toLocaleDateString()}</span>
-                            </td>
-                            <td className="p-4 align-middle">
-                              <span className="text-sm">{transaction.admin?.name || 'Unknown Admin'}</span>
-                            </td>
+                  <div className="w-full overflow-x-auto -mx-4 sm:mx-0">
+                    <div className="min-w-full inline-block align-middle">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">Type</th>
+                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">User</th>
+                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[150px]">Notes</th>
+                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Admin</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {paginatedTransactions.map((transaction) => (
+                            <tr key={transaction.id} className="hover:bg-gray-50">
+                              <td className="px-2 sm:px-4 py-3">
+                                <div className="flex items-center gap-2">
+                                  <div className={`p-1 sm:p-2 rounded-full flex-shrink-0 ${transaction.amount > 0 ? 'bg-green-100' : 'bg-red-100'}`}>
+                                    {transaction.amount > 0 ? (
+                                      <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
+                                    ) : (
+                                      <TrendingDown className="h-3 w-3 sm:h-4 sm:w-4 text-red-600" />
+                                    )}
+                                  </div>
+                                  <span className="font-medium text-xs sm:text-sm">
+                                    {transaction.amount > 0 ? 'Granted' : 'Deducted'}
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="px-2 sm:px-4 py-3">
+                                <span className="font-medium text-xs sm:text-sm truncate block max-w-[100px]">{transaction.user?.name || 'Unknown User'}</span>
+                              </td>
+                              <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                                <div className="text-center">
+                                  <p className={`font-bold text-sm sm:text-lg ${transaction.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                    {transaction.amount > 0 ? '+' : ''}{transaction.amount}
+                                  </p>
+                                  <p className="text-xs text-gray-500 hidden sm:block">points</p>
+                                </div>
+                              </td>
+                              <td className="px-2 sm:px-4 py-3">
+                                <span className="text-xs sm:text-sm max-w-xs truncate block">
+                                  {transaction.notes || 'No notes'}
+                                </span>
+                              </td>
+                              <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                                <span className="text-xs sm:text-sm">{new Date(transaction.createdAt).toLocaleDateString()}</span>
+                              </td>
+                              <td className="px-2 sm:px-4 py-3">
+                                <span className="text-xs sm:text-sm truncate block max-w-[100px]">{transaction.admin?.name || 'Unknown Admin'}</span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                   <PaginationControls
                     currentPage={transactionsCurrentPage}

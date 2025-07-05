@@ -452,7 +452,7 @@ const AdminStaff: React.FC = () => {
       </div>
 
       {/* Staff List */}
-      <Card>
+      <Card className=" max-w-[350px] md:max-w-full">
         <CardHeader>
           <CardTitle>Staff Members ({staff.length})</CardTitle>
           <CardDescription>
@@ -462,78 +462,82 @@ const AdminStaff: React.FC = () => {
         <CardContent>
           {staff.length > 0 ? (
             <>
-              <div className="relative w-full overflow-auto">
-                <table className="w-full caption-bottom text-sm">
-                  <thead className="[&_tr]:border-b">
-                    <tr className="border-b transition-colors hover:bg-muted/50">
-                      <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Staff Member</th>
-                      <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Role</th>
-                      <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Status</th>
-                      <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Joined</th>
-                      <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="[&_tr:last-child]:border-0">
-                    {paginatedStaff.map((member) => (
-                      <tr key={member.id} className="border-b transition-colors hover:bg-muted/50">
-                        <td className="p-4 align-middle">
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-10 w-10 flex-shrink-0">
-                              <AvatarImage src={member.avatarUrl} />
-                              <AvatarFallback>{getInitials(member.name)}</AvatarFallback>
-                            </Avatar>
-                            <div className="min-w-0 flex-1">
-                              <p className="font-medium truncate">{member.name}</p>
-                              <div className="flex items-center gap-1 text-sm text-gray-500">
-                                <Mail className="h-3 w-3" />
-                                <span className="truncate">{member.email}</span>
+              <div className="w-full overflow-x-auto -mx-4 sm:mx-0">
+                <div className="min-w-full inline-block align-middle">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px]">Staff Member</th>
+                        <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                        <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
+                        <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {paginatedStaff.map((member) => (
+                        <tr key={member.id} className="hover:bg-gray-50">
+                          <td className="px-2 sm:px-4 py-3">
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0">
+                                <AvatarImage src={member.avatarUrl} />
+                                <AvatarFallback className="text-xs sm:text-sm">{getInitials(member.name)}</AvatarFallback>
+                              </Avatar>
+                              <div className="min-w-0 flex-1">
+                                <p className="font-medium truncate text-xs sm:text-sm">{member.name}</p>
+                                <div className="flex items-center gap-1 text-xs text-gray-500 hidden sm:flex">
+                                  <Mail className="h-3 w-3" />
+                                  <span className="truncate">{member.email}</span>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </td>
-                        <td className="p-4 align-middle">
-                          <Badge variant="secondary" className="text-xs">
-                            Staff
-                          </Badge>
-                        </td>
-                        <td className="p-4 align-middle">
-                          {member.isEmailVerified ? (
-                            <Badge variant="default" className="text-xs">
-                              <UserCheck className="h-3 w-3 mr-1" />
-                              Verified
+                          </td>
+                          <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                            <Badge variant="secondary" className="text-xs">
+                              Staff
                             </Badge>
-                          ) : (
-                            <Badge variant="outline" className="text-xs">
-                              Unverified
-                            </Badge>
-                          )}
-                        </td>
-                        <td className="p-4 align-middle">
-                          <span className="text-sm">{new Date(member.createdAt).toLocaleDateString()}</span>
-                        </td>
-                        <td className="p-4 align-middle">
-                          <div className="flex gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => openEditDialog(member)}
-                            >
-                              <Edit2 className="h-4 w-4" />
-                            </Button>
-                            
-                            <Button 
-                              variant="destructive" 
-                              size="sm"
-                              onClick={() => handleDelete(member.id, member.name)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                          </td>
+                          <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                            {member.isEmailVerified ? (
+                              <Badge variant="default" className="text-xs">
+                                <UserCheck className="h-3 w-3 mr-1" />
+                                <span className="hidden sm:inline">Verified</span>
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-xs">
+                                <span className="hidden sm:inline">Unverified</span>
+                              </Badge>
+                            )}
+                          </td>
+                          <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                            <span className="text-xs sm:text-sm">{new Date(member.createdAt).toLocaleDateString()}</span>
+                          </td>
+                          <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
+                            <div className="flex gap-1">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => openEditDialog(member)}
+                                className="text-xs p-2"
+                              >
+                                <Edit2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                              </Button>
+                              
+                              <Button 
+                                variant="destructive" 
+                                size="sm"
+                                onClick={() => handleDelete(member.id, member.name)}
+                                className="text-xs p-2"
+                              >
+                                <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
               <PaginationControls
                 currentPage={currentPage}
