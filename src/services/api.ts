@@ -216,6 +216,11 @@ export const adminAPI = {
 
 // Check-in API
 export const checkInAPI = {
+  getStatus: async (): Promise<ApiResponse<{ hasCheckedIn: boolean; isCorrect?: boolean; pointsEarned?: number }>> => {
+    const response = await api.get('/check-in/status');
+    return response.data;
+  },
+
   getQuestion: async (): Promise<ApiResponse<Question>> => {
     const response = await api.get('/check-in/question');
     return response.data;

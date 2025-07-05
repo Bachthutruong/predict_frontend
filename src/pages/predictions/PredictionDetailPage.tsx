@@ -11,7 +11,7 @@ import {
   Trophy, 
   Coins, 
   Users, 
-  Clock, 
+  // Clock, 
   Target, 
   CheckCircle,
   XCircle,
@@ -70,6 +70,17 @@ const PredictionDetailPage: React.FC = () => {
       setUserPredictions(data.userPredictions || []);
       setCurrentUserPrediction(data.currentUserPrediction || null);
       setTotalPages(data.totalPages || 1);
+      
+      // Debug logging
+      console.log('Current user:', user);
+      console.log('Current user ID:', user?.id);
+      console.log('User predictions:', data.userPredictions);
+      console.log('First prediction user ID:', data.userPredictions?.[0]?.user?.id);
+      console.log('First prediction userId:', data.userPredictions?.[0]?.userId);
+      console.log('First prediction userId._id:', (data.userPredictions?.[0]?.userId as any)?._id);
+      console.log('ID comparison (old):', user?.id === data.userPredictions?.[0]?.userId);
+      console.log('ID comparison (new):', user?.id === getUserId(data.userPredictions?.[0]?.userId));
+      console.log('ID types:', typeof user?.id, typeof data.userPredictions?.[0]?.userId);
     } catch (error) {
       console.error('Failed to load prediction:', error);
       setPrediction(null);
@@ -149,6 +160,10 @@ const PredictionDetailPage: React.FC = () => {
 
   const getInitials = (name: string) => {
     return name.split(' ').map(part => part[0]).join('').toUpperCase().slice(0, 2);
+  };
+
+  const getUserId = (userIdField: string | any) => {
+    return typeof userIdField === 'object' ? userIdField._id : userIdField;
   };
 
   if (isLoading) {
@@ -432,20 +447,20 @@ const PredictionDetailPage: React.FC = () => {
                 <div key={userPrediction.id} className="flex items-center justify-between p-3 border rounded-lg">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={userPrediction.user.avatarUrl} />
+                      <AvatarImage src={userPrediction.user?.avatarUrl || ''} />
                       <AvatarFallback className="text-xs">
-                        {getInitials(userPrediction.user.name)}
+                        {userPrediction.user?.name ? getInitials(userPrediction.user.name) : '?'}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-medium text-sm">{userPrediction.user.name}</p>
+                      <p className="font-medium text-sm">{userPrediction.user?.name || 'Unknown User'}</p>
                       <p className="text-xs text-gray-500">
-                        "{userPrediction.guess}"
+                        "{user?.id === getUserId(userPrediction.userId) ? userPrediction.guess : '***'}"
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge variant={userPrediction.isCorrect ? 'default' : 'secondary'}>
+                    <Badge variant={userPrediction.isCorrect ? 'default' : 'destructive'}>
                       {userPrediction.isCorrect ? (
                         <>
                           <CheckCircle className="h-3 w-3 mr-1" />
@@ -453,8 +468,8 @@ const PredictionDetailPage: React.FC = () => {
                         </>
                       ) : (
                         <>
-                          <Clock className="h-3 w-3 mr-1" />
-                          Waiting
+                          <XCircle className="h-3 w-3 mr-1" />
+                          Incorrect
                         </>
                       )}
                     </Badge>

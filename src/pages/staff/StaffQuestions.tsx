@@ -21,6 +21,7 @@ import {
   // Calendar
 } from 'lucide-react';
 import apiService from '../../services/api';
+import { ImageUpload } from '../../components/ui/image-upload';
 import type { Question } from '../../types';
 
 interface QuestionFormData {
@@ -228,15 +229,15 @@ const StaffQuestions: React.FC = () => {
               </div>
 
               <div className="space-y-2">
-                <Label>Question Image URL</Label>
-                <Input
+                <Label>Question Image</Label>
+                <ImageUpload
                   value={newQuestion.imageUrl}
-                  onChange={(e) => setNewQuestion(prev => ({...prev, imageUrl: e.target.value}))}
-                  placeholder="Enter image URL (optional)..."
+                  onChange={(url) => setNewQuestion(prev => ({...prev, imageUrl: url}))}
                   disabled={isSubmitting}
+                  placeholder="Upload question image (optional)"
                 />
                 <p className="text-xs text-gray-500">
-                  Optional: Add an image URL to accompany the question
+                  Optional: Add an image to accompany the question
                 </p>
               </div>
 
@@ -438,12 +439,12 @@ const StaffQuestions: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label>Question Image URL</Label>
-              <Input
+              <Label>Question Image</Label>
+              <ImageUpload
                 value={editQuestion.imageUrl}
-                onChange={(e) => setEditQuestion(prev => ({...prev, imageUrl: e.target.value}))}
-                placeholder="Enter image URL (optional)..."
+                onChange={(url) => setEditQuestion(prev => ({...prev, imageUrl: url}))}
                 disabled={isSubmitting}
+                placeholder="Upload question image (optional)"
               />
             </div>
 

@@ -4,7 +4,7 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Textarea } from '../../components/ui/textarea';
-// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
+import { Badge } from '../../components/ui/badge';
 import { Avatar, AvatarFallback } from '../../components/ui/avatar';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../../components/ui/dialog';
 import { Alert, AlertDescription } from '../../components/ui/alert';
@@ -39,7 +39,11 @@ const AdminGrantPoints: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-    // const [result, setResult] = useState<{success: boolean, message?: string} | null>(null);
+  
+  // Pagination states  
+  const [usersCurrentPage, setUsersCurrentPage] = useState(1);
+  const [transactionsCurrentPage, setTransactionsCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   
   const [grantData, setGrantData] = useState<GrantPointsData>({
     userId: '',
@@ -124,6 +128,90 @@ const AdminGrantPoints: React.FC = () => {
 
   const totalPointsGranted = transactions.reduce((sum, t) => sum + (t.amount > 0 ? t.amount : 0), 0);
   const totalPointsDeducted = transactions.reduce((sum, t) => sum + (t.amount < 0 ? Math.abs(t.amount) : 0), 0);
+
+  // Pagination calculations
+  const usersTotalPages = Math.ceil(users.length / itemsPerPage);
+  const transactionsTotalPages = Math.ceil(transactions.length / itemsPerPage);
+  
+  const paginatedUsers = users.slice(
+    (usersCurrentPage - 1) * itemsPerPage,
+    usersCurrentPage * itemsPerPage
+  );
+  const paginatedTransactions = transactions.slice(
+    (transactionsCurrentPage - 1) * itemsPerPage,
+    transactionsCurrentPage * itemsPerPage
+  );
+
+  // Pagination component
+  const PaginationControls: React.FC<{
+    currentPage: number;
+    totalPages: number;
+    onPageChange: (page: number) => void;
+  }> = ({ currentPage, totalPages, onPageChange }) => {
+    if (totalPages < 1) return null;
+
+    const pages = [];
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage < maxVisiblePages - 1) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+
+    return (
+      <div className="flex items-center justify-center gap-2 mt-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage <= 1}
+        >
+          Previous
+        </Button>
+        
+        {startPage > 1 && (
+          <>
+            <Button variant="outline" size="sm" onClick={() => onPageChange(1)}>1</Button>
+            {startPage > 2 && <span className="px-2">...</span>}
+          </>
+        )}
+        
+        {pages.map((page) => (
+          <Button
+            key={page}
+            variant={currentPage === page ? "default" : "outline"}
+            size="sm"
+            onClick={() => onPageChange(page)}
+          >
+            {page}
+          </Button>
+        ))}
+        
+        {endPage < totalPages && (
+          <>
+            {endPage < totalPages - 1 && <span className="px-2">...</span>}
+            <Button variant="outline" size="sm" onClick={() => onPageChange(totalPages)}>
+              {totalPages}
+            </Button>
+          </>
+        )}
+        
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage >= totalPages}
+        >
+          Next
+        </Button>
+      </div>
+    );
+  };
 
   if (isLoading) {
     return (
@@ -336,38 +424,69 @@ const AdminGrantPoints: React.FC = () => {
             </CardHeader>
             <CardContent>
               {users.length > 0 ? (
-                <div className="space-y-4">
-                  {users.map((user) => (
-                    <div key={user.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg gap-3">
-                      <div className="flex items-center gap-3 min-w-0 flex-1">
-                        <Avatar className="h-10 w-10 flex-shrink-0">
-                          <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
-                        </Avatar>
-                        <div className="min-w-0 flex-1">
-                          <p className="font-medium truncate">{user.name}</p>
-                          <p className="text-sm text-gray-500 truncate">{user.email}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between sm:justify-end gap-3 flex-shrink-0">
-                        <div className="text-center sm:text-right">
-                          <p className="font-bold text-lg">{user.points}</p>
-                          <p className="text-xs text-gray-500">points</p>
-                        </div>
-                        <Button
-                          size="sm"
-                          onClick={() => {
-                            setGrantData(prev => ({ ...prev, userId: user.id }));
-                            setIsDialogOpen(true);
-                          }}
-                          className="flex-shrink-0"
-                        >
-                          <Coins className="h-4 w-4 sm:mr-1" />
-                          <span className="hidden sm:inline">Grant</span>
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <>
+                  <div className="relative w-full overflow-auto">
+                    <table className="w-full caption-bottom text-sm">
+                      <thead className="[&_tr]:border-b">
+                        <tr className="border-b transition-colors hover:bg-muted/50">
+                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">User</th>
+                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Role</th>
+                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Points</th>
+                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Joined</th>
+                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="[&_tr:last-child]:border-0">
+                        {paginatedUsers.map((user) => (
+                          <tr key={user.id} className="border-b transition-colors hover:bg-muted/50">
+                            <td className="p-4 align-middle">
+                              <div className="flex items-center gap-3">
+                                <Avatar className="h-10 w-10 flex-shrink-0">
+                                  <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                                </Avatar>
+                                <div className="min-w-0 flex-1">
+                                  <p className="font-medium truncate">{user.name}</p>
+                                  <p className="text-sm text-gray-500 truncate">{user.email}</p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="p-4 align-middle">
+                              <Badge variant={user.role === 'staff' ? 'secondary' : 'outline'} className="text-xs">
+                                {user.role}
+                              </Badge>
+                            </td>
+                            <td className="p-4 align-middle">
+                              <div className="text-center">
+                                <p className="font-bold text-lg">{user.points}</p>
+                                <p className="text-xs text-gray-500">points</p>
+                              </div>
+                            </td>
+                            <td className="p-4 align-middle">
+                              <span className="text-sm">{new Date(user.createdAt).toLocaleDateString()}</span>
+                            </td>
+                            <td className="p-4 align-middle">
+                              <Button
+                                size="sm"
+                                onClick={() => {
+                                  setGrantData(prev => ({ ...prev, userId: user.id }));
+                                  setIsDialogOpen(true);
+                                }}
+                              >
+                                <Coins className="h-4 w-4 mr-1" />
+                                Grant
+                              </Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <PaginationControls
+                    currentPage={usersCurrentPage}
+                    totalPages={usersTotalPages}
+                    onPageChange={setUsersCurrentPage}
+                  />
+                </>
               ) : (
                 <div className="text-center py-8">
                   <User className="h-12 w-12 mx-auto text-gray-400 mb-3" />
@@ -388,48 +507,69 @@ const AdminGrantPoints: React.FC = () => {
             </CardHeader>
             <CardContent>
               {transactions.length > 0 ? (
-                <div className="space-y-4">
-                  {transactions.map((transaction) => (
-                    <div key={transaction.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg gap-3">
-                      <div className="flex items-start gap-3 min-w-0 flex-1">
-                        <div className={`p-2 rounded-full flex-shrink-0 ${transaction.amount > 0 ? 'bg-green-100' : 'bg-red-100'}`}>
-                          {transaction.amount > 0 ? (
-                            <TrendingUp className="h-4 w-4 text-green-600" />
-                          ) : (
-                            <TrendingDown className="h-4 w-4 text-red-600" />
-                          )}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="font-medium">
-                            {transaction.amount > 0 ? 'Points Granted' : 'Points Deducted'}
-                          </p>
-                          <p className="text-sm text-gray-500 truncate">
-                            To: <span className="font-medium">{transaction.user?.name || 'Unknown User'}</span>
-                          </p>
-                          {transaction.notes && (
-                            <p className="text-xs text-gray-500 line-clamp-2">
-                              "{transaction.notes}"
-                            </p>
-                          )}
-                          <p className="text-xs text-gray-500">
-                            {new Date(transaction.createdAt).toLocaleString()}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-center sm:text-right flex-shrink-0">
-                        <p className={`font-bold text-lg ${transaction.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {transaction.amount > 0 ? '+' : ''}{transaction.amount}
-                        </p>
-                        <p className="text-xs text-gray-500">points</p>
-                        {transaction.admin && (
-                          <p className="text-xs text-gray-500">
-                            by {transaction.admin?.name || 'Unknown Admin'}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <>
+                  <div className="relative w-full overflow-auto">
+                    <table className="w-full caption-bottom text-sm">
+                      <thead className="[&_tr]:border-b">
+                        <tr className="border-b transition-colors hover:bg-muted/50">
+                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Type</th>
+                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">User</th>
+                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Amount</th>
+                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Notes</th>
+                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Date</th>
+                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Admin</th>
+                        </tr>
+                      </thead>
+                      <tbody className="[&_tr:last-child]:border-0">
+                        {paginatedTransactions.map((transaction) => (
+                          <tr key={transaction.id} className="border-b transition-colors hover:bg-muted/50">
+                            <td className="p-4 align-middle">
+                              <div className="flex items-center gap-2">
+                                <div className={`p-2 rounded-full flex-shrink-0 ${transaction.amount > 0 ? 'bg-green-100' : 'bg-red-100'}`}>
+                                  {transaction.amount > 0 ? (
+                                    <TrendingUp className="h-4 w-4 text-green-600" />
+                                  ) : (
+                                    <TrendingDown className="h-4 w-4 text-red-600" />
+                                  )}
+                                </div>
+                                <span className="font-medium">
+                                  {transaction.amount > 0 ? 'Granted' : 'Deducted'}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="p-4 align-middle">
+                              <span className="font-medium">{transaction.user?.name || 'Unknown User'}</span>
+                            </td>
+                            <td className="p-4 align-middle">
+                              <div className="text-center">
+                                <p className={`font-bold text-lg ${transaction.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                  {transaction.amount > 0 ? '+' : ''}{transaction.amount}
+                                </p>
+                                <p className="text-xs text-gray-500">points</p>
+                              </div>
+                            </td>
+                            <td className="p-4 align-middle">
+                              <span className="text-sm max-w-xs truncate block">
+                                {transaction.notes || 'No notes'}
+                              </span>
+                            </td>
+                            <td className="p-4 align-middle">
+                              <span className="text-sm">{new Date(transaction.createdAt).toLocaleDateString()}</span>
+                            </td>
+                            <td className="p-4 align-middle">
+                              <span className="text-sm">{transaction.admin?.name || 'Unknown Admin'}</span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <PaginationControls
+                    currentPage={transactionsCurrentPage}
+                    totalPages={transactionsTotalPages}
+                    onPageChange={setTransactionsCurrentPage}
+                  />
+                </>
               ) : (
                 <div className="text-center py-8">
                   <Coins className="h-12 w-12 mx-auto text-gray-400 mb-3" />

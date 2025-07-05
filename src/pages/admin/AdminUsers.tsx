@@ -41,6 +41,10 @@ const AdminUsers: React.FC = () => {
   const [selectedUser, setSelectedUser] = useState<UserWithStats | null>(null);
   const [userTransactions, setUserTransactions] = useState<PointTransaction[]>([]);
   const [showUserModal, setShowUserModal] = useState(false);
+  
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     loadUsers();
@@ -177,6 +181,89 @@ const AdminUsers: React.FC = () => {
     staff: users.filter(u => u.role === 'staff').length,
     users: users.filter(u => u.role === 'user').length,
     totalPoints: users.reduce((sum, u) => sum + u.points, 0),
+  };
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const paginatedUsers = filteredUsers.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, roleFilter, statusFilter]);
+
+  // Pagination component
+  const PaginationControls: React.FC<{
+    currentPage: number;
+    totalPages: number;
+    onPageChange: (page: number) => void;
+  }> = ({ currentPage, totalPages, onPageChange }) => {
+    if (totalPages < 1) return null;
+
+    const pages = [];
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage < maxVisiblePages - 1) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+
+    return (
+      <div className="flex items-center justify-center gap-2 mt-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage <= 1}
+        >
+          Previous
+        </Button>
+        
+        {startPage > 1 && (
+          <>
+            <Button variant="outline" size="sm" onClick={() => onPageChange(1)}>1</Button>
+            {startPage > 2 && <span className="px-2">...</span>}
+          </>
+        )}
+        
+        {pages.map((page) => (
+          <Button
+            key={page}
+            variant={currentPage === page ? "default" : "outline"}
+            size="sm"
+            onClick={() => onPageChange(page)}
+          >
+            {page}
+          </Button>
+        ))}
+        
+        {endPage < totalPages && (
+          <>
+            {endPage < totalPages - 1 && <span className="px-2">...</span>}
+            <Button variant="outline" size="sm" onClick={() => onPageChange(totalPages)}>
+              {totalPages}
+            </Button>
+          </>
+        )}
+        
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage >= totalPages}
+        >
+          Next
+        </Button>
+      </div>
+    );
   };
 
   if (isLoading) {
@@ -335,81 +422,109 @@ const AdminUsers: React.FC = () => {
         </CardHeader>
         <CardContent>
           {filteredUsers.length > 0 ? (
-            <div className="space-y-4">
-              {filteredUsers.map((user) => (
-                <div key={user.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg gap-3">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10 flex-shrink-0">
-                      <AvatarImage src={user.avatarUrl} />
-                      <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
-                    </Avatar>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="font-medium truncate">{user.name}</p>
-                        <Badge variant={getRoleBadgeVariant(user.role)} className="text-xs">
-                          {user.role}
-                        </Badge>
-                        {user.isEmailVerified ? (
-                          <Badge variant="outline" className="text-green-600 text-xs">
-                            <CheckCircle className="h-3 w-3 mr-1" />
-                            Verified
+            <>
+              <div className="relative w-full overflow-auto">
+                <table className="w-full caption-bottom text-sm">
+                  <thead className="[&_tr]:border-b">
+                    <tr className="border-b transition-colors hover:bg-muted/50">
+                      <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">User</th>
+                      <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Role</th>
+                      <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Status</th>
+                      <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Points</th>
+                      <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Activity</th>
+                      <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Joined</th>
+                      <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="[&_tr:last-child]:border-0">
+                    {paginatedUsers.map((user) => (
+                      <tr key={user.id} className="border-b transition-colors hover:bg-muted/50">
+                        <td className="p-4 align-middle">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10 flex-shrink-0">
+                              <AvatarImage src={user.avatarUrl} />
+                              <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                            </Avatar>
+                            <div className="min-w-0 flex-1">
+                              <p className="font-medium truncate">{user.name}</p>
+                              <p className="text-sm text-gray-500 truncate">{user.email}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="p-4 align-middle">
+                          <Badge variant={getRoleBadgeVariant(user.role)} className="text-xs">
+                            {user.role}
                           </Badge>
-                        ) : (
-                          <Badge variant="outline" className="text-red-600 text-xs">
-                            <XCircle className="h-3 w-3 mr-1" />
-                            Unverified
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-500 truncate">{user.email}</p>
-                      <div className="flex flex-wrap gap-4 text-xs text-gray-500 mt-1">
-                        <span className="flex items-center gap-1">
-                          <Coins className="h-3 w-3" />
-                          {user.points} pts
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Activity className="h-3 w-3" />
-                          {user.consecutiveCheckIns} day streak
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          {user.recentActivity}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => openUserModal(user)}
-                    >
-                      <Eye className="h-4 w-4 sm:mr-2" />
-                      <span className="hidden sm:inline">View</span>
-                    </Button>
-                    {user.role !== 'admin' && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => toggleUserStatus(user.id, user.isEmailVerified)}
-                      >
-                        {user.isEmailVerified ? (
-                          <>
-                            <UserX className="h-4 w-4 sm:mr-2" />
-                            <span className="hidden sm:inline">Unverify</span>
-                          </>
-                        ) : (
-                          <>
-                            <UserCheck className="h-4 w-4 sm:mr-2" />
-                            <span className="hidden sm:inline">Verify</span>
-                          </>
-                        )}
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+                        </td>
+                        <td className="p-4 align-middle">
+                          {user.isEmailVerified ? (
+                            <Badge variant="outline" className="text-green-600 text-xs">
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              Verified
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-red-600 text-xs">
+                              <XCircle className="h-3 w-3 mr-1" />
+                              Unverified
+                            </Badge>
+                          )}
+                        </td>
+                        <td className="p-4 align-middle">
+                          <div className="flex items-center gap-1">
+                            <Coins className="h-4 w-4 text-gray-500" />
+                            <span className="font-medium">{user.points}</span>
+                          </div>
+                        </td>
+                        <td className="p-4 align-middle">
+                          <div className="space-y-1 text-xs">
+                            <div className="flex items-center gap-1">
+                              <Activity className="h-3 w-3" />
+                              <span>{user.consecutiveCheckIns} day streak</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              <span>{user.recentActivity}</span>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="p-4 align-middle">
+                          <span className="text-sm">{new Date(user.createdAt).toLocaleDateString()}</span>
+                        </td>
+                        <td className="p-4 align-middle">
+                          <div className="flex gap-1">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => openUserModal(user)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            {user.role !== 'admin' && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => toggleUserStatus(user.id, user.isEmailVerified)}
+                              >
+                                {user.isEmailVerified ? (
+                                  <UserX className="h-4 w-4" />
+                                ) : (
+                                  <UserCheck className="h-4 w-4" />
+                                )}
+                              </Button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <PaginationControls
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            </>
           ) : (
             <div className="text-center py-8">
               <Users className="h-12 w-12 mx-auto text-gray-400 mb-3" />

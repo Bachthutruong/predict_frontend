@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '../../hooks/use-toast';
 import apiService from '../../services/api';
+import { ImageUpload } from '../../components/ui/image-upload';
 import type { User } from '../../types';
 
 interface StaffFormData {
@@ -39,6 +40,10 @@ const AdminStaff: React.FC = () => {
   const [editingStaff, setEditingStaff] = useState<User | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   
   const [newStaff, setNewStaff] = useState<StaffFormData>({
     name: '',
@@ -191,6 +196,84 @@ const AdminStaff: React.FC = () => {
     return name.split(' ').map(part => part[0]).join('').toUpperCase().slice(0, 2);
   };
 
+  // Pagination calculations
+  const totalPages = Math.ceil(staff.length / itemsPerPage);
+  const paginatedStaff = staff.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // Pagination component
+  const PaginationControls: React.FC<{
+    currentPage: number;
+    totalPages: number;
+    onPageChange: (page: number) => void;
+  }> = ({ currentPage, totalPages, onPageChange }) => {
+    if (totalPages < 1) return null;
+
+    const pages = [];
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage < maxVisiblePages - 1) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+
+    return (
+      <div className="flex items-center justify-center gap-2 mt-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage <= 1}
+        >
+          Previous
+        </Button>
+        
+        {startPage > 1 && (
+          <>
+            <Button variant="outline" size="sm" onClick={() => onPageChange(1)}>1</Button>
+            {startPage > 2 && <span className="px-2">...</span>}
+          </>
+        )}
+        
+        {pages.map((page) => (
+          <Button
+            key={page}
+            variant={currentPage === page ? "default" : "outline"}
+            size="sm"
+            onClick={() => onPageChange(page)}
+          >
+            {page}
+          </Button>
+        ))}
+        
+        {endPage < totalPages && (
+          <>
+            {endPage < totalPages - 1 && <span className="px-2">...</span>}
+            <Button variant="outline" size="sm" onClick={() => onPageChange(totalPages)}>
+              {totalPages}
+            </Button>
+          </>
+        )}
+        
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage >= totalPages}
+        >
+          Next
+        </Button>
+      </div>
+    );
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -295,12 +378,12 @@ const AdminStaff: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Avatar URL</Label>
-                  <Input
+                  <Label>Avatar Image</Label>
+                  <ImageUpload
                     value={newStaff.avatarUrl}
-                    onChange={(e) => setNewStaff(prev => ({...prev, avatarUrl: e.target.value}))}
-                    placeholder="Enter avatar URL..."
+                    onChange={(url) => setNewStaff(prev => ({...prev, avatarUrl: url}))}
                     disabled={isSubmitting}
+                    placeholder="Upload avatar image"
                   />
                 </div>
 
@@ -378,60 +461,86 @@ const AdminStaff: React.FC = () => {
         </CardHeader>
         <CardContent>
           {staff.length > 0 ? (
-            <div className="space-y-4">
-              {staff.map((member) => (
-                <div key={member.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg gap-3">
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <Avatar className="h-10 w-10 flex-shrink-0">
-                      <AvatarImage src={member.avatarUrl} />
-                      <AvatarFallback>{getInitials(member.name)}</AvatarFallback>
-                    </Avatar>
-
-                    <div className="space-y-1 min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="font-medium truncate">{member.name}</h3>
-                        <Badge variant="secondary" className="text-xs">Staff</Badge>
-                        {member.isEmailVerified && (
-                          <Badge variant="default" className="text-xs">
-                            <UserCheck className="h-3 w-3 mr-1" />
-                            Verified
+            <>
+              <div className="relative w-full overflow-auto">
+                <table className="w-full caption-bottom text-sm">
+                  <thead className="[&_tr]:border-b">
+                    <tr className="border-b transition-colors hover:bg-muted/50">
+                      <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Staff Member</th>
+                      <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Role</th>
+                      <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Status</th>
+                      <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Joined</th>
+                      <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="[&_tr:last-child]:border-0">
+                    {paginatedStaff.map((member) => (
+                      <tr key={member.id} className="border-b transition-colors hover:bg-muted/50">
+                        <td className="p-4 align-middle">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10 flex-shrink-0">
+                              <AvatarImage src={member.avatarUrl} />
+                              <AvatarFallback>{getInitials(member.name)}</AvatarFallback>
+                            </Avatar>
+                            <div className="min-w-0 flex-1">
+                              <p className="font-medium truncate">{member.name}</p>
+                              <div className="flex items-center gap-1 text-sm text-gray-500">
+                                <Mail className="h-3 w-3" />
+                                <span className="truncate">{member.email}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="p-4 align-middle">
+                          <Badge variant="secondary" className="text-xs">
+                            Staff
                           </Badge>
-                        )}
-                      </div>
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-sm text-gray-500">
-                        <div className="flex items-center gap-1">
-                          <Mail className="h-3 w-3" />
-                          <span className="truncate">{member.email}</span>
-                        </div>
-                        <span className="text-xs">Joined {new Date(member.createdAt).toLocaleDateString()}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => openEditDialog(member)}
-                      className="flex-1 sm:flex-none"
-                    >
-                      <Edit2 className="h-4 w-4 sm:mr-1" />
-                      <span className="sm:inline">Edit</span>
-                    </Button>
-                    
-                    <Button 
-                      variant="destructive" 
-                      size="sm"
-                      onClick={() => handleDelete(member.id, member.name)}
-                      className="flex-1 sm:flex-none"
-                    >
-                      <Trash2 className="h-4 w-4 sm:mr-1" />
-                      <span className="sm:inline">Delete</span>
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                        </td>
+                        <td className="p-4 align-middle">
+                          {member.isEmailVerified ? (
+                            <Badge variant="default" className="text-xs">
+                              <UserCheck className="h-3 w-3 mr-1" />
+                              Verified
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-xs">
+                              Unverified
+                            </Badge>
+                          )}
+                        </td>
+                        <td className="p-4 align-middle">
+                          <span className="text-sm">{new Date(member.createdAt).toLocaleDateString()}</span>
+                        </td>
+                        <td className="p-4 align-middle">
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => openEditDialog(member)}
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                            
+                            <Button 
+                              variant="destructive" 
+                              size="sm"
+                              onClick={() => handleDelete(member.id, member.name)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <PaginationControls
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            </>
           ) : (
             <div className="text-center py-8">
               <Users className="h-12 w-12 mx-auto text-gray-400 mb-3" />
@@ -509,12 +618,12 @@ const AdminStaff: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label>Avatar URL</Label>
-              <Input
+              <Label>Avatar Image</Label>
+              <ImageUpload
                 value={editStaff.avatarUrl}
-                onChange={(e) => setEditStaff(prev => ({...prev, avatarUrl: e.target.value}))}
-                placeholder="Enter avatar URL..."
+                onChange={(url) => setEditStaff(prev => ({...prev, avatarUrl: url}))}
                 disabled={isSubmitting}
+                placeholder="Upload avatar image"
               />
             </div>
 

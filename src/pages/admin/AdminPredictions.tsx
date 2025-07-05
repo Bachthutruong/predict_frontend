@@ -26,6 +26,7 @@ import {
   XCircle
 } from 'lucide-react';
 import apiService from '../../services/api';
+import { ImageUpload } from '../../components/ui/image-upload';
 import type { Prediction, UserPrediction, User } from '../../types';
 
 interface PredictionFormData {
@@ -54,6 +55,11 @@ const AdminPredictions: React.FC = () => {
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [result, setResult] = useState<{success: boolean, message?: string} | null>(null);
+  
+  // Pagination states
+  const [activeCurrentPage, setActiveCurrentPage] = useState(1);
+  const [finishedCurrentPage, setFinishedCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   
   const [newPrediction, setNewPrediction] = useState<PredictionFormData>({
     title: '',
@@ -194,10 +200,116 @@ const AdminPredictions: React.FC = () => {
     return name.split(' ').map(part => part[0]).join('').toUpperCase().slice(0, 2);
   };
 
+  // Pagination component
+  const PaginationControls: React.FC<{
+    currentPage: number;
+    totalPages: number;
+    onPageChange: (page: number) => void;
+  }> = ({ currentPage, totalPages, onPageChange }) => {
+    if (totalPages < 1) return null;
+
+    const pages = [];
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage < maxVisiblePages - 1) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+
+    return (
+      <div className="flex items-center justify-center gap-2 mt-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage <= 1}
+        >
+          Previous
+        </Button>
+        
+        {startPage > 1 && (
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onPageChange(1)}
+            >
+              1
+            </Button>
+            {startPage > 2 && <span className="px-2">...</span>}
+          </>
+        )}
+        
+        {pages.map((page) => (
+          <Button
+            key={page}
+            variant={currentPage === page ? "default" : "outline"}
+            size="sm"
+            onClick={() => onPageChange(page)}
+          >
+            {page}
+          </Button>
+        ))}
+        
+        {endPage < totalPages && (
+          <>
+            {endPage < totalPages - 1 && <span className="px-2">...</span>}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onPageChange(totalPages)}
+            >
+              {totalPages}
+            </Button>
+          </>
+        )}
+        
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage >= totalPages}
+        >
+          Next
+        </Button>
+      </div>
+    );
+  };
+
   const activePredictions = predictions.filter(p => p.status === 'active');
   const finishedPredictions = predictions.filter(p => p.status === 'finished');
   const totalPredictions = predictions.length;
   const totalPointsAwarded = predictions.reduce((sum, p) => sum + (p.totalPointsAwarded || 0), 0);
+
+  // Pagination calculations
+  const activeTotalPages = Math.ceil(activePredictions.length / itemsPerPage);
+  const finishedTotalPages = Math.ceil(finishedPredictions.length / itemsPerPage);
+  
+  const activeStartIndex = (activeCurrentPage - 1) * itemsPerPage;
+  const finishedStartIndex = (finishedCurrentPage - 1) * itemsPerPage;
+  
+  const paginatedActivePredictions = activePredictions.slice(
+    activeStartIndex,
+    activeStartIndex + itemsPerPage
+  );
+  const paginatedFinishedPredictions = finishedPredictions.slice(
+    finishedStartIndex,
+    finishedStartIndex + itemsPerPage
+  );
+
+  // Pagination handlers
+  const handleActivePageChange = (page: number) => {
+    setActiveCurrentPage(page);
+  };
+
+  const handleFinishedPageChange = (page: number) => {
+    setFinishedCurrentPage(page);
+  };
 
   if (isLoading) {
     return (
@@ -292,13 +404,12 @@ const AdminPredictions: React.FC = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="imageUrl">Image URL</Label>
-                <Input
-                  id="imageUrl"
+                <Label>Prediction Image</Label>
+                <ImageUpload
                   value={newPrediction.imageUrl}
-                  onChange={(e) => setNewPrediction(prev => ({...prev, imageUrl: e.target.value}))}
-                  placeholder="Enter image URL..."
+                  onChange={(url) => setNewPrediction(prev => ({...prev, imageUrl: url}))}
                   disabled={isSubmitting}
+                  placeholder="Upload prediction image"
                 />
               </div>
 
@@ -423,89 +534,129 @@ const AdminPredictions: React.FC = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {activePredictions.length > 0 ? (
+              {paginatedActivePredictions.length > 0 ? (
                 <div className="space-y-4">
-                  {activePredictions.map((prediction) => (
-                    <div key={prediction.id} className="p-3 sm:p-4 border rounded-lg">
-                      <div className="space-y-3">
-                        {/* Header */}
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <h3 className="font-medium text-sm sm:text-base">{prediction.title}</h3>
-                              <Badge variant="default" className="text-xs">Active</Badge>
-                            </div>
-                            <p className="text-xs sm:text-sm text-gray-600 mb-2 line-clamp-2">
-                              {prediction.description}
-                            </p>
-                          </div>
-                          {prediction.imageUrl && (
-                            <img 
-                              src={prediction.imageUrl} 
-                              alt={prediction.title}
-                              className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded-md ml-3 sm:ml-4 flex-shrink-0"
-                            />
-                          )}
-                        </div>
-                        
-                        {/* Stats */}
-                        <div className="flex flex-wrap gap-3 sm:gap-4 text-xs sm:text-sm text-gray-500">
-                          <div className="flex items-center gap-1">
-                            <DollarSign className="h-3 w-3 sm:h-4 sm:w-4" />
-                            <span>{prediction.pointsCost} points</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Users className="h-3 w-3 sm:h-4 sm:w-4" />
-                            <span>{prediction.totalPredictions || 0} predictions</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />
-                            <span>{prediction.correctPredictions || 0} correct</span>
-                          </div>
-                        </div>
-                        
-                        {/* Actions */}
-                        <div className="flex flex-col sm:flex-row gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => loadPredictionDetails(prediction.id)}
-                            className="text-xs sm:text-sm"
-                          >
-                            <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                            View Details
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => openEditDialog(prediction)}
-                            className="text-xs sm:text-sm"
-                          >
-                            <Edit2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                            Edit
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleStatusToggle(prediction.id, prediction.status)}
-                            className="text-xs sm:text-sm"
-                          >
-                            <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                            Mark Finished
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => handleDelete(prediction.id, prediction.title)}
-                            className="text-xs sm:text-sm"
-                          >
-                            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                            Delete
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                  <div className="relative w-full overflow-auto">
+                    <table className="w-full caption-bottom text-sm">
+                      <thead className="[&_tr]:border-b">
+                        <tr className="border-b transition-colors hover:bg-muted/50">
+                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
+                            Image
+                          </th>
+                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
+                            Title
+                          </th>
+                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
+                            Points Cost
+                          </th>
+                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
+                            Stats
+                          </th>
+                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
+                            Created
+                          </th>
+                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
+                            Actions
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="[&_tr:last-child]:border-0">
+                        {paginatedActivePredictions.map((prediction) => (
+                          <tr key={prediction.id} className="border-b transition-colors hover:bg-muted/50">
+                            <td className="p-4 align-middle">
+                              {prediction.imageUrl ? (
+                                <img 
+                                  src={prediction.imageUrl} 
+                                  alt={prediction.title}
+                                  className="w-12 h-12 object-cover rounded-md"
+                                />
+                              ) : (
+                                <div className="w-12 h-12 bg-gray-200 rounded-md flex items-center justify-center">
+                                  <Trophy className="h-6 w-6 text-gray-400" />
+                                </div>
+                              )}
+                            </td>
+                            <td className="p-4 align-middle">
+                              <div>
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="font-medium">{prediction.title}</span>
+                                  <Badge variant="default" className="text-xs">Active</Badge>
+                                </div>
+                                <p className="text-xs text-gray-600 line-clamp-2 max-w-xs">
+                                  {prediction.description}
+                                </p>
+                              </div>
+                            </td>
+                            <td className="p-4 align-middle">
+                              <div className="flex items-center gap-1">
+                                <DollarSign className="h-4 w-4 text-gray-500" />
+                                <span>{prediction.pointsCost}</span>
+                              </div>
+                            </td>
+                            <td className="p-4 align-middle">
+                              <div className="space-y-1 text-xs">
+                                <div className="flex items-center gap-1">
+                                  <Users className="h-3 w-3" />
+                                  <span>{prediction.totalPredictions || 0} predictions</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <CheckCircle className="h-3 w-3" />
+                                  <span>{prediction.correctPredictions || 0} correct</span>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="p-4 align-middle">
+                              <span className="text-sm">
+                                {new Date(prediction.createdAt).toLocaleDateString()}
+                              </span>
+                            </td>
+                            <td className="p-4 align-middle">
+                              <div className="flex gap-1">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => loadPredictionDetails(prediction.id)}
+                                  className="text-xs"
+                                >
+                                  <Eye className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => openEditDialog(prediction)}
+                                  className="text-xs"
+                                >
+                                  <Edit2 className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleStatusToggle(prediction.id, prediction.status)}
+                                  className="text-xs"
+                                >
+                                  <Clock className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => handleDelete(prediction.id, prediction.title)}
+                                  className="text-xs"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  
+                  <PaginationControls
+                    currentPage={activeCurrentPage}
+                    totalPages={activeTotalPages}
+                    onPageChange={handleActivePageChange}
+                  />
                 </div>
               ) : (
                 <div className="text-center py-8">
@@ -526,93 +677,133 @@ const AdminPredictions: React.FC = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {finishedPredictions.length > 0 ? (
+              {paginatedFinishedPredictions.length > 0 ? (
                 <div className="space-y-4">
-                  {finishedPredictions.map((prediction) => (
-                    <div key={prediction.id} className="p-3 sm:p-4 border rounded-lg">
-                      <div className="space-y-3">
-                        {/* Header */}
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <h3 className="font-medium text-sm sm:text-base">{prediction.title}</h3>
-                              <Badge variant="secondary" className="text-xs">Finished</Badge>
-                            </div>
-                            <p className="text-xs sm:text-sm text-gray-600 mb-2 line-clamp-2">
-                              {prediction.description}
-                            </p>
-                          </div>
-                          {prediction.imageUrl && (
-                            <img 
-                              src={prediction.imageUrl} 
-                              alt={prediction.title}
-                              className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded-md ml-3 sm:ml-4 flex-shrink-0"
-                            />
-                          )}
-                        </div>
-                        
-                        {/* Stats */}
-                        <div className="flex flex-wrap gap-3 sm:gap-4 text-xs sm:text-sm text-gray-500">
-                          <div className="flex items-center gap-1">
-                            <DollarSign className="h-3 w-3 sm:h-4 sm:w-4" />
-                            <span>{prediction.pointsCost} points</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Users className="h-3 w-3 sm:h-4 sm:w-4" />
-                            <span>{prediction.totalPredictions || 0} predictions</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />
-                            <span>{prediction.correctPredictions || 0} correct</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
-                            <span>{prediction.totalPointsAwarded || 0} pts awarded</span>
-                          </div>
-                        </div>
-                        
-                        {/* Actions */}
-                        <div className="flex flex-col sm:flex-row gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => loadPredictionDetails(prediction.id)}
-                            className="text-xs sm:text-sm"
-                          >
-                            <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                            View Details
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => openEditDialog(prediction)}
-                            className="text-xs sm:text-sm"
-                          >
-                            <Edit2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                            Edit
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleStatusToggle(prediction.id, prediction.status)}
-                            className="text-xs sm:text-sm"
-                          >
-                            <Activity className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                            Reactivate
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => handleDelete(prediction.id, prediction.title)}
-                            className="text-xs sm:text-sm"
-                          >
-                            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                            Delete
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                  <div className="relative w-full overflow-auto">
+                    <table className="w-full caption-bottom text-sm">
+                      <thead className="[&_tr]:border-b">
+                        <tr className="border-b transition-colors hover:bg-muted/50">
+                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
+                            Image
+                          </th>
+                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
+                            Title
+                          </th>
+                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
+                            Points Cost
+                          </th>
+                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
+                            Stats
+                          </th>
+                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
+                            Created
+                          </th>
+                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
+                            Actions
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="[&_tr:last-child]:border-0">
+                        {paginatedFinishedPredictions.map((prediction) => (
+                          <tr key={prediction.id} className="border-b transition-colors hover:bg-muted/50">
+                            <td className="p-4 align-middle">
+                              {prediction.imageUrl ? (
+                                <img 
+                                  src={prediction.imageUrl} 
+                                  alt={prediction.title}
+                                  className="w-12 h-12 object-cover rounded-md"
+                                />
+                              ) : (
+                                <div className="w-12 h-12 bg-gray-200 rounded-md flex items-center justify-center">
+                                  <Trophy className="h-6 w-6 text-gray-400" />
+                                </div>
+                              )}
+                            </td>
+                            <td className="p-4 align-middle">
+                              <div>
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="font-medium">{prediction.title}</span>
+                                  <Badge variant="secondary" className="text-xs">Finished</Badge>
+                                </div>
+                                <p className="text-xs text-gray-600 line-clamp-2 max-w-xs">
+                                  {prediction.description}
+                                </p>
+                              </div>
+                            </td>
+                            <td className="p-4 align-middle">
+                              <div className="flex items-center gap-1">
+                                <DollarSign className="h-4 w-4 text-gray-500" />
+                                <span>{prediction.pointsCost}</span>
+                              </div>
+                            </td>
+                            <td className="p-4 align-middle">
+                              <div className="space-y-1 text-xs">
+                                <div className="flex items-center gap-1">
+                                  <Users className="h-3 w-3" />
+                                  <span>{prediction.totalPredictions || 0} predictions</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <CheckCircle className="h-3 w-3" />
+                                  <span>{prediction.correctPredictions || 0} correct</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <TrendingUp className="h-3 w-3" />
+                                  <span>{prediction.totalPointsAwarded || 0} pts</span>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="p-4 align-middle">
+                              <span className="text-sm">
+                                {new Date(prediction.createdAt).toLocaleDateString()}
+                              </span>
+                            </td>
+                            <td className="p-4 align-middle">
+                              <div className="flex gap-1">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => loadPredictionDetails(prediction.id)}
+                                  className="text-xs"
+                                >
+                                  <Eye className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => openEditDialog(prediction)}
+                                  className="text-xs"
+                                >
+                                  <Edit2 className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleStatusToggle(prediction.id, prediction.status)}
+                                  className="text-xs"
+                                >
+                                  <Activity className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => handleDelete(prediction.id, prediction.title)}
+                                  className="text-xs"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  
+                  <PaginationControls
+                    currentPage={finishedCurrentPage}
+                    totalPages={finishedTotalPages}
+                    onPageChange={handleFinishedPageChange}
+                  />
                 </div>
               ) : (
                 <div className="text-center py-8">
@@ -678,13 +869,12 @@ const AdminPredictions: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit-imageUrl">Image URL</Label>
-              <Input
-                id="edit-imageUrl"
+              <Label>Prediction Image</Label>
+              <ImageUpload
                 value={editPrediction.imageUrl}
-                onChange={(e) => setEditPrediction(prev => ({...prev, imageUrl: e.target.value}))}
-                placeholder="Enter image URL..."
+                onChange={(url) => setEditPrediction(prev => ({...prev, imageUrl: url}))}
                 disabled={isSubmitting}
+                placeholder="Upload prediction image"
               />
             </div>
 
@@ -803,13 +993,13 @@ const AdminPredictions: React.FC = () => {
                       <div key={userPrediction.id} className="flex items-center justify-between p-3 border-b last:border-b-0">
                         <div className="flex items-center gap-3">
                           <Avatar className="h-8 w-8">
-                            <AvatarImage src={userPrediction.user.avatarUrl} />
+                            <AvatarImage src={userPrediction.user?.avatarUrl || ''} />
                             <AvatarFallback className="text-xs">
-                              {getInitials(userPrediction.user.name)}
+                              {userPrediction.user?.name ? getInitials(userPrediction.user.name) : '?'}
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <p className="font-medium text-sm">{userPrediction.user.name}</p>
+                            <p className="font-medium text-sm">{userPrediction.user?.name || 'Unknown User'}</p>
                             <p className="text-xs text-gray-500">"{userPrediction.guess}"</p>
                           </div>
                         </div>

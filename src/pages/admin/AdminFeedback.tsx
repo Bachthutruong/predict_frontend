@@ -36,6 +36,13 @@ const AdminFeedback: React.FC = () => {
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(null);
   const [awardPoints, setAwardPoints] = useState(50);
+  
+  // Pagination states
+  const [pendingCurrentPage, setPendingCurrentPage] = useState(1);
+  const [approvedCurrentPage, setApprovedCurrentPage] = useState(1);
+  const [rejectedCurrentPage, setRejectedCurrentPage] = useState(1);
+  const [allCurrentPage, setAllCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     loadFeedback();
@@ -113,6 +120,100 @@ const AdminFeedback: React.FC = () => {
   const approvedFeedback = feedback.filter(f => f.status === 'approved');
   const rejectedFeedback = feedback.filter(f => f.status === 'rejected');
   const totalPointsAwarded = approvedFeedback.reduce((sum, f) => sum + (f.awardedPoints || 0), 0);
+
+  // Pagination calculations
+  const pendingTotalPages = Math.ceil(pendingFeedback.length / itemsPerPage);
+  const approvedTotalPages = Math.ceil(approvedFeedback.length / itemsPerPage);
+  const rejectedTotalPages = Math.ceil(rejectedFeedback.length / itemsPerPage);
+  const allTotalPages = Math.ceil(feedback.length / itemsPerPage);
+
+  const paginatedPendingFeedback = pendingFeedback.slice(
+    (pendingCurrentPage - 1) * itemsPerPage,
+    pendingCurrentPage * itemsPerPage
+  );
+  const paginatedApprovedFeedback = approvedFeedback.slice(
+    (approvedCurrentPage - 1) * itemsPerPage,
+    approvedCurrentPage * itemsPerPage
+  );
+  const paginatedRejectedFeedback = rejectedFeedback.slice(
+    (rejectedCurrentPage - 1) * itemsPerPage,
+    rejectedCurrentPage * itemsPerPage
+  );
+  const paginatedAllFeedback = feedback.slice(
+    (allCurrentPage - 1) * itemsPerPage,
+    allCurrentPage * itemsPerPage
+  );
+
+  // Pagination component
+  const PaginationControls: React.FC<{
+    currentPage: number;
+    totalPages: number;
+    onPageChange: (page: number) => void;
+  }> = ({ currentPage, totalPages, onPageChange }) => {
+    if (totalPages < 1) return null;
+
+    const pages = [];
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage < maxVisiblePages - 1) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+
+    return (
+      <div className="flex items-center justify-center gap-2 mt-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage <= 1}
+        >
+          Previous
+        </Button>
+        
+        {startPage > 1 && (
+          <>
+            <Button variant="outline" size="sm" onClick={() => onPageChange(1)}>1</Button>
+            {startPage > 2 && <span className="px-2">...</span>}
+          </>
+        )}
+        
+        {pages.map((page) => (
+          <Button
+            key={page}
+            variant={currentPage === page ? "default" : "outline"}
+            size="sm"
+            onClick={() => onPageChange(page)}
+          >
+            {page}
+          </Button>
+        ))}
+        
+        {endPage < totalPages && (
+          <>
+            {endPage < totalPages - 1 && <span className="px-2">...</span>}
+            <Button variant="outline" size="sm" onClick={() => onPageChange(totalPages)}>
+              {totalPages}
+            </Button>
+          </>
+        )}
+        
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage >= totalPages}
+        >
+          Next
+        </Button>
+      </div>
+    );
+  };
 
   return (
     <div className="max-w-7xl mx-auto p-3 sm:p-6 space-y-4 sm:space-y-8">
@@ -209,8 +310,8 @@ const AdminFeedback: React.FC = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <FeedbackList 
-                feedbackList={pendingFeedback}
+              <FeedbackTable 
+                feedbackList={paginatedPendingFeedback}
                 onApprove={(feedback) => {
                   setSelectedFeedback(feedback);
                   setApproveDialogOpen(true);
@@ -218,6 +319,11 @@ const AdminFeedback: React.FC = () => {
                 onReject={handleReject}
                 processingId={processingId}
                 showActions={true}
+              />
+              <PaginationControls
+                currentPage={pendingCurrentPage}
+                totalPages={pendingTotalPages}
+                onPageChange={setPendingCurrentPage}
               />
             </CardContent>
           </Card>
@@ -235,10 +341,15 @@ const AdminFeedback: React.FC = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <FeedbackList 
-                feedbackList={approvedFeedback}
+              <FeedbackTable 
+                feedbackList={paginatedApprovedFeedback}
                 processingId={processingId}
                 showActions={false}
+              />
+              <PaginationControls
+                currentPage={approvedCurrentPage}
+                totalPages={approvedTotalPages}
+                onPageChange={setApprovedCurrentPage}
               />
             </CardContent>
           </Card>
@@ -256,10 +367,15 @@ const AdminFeedback: React.FC = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <FeedbackList 
-                feedbackList={rejectedFeedback}
+              <FeedbackTable 
+                feedbackList={paginatedRejectedFeedback}
                 processingId={processingId}
                 showActions={false}
+              />
+              <PaginationControls
+                currentPage={rejectedCurrentPage}
+                totalPages={rejectedTotalPages}
+                onPageChange={setRejectedCurrentPage}
               />
             </CardContent>
           </Card>
@@ -274,10 +390,15 @@ const AdminFeedback: React.FC = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <FeedbackList 
-                feedbackList={feedback}
+              <FeedbackTable 
+                feedbackList={paginatedAllFeedback}
                 processingId={processingId}
                 showActions={false}
+              />
+              <PaginationControls
+                currentPage={allCurrentPage}
+                totalPages={allTotalPages}
+                onPageChange={setAllCurrentPage}
               />
             </CardContent>
           </Card>
@@ -358,7 +479,7 @@ const AdminFeedback: React.FC = () => {
   );
 };
 
-const FeedbackList: React.FC<FeedbackListProps> = ({ 
+const FeedbackTable: React.FC<FeedbackListProps> = ({ 
   feedbackList, 
   onApprove, 
   onReject, 
@@ -379,73 +500,90 @@ const FeedbackList: React.FC<FeedbackListProps> = ({
   }
 
   return (
-    <div className="space-y-3 sm:space-y-4">
-      {feedbackList.map((feedback) => (
-        <div key={feedback.id} className="p-3 sm:p-4 border rounded-lg space-y-3 hover:shadow-md transition-shadow">
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-            <div className="flex items-center gap-3 min-w-0 flex-1">
-              <Avatar className="h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0">
-                <AvatarFallback>{getInitials(feedback.user?.name || 'Unknown User')}</AvatarFallback>
-              </Avatar>
-              <div className="min-w-0 flex-1">
-                <p className="font-medium text-sm sm:text-base truncate">{feedback.user?.name || 'Unknown User'}</p>
-                <p className="text-xs sm:text-sm text-gray-500">
-                  {new Date(feedback.createdAt).toLocaleDateString()} at{' '}
-                  {new Date(feedback.createdAt).toLocaleTimeString()}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <Badge 
-                variant={
-                  feedback.status === 'pending' ? 'secondary' :
-                  feedback.status === 'approved' ? 'default' : 'destructive'
-                }
-                className="text-xs"
-              >
-                {feedback.status === 'pending' && <Clock className="h-3 w-3 mr-1" />}
-                {feedback.status === 'approved' && <CheckCircle className="h-3 w-3 mr-1" />}
-                {feedback.status === 'rejected' && <XCircle className="h-3 w-3 mr-1" />}
-                {feedback.status}
-              </Badge>
-              {feedback.awardedPoints && (
-                <Badge variant="outline" className="text-xs">
-                  <Coins className="h-3 w-3 mr-1" />
-                  +{feedback.awardedPoints}
+    <div className="relative w-full overflow-auto">
+      <table className="w-full caption-bottom text-sm">
+        <thead className="[&_tr]:border-b">
+          <tr className="border-b transition-colors hover:bg-muted/50">
+            <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">User</th>
+            <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Feedback</th>
+            <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Status</th>
+            <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Points</th>
+            <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Date</th>
+            {showActions && (
+              <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Actions</th>
+            )}
+          </tr>
+        </thead>
+        <tbody className="[&_tr:last-child]:border-0">
+          {feedbackList.map((feedback) => (
+            <tr key={feedback.id} className="border-b transition-colors hover:bg-muted/50">
+              <td className="p-4 align-middle">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-8 w-8 flex-shrink-0">
+                    <AvatarFallback>{getInitials(feedback.user?.name || 'Unknown User')}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-medium text-sm">{feedback.user?.name || 'Unknown User'}</p>
+                  </div>
+                </div>
+              </td>
+              <td className="p-4 align-middle">
+                <p className="text-sm leading-relaxed max-w-xs line-clamp-3">{feedback.feedbackText}</p>
+              </td>
+              <td className="p-4 align-middle">
+                <Badge 
+                  variant={
+                    feedback.status === 'pending' ? 'secondary' :
+                    feedback.status === 'approved' ? 'default' : 'destructive'
+                  }
+                  className="text-xs"
+                >
+                  {feedback.status === 'pending' && <Clock className="h-3 w-3 mr-1" />}
+                  {feedback.status === 'approved' && <CheckCircle className="h-3 w-3 mr-1" />}
+                  {feedback.status === 'rejected' && <XCircle className="h-3 w-3 mr-1" />}
+                  {feedback.status}
                 </Badge>
+              </td>
+              <td className="p-4 align-middle">
+                {feedback.awardedPoints ? (
+                  <Badge variant="outline" className="text-xs">
+                    <Coins className="h-3 w-3 mr-1" />
+                    +{feedback.awardedPoints}
+                  </Badge>
+                ) : (
+                  <span className="text-sm text-gray-400">-</span>
+                )}
+              </td>
+              <td className="p-4 align-middle">
+                <span className="text-sm">{new Date(feedback.createdAt).toLocaleDateString()}</span>
+              </td>
+              {showActions && (
+                <td className="p-4 align-middle">
+                  {feedback.status === 'pending' && (
+                    <div className="flex gap-1">
+                      <Button
+                        size="sm"
+                        onClick={() => onApprove?.(feedback)}
+                        disabled={processingId === feedback.id}
+                      >
+                        <ThumbsUp className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => onReject?.(feedback.id)}
+                        disabled={processingId === feedback.id}
+                      >
+                        <ThumbsDown className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </td>
               )}
-            </div>
-          </div>
-
-          <div className="sm:pl-13">
-            <p className="text-sm leading-relaxed">{feedback.feedbackText}</p>
-          </div>
-
-          {showActions && feedback.status === 'pending' && (
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:pl-13">
-              <Button
-                size="sm"
-                onClick={() => onApprove?.(feedback)}
-                disabled={processingId === feedback.id}
-                className="w-full sm:w-auto"
-              >
-                <ThumbsUp className="h-4 w-4 mr-2" />
-                {processingId === feedback.id ? 'Processing...' : 'Approve'}
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => onReject?.(feedback.id)}
-                disabled={processingId === feedback.id}
-                className="w-full sm:w-auto"
-              >
-                <ThumbsDown className="h-4 w-4 mr-2" />
-                {processingId === feedback.id ? 'Processing...' : 'Reject'}
-              </Button>
-            </div>
-          )}
-        </div>
-      ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 };

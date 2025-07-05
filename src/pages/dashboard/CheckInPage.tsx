@@ -28,8 +28,33 @@ const CheckInPage: React.FC = () => {
   } | null>(null);
 
   useEffect(() => {
-    fetchQuestion();
+    checkTodayStatus();
   }, []);
+
+  const checkTodayStatus = async () => {
+    setIsLoading(true);
+    try {
+      // First check if user has already checked in today
+      const statusResponse = await checkInAPI.getStatus();
+      
+      if (statusResponse.success && statusResponse.data?.hasCheckedIn) {
+        setHasCheckedInToday(true);
+        setResult({
+          success: true,
+          isCorrect: statusResponse.data?.isCorrect,
+          pointsEarned: statusResponse.data?.pointsEarned
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // If not checked in, fetch question
+      await fetchQuestion();
+    } catch (error) {
+      console.error('Failed to check today status:', error);
+      setIsLoading(false);
+    }
+  };
 
   const fetchQuestion = async () => {
     try {
@@ -38,10 +63,18 @@ const CheckInPage: React.FC = () => {
         setQuestion(response.data);
       } else {
         setQuestion(null);
+        // Check if it's because user already checked in
+        if (response.message?.includes('Already checked in')) {
+          setHasCheckedInToday(true);
+        }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to fetch question:', error);
       setQuestion(null);
+      // Check if error is about already checked in
+      if (error.response?.data?.message?.includes('Already checked in')) {
+        setHasCheckedInToday(true);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -51,6 +84,9 @@ const CheckInPage: React.FC = () => {
     e.preventDefault();
     if (!question || !answer.trim()) return;
 
+    console.log('Submitting answer:', answer.trim());
+    console.log('Question ID:', question.id);
+
     setIsSubmitting(true);
     try {
       const response = await checkInAPI.submit({
@@ -58,7 +94,10 @@ const CheckInPage: React.FC = () => {
         answer: answer.trim()
       });
       
+      console.log('Check-in response:', response);
+      
       if (response.success) {
+        // Only set check-in complete for correct answers
         setResult({
           success: true,
           ...response.data
@@ -68,20 +107,26 @@ const CheckInPage: React.FC = () => {
         // Refresh user data to update points and streak
         await refreshUser();
         
+        console.log('Check-in result:', {
+          isCorrect: response.data?.isCorrect,
+          pointsEarned: response.data?.pointsEarned,
+          correctAnswer: response.data?.correctAnswer
+        });
+        
         toast({
-          title: response.data?.isCorrect ? "Correct Answer! 🎉" : "Answer Submitted",
-          description: response.data?.isCorrect 
-            ? `Great job! You earned ${response.data.pointsEarned} points!`
-            : `You earned ${response.data?.pointsEarned} points. The correct answer was: ${response.data?.correctAnswer}`
+          title: "Correct Answer! 🎉",
+          description: `Great job! You earned ${response.data?.pointsEarned} points!`,
+          variant: "default"
         });
       } else {
+        // Don't set hasCheckedInToday for incorrect answers
         setResult({
           success: false,
           message: response.message || 'Failed to submit answer'
         });
         
         toast({
-          title: "Error",
+          title: "Incorrect Answer",
           description: response.message || 'Failed to submit answer',
           variant: "destructive"
         });
@@ -89,6 +134,7 @@ const CheckInPage: React.FC = () => {
     } catch (error: any) {
       console.error('Check-in error:', error);
       const errorMessage = error.response?.data?.message || 'An error occurred. Please try again.';
+
       
       if (errorMessage.includes('Already checked in')) {
         setHasCheckedInToday(true);
@@ -96,18 +142,39 @@ const CheckInPage: React.FC = () => {
           success: false,
           message: "You've already checked in today!"
         });
+      } else if (errorMessage.includes('Incorrect answer')) {
+        // Handle incorrect answer - don't set hasCheckedInToday
+        setResult({
+          success: false,
+          message: errorMessage,
+          isCorrect: false
+        });
+        
+        toast({
+          title: "Incorrect Answer ❌",
+          description: "Incorrect answer. Please try again!",
+          variant: "destructive"
+        });
+        
+        // Clear the input for next attempt
+        setAnswer('');
+        
+        // Clear error message after 5 seconds
+        setTimeout(() => {
+          setResult(null);
+        }, 5000);
       } else {
         setResult({
           success: false,
           message: errorMessage
         });
+        
+        toast({
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive"
+        });
       }
-      
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive"
-      });
     } finally {
       setIsSubmitting(false);
     }
@@ -160,10 +227,22 @@ const CheckInPage: React.FC = () => {
               Streak: {user?.consecutiveCheckIns || 0} days
             </Badge>
             
-            {result && result.pointsEarned && (
+            {result && result.pointsEarned !== undefined && (
               <div className="mt-4">
                 <p className="text-sm text-muted-foreground">Points earned today</p>
-                <p className="text-2xl font-bold text-primary">+{result.pointsEarned}</p>
+                <p className={`text-2xl font-bold ${result.pointsEarned > 0 ? 'text-primary' : 'text-gray-400'}`}>
+                  +{result.pointsEarned}
+                </p>
+                {result.isCorrect !== undefined && (
+                  <Badge variant={result.isCorrect ? "default" : "destructive"} className="mt-2">
+                    {result.isCorrect ? "✓ Correct Answer!" : "✗ Incorrect Answer"}
+                  </Badge>
+                )}
+                {result.correctAnswer && !result.isCorrect && (
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Correct answer: {result.correctAnswer}
+                  </p>
+                )}
               </div>
             )}
           </CardContent>
@@ -204,7 +283,9 @@ const CheckInPage: React.FC = () => {
       {/* Result Alert */}
       {result && !result.success && (
         <Alert variant="destructive">
-          <AlertDescription>{result.message}</AlertDescription>
+          <AlertDescription>
+            {result.message}
+          </AlertDescription>
         </Alert>
       )}
 
