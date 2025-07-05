@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../..
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
-import { Trophy, Clock, CheckCircle, Coins, Image as ImageIcon, Shield } from 'lucide-react';
+import { Trophy, Clock, CheckCircle, Coins, Shield } from 'lucide-react';
 import apiService from '../../services/api';
 import type { Prediction } from '../../types';
 
