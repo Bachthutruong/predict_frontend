@@ -10,7 +10,8 @@ import {
   Shield, 
   Calendar,
   TrendingUp,
-  RefreshCw
+  RefreshCw,
+  Package
 } from 'lucide-react';
 import { useToast } from '../../hooks/use-toast';
 import apiService from '../../services/api';
@@ -103,94 +104,49 @@ const AdminDashboard: React.FC = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-            <Users className="h-4 w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.totalUsers || 0}</div>
-            <p className="text-xs text-gray-500">
-              +{stats?.thisMonthUsers || 0} this month
-            </p>
-          </CardContent>
-        </Card>
+      <div className="space-y-3">
+        {/* Main Stats Row - Badges */}
+        <div className="flex flex-wrap gap-3">
+          <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-white border-gray-200">
+            <Users className="h-3 w-3 text-gray-500" />
+            <span className="text-sm font-medium">{stats?.totalUsers || 0} Users</span>
+            <span className="text-xs text-gray-400">+{stats?.thisMonthUsers || 0} this month</span>
+          </Badge>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Predictions</CardTitle>
-            <Trophy className="h-4 w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.totalPredictions || 0}</div>
-            <p className="text-xs text-gray-500">
-              {stats?.activePredictions || 0} currently active
-            </p>
-          </CardContent>
-        </Card>
+          <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-blue-50 border-blue-200 text-blue-700">
+            <Trophy className="h-3 w-3" />
+            <span className="text-sm font-medium">{stats?.totalPredictions || 0} Predictions</span>
+            <span className="text-xs text-blue-400">{stats?.activePredictions || 0} active</span>
+          </Badge>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Points</CardTitle>
-            <Coins className="h-4 w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{(stats?.totalPoints || 0).toLocaleString()}</div>
-            <p className="text-xs text-gray-500">
-              Points awarded by all users
-            </p>
-          </CardContent>
-        </Card>
+          <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-green-50 border-green-200 text-green-700">
+            <Coins className="h-3 w-3" />
+            <span className="text-sm font-medium">{(stats?.totalPoints || 0).toLocaleString()} Points</span>
+          </Badge>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Reviews</CardTitle>
-            <MessageSquare className="h-4 w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">{stats?.pendingFeedback || 0}</div>
-            <p className="text-xs text-gray-500">
-              Feedback awaiting review
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+          <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-orange-50 border-orange-200 text-orange-700">
+            <MessageSquare className="h-3 w-3" />
+            <span className="text-sm font-medium">{stats?.pendingFeedback || 0} Pending Reviews</span>
+          </Badge>
+        </div>
 
-      {/* Secondary Stats */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Predictions</CardTitle>
-            <TrendingUp className="h-4 w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{stats?.activePredictions || 0}</div>
-            <p className="text-xs text-gray-500">Available to predict</p>
-          </CardContent>
-        </Card>
+        {/* Secondary Stats Row - Badges */}
+        <div className="flex flex-wrap gap-3">
+          <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-emerald-50 border-emerald-200 text-emerald-700">
+            <TrendingUp className="h-3 w-3" />
+            <span className="text-sm font-medium">{stats?.activePredictions || 0} Active Predictions</span>
+          </Badge>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Staff Members</CardTitle>
-            <Shield className="h-4 w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{stats?.totalStaff || 0}</div>
-            <p className="text-xs text-gray-500">Active staff accounts</p>
-          </CardContent>
-        </Card>
+          <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-indigo-50 border-indigo-200 text-indigo-700">
+            <Shield className="h-3 w-3" />
+            <span className="text-sm font-medium">{stats?.totalStaff || 0} Staff Members</span>
+          </Badge>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">This Month</CardTitle>
-            <Calendar className="h-4 w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-purple-600">{stats?.thisMonthPredictions || 0}</div>
-            <p className="text-xs text-gray-500">New predictions created</p>
-          </CardContent>
-        </Card>
+          <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-purple-50 border-purple-200 text-purple-700">
+            <Calendar className="h-3 w-3" />
+            <span className="text-sm font-medium">{stats?.thisMonthPredictions || 0} This Month</span>
+          </Badge>
+        </div>
       </div>
 
       {/* Recent Predictions */}
@@ -320,6 +276,17 @@ const AdminDashboard: React.FC = () => {
               <div>
                 <h4 className="font-medium">Questions</h4>
                 <p className="text-sm text-gray-500">Manage daily questions</p>
+              </div>
+            </Link>
+
+            <Link 
+              to="/admin/orders"
+              className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <Package className="h-8 w-8 text-emerald-600" />
+              <div>
+                <h4 className="font-medium">Order Management</h4>
+                <p className="text-sm text-gray-500">Manage WooCommerce orders</p>
               </div>
             </Link>
           </div>

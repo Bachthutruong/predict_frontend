@@ -300,72 +300,39 @@ const AdminUsers: React.FC = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-            <Users className="h-4 w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl sm:text-2xl font-bold">{stats.total}</div>
-            <p className="text-xs text-gray-500">All accounts</p>
-          </CardContent>
-        </Card>
+      <div className="space-y-3">
+        {/* Main Stats Row - Badges */}
+        <div className="flex flex-wrap gap-3">
+          <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-white border-gray-200">
+            <Users className="h-3 w-3 text-gray-500" />
+            <span className="text-sm font-medium">{stats.total} Total Users</span>
+          </Badge>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Verified</CardTitle>
-            <CheckCircle className="h-4 w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl sm:text-2xl font-bold text-green-600">{stats.verified}</div>
-            <p className="text-xs text-gray-500">Email verified</p>
-          </CardContent>
-        </Card>
+          <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-green-50 border-green-200 text-green-700">
+            <CheckCircle className="h-3 w-3" />
+            <span className="text-sm font-medium">{stats.verified} Verified</span>
+          </Badge>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Admins</CardTitle>
-            <Shield className="h-4 w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl sm:text-2xl font-bold text-red-600">{stats.admins}</div>
-            <p className="text-xs text-gray-500">Admin accounts</p>
-          </CardContent>
-        </Card>
+          <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-red-50 border-red-200 text-red-700">
+            <Shield className="h-3 w-3" />
+            <span className="text-sm font-medium">{stats.admins} Admins</span>
+          </Badge>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Staff</CardTitle>
-            <UserCheck className="h-4 w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl sm:text-2xl font-bold text-blue-600">{stats.staff}</div>
-            <p className="text-xs text-gray-500">Staff accounts</p>
-          </CardContent>
-        </Card>
+          <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-blue-50 border-blue-200 text-blue-700">
+            <UserCheck className="h-3 w-3" />
+            <span className="text-sm font-medium">{stats.staff} Staff</span>
+          </Badge>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Regular Users</CardTitle>
-            <Users className="h-4 w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl sm:text-2xl font-bold text-purple-600">{stats.users}</div>
-            <p className="text-xs text-gray-500">User accounts</p>
-          </CardContent>
-        </Card>
+          <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-purple-50 border-purple-200 text-purple-700">
+            <Users className="h-3 w-3" />
+            <span className="text-sm font-medium">{stats.users} Regular Users</span>
+          </Badge>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Points</CardTitle>
-            <Coins className="h-4 w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl sm:text-2xl font-bold text-yellow-600">{stats.totalPoints.toLocaleString()}</div>
-            <p className="text-xs text-gray-500">All user points</p>
-          </CardContent>
-        </Card>
+          <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-yellow-50 border-yellow-200 text-yellow-700">
+            <Coins className="h-3 w-3" />
+            <span className="text-sm font-medium">{stats.totalPoints.toLocaleString()} Points</span>
+          </Badge>
+        </div>
       </div>
 
       {/* Filters */}

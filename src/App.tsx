@@ -28,6 +28,7 @@ import AdminFeedback from './pages/admin/AdminFeedback';
 import AdminGrantPoints from './pages/admin/AdminGrantPoints';
 import AdminStaff from './pages/admin/AdminStaff';
 import AdminQuestions from './pages/admin/AdminQuestions';
+import AdminOrders from './pages/admin/AdminOrders';
 
 // Staff pages
 import StaffDashboard from './pages/staff/StaffDashboard';
@@ -254,6 +255,16 @@ function AppRoutes() {
           <ProtectedRoute roles={['admin']}>
             <MainLayout>
               <AdminQuestions />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/orders"
+        element={
+          <ProtectedRoute roles={['admin']}>
+            <MainLayout>
+              <AdminOrders />
             </MainLayout>
           </ProtectedRoute>
         }

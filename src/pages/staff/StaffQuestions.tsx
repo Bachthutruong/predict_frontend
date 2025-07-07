@@ -413,50 +413,26 @@ const StaffQuestions: React.FC = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Questions</CardTitle>
-            <HelpCircle className="h-4 w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{questions.length}</div>
-            <p className="text-xs text-gray-500">All questions created</p>
-          </CardContent>
-        </Card>
+      <div className="flex flex-wrap gap-3">
+        <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-white border-gray-200">
+          <HelpCircle className="h-3 w-3 text-gray-500" />
+          <span className="text-sm font-medium">{questions.length} Total Questions</span>
+        </Badge>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active</CardTitle>
-            <CheckCircle className="h-4 w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{activeQuestions.length}</div>
-            <p className="text-xs text-gray-500">Currently available</p>
-          </CardContent>
-        </Card>
+        <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-green-50 border-green-200 text-green-700">
+          <CheckCircle className="h-3 w-3" />
+          <span className="text-sm font-medium">{activeQuestions.length} Active</span>
+        </Badge>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Priority</CardTitle>
-            <Star className="h-4 w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">{priorityQuestions.length}</div>
-            <p className="text-xs text-gray-500">High priority questions</p>
-          </CardContent>
-        </Card>
+        <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-orange-50 border-orange-200 text-orange-700">
+          <Star className="h-3 w-3" />
+          <span className="text-sm font-medium">{priorityQuestions.length} Priority</span>
+        </Badge>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Inactive</CardTitle>
-            <XCircle className="h-4 w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">{inactiveQuestions.length}</div>
-            <p className="text-xs text-gray-500">Disabled questions</p>
-          </CardContent>
-        </Card>
+        <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-red-50 border-red-200 text-red-700">
+          <XCircle className="h-3 w-3" />
+          <span className="text-sm font-medium">{inactiveQuestions.length} Inactive</span>
+        </Badge>
       </div>
 
       {/* Questions List */}

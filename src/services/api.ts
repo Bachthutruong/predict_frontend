@@ -57,8 +57,29 @@ export const userAPI = {
     return response.data;
   },
 
-  updateProfile: async (data: { name: string; avatarUrl: string }): Promise<ApiResponse<User>> => {
+  updateProfile: async (data: {
+    name?: string;
+    avatarUrl?: string;
+    phone?: string;
+    dateOfBirth?: string;
+    gender?: string;
+    address?: {
+      street?: string;
+      city?: string;
+      state?: string;
+      postalCode?: string;
+      country?: string;
+    };
+  }): Promise<ApiResponse<User>> => {
     const response = await api.put('/users/profile', data);
+    return response.data;
+  },
+
+  changePassword: async (data: {
+    currentPassword: string;
+    newPassword: string;
+  }): Promise<ApiResponse> => {
+    const response = await api.put('/users/profile/password', data);
     return response.data;
   },
 

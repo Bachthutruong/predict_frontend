@@ -101,58 +101,27 @@ const StaffDashboard: React.FC = () => {
       </div>
 
       {/* Main Stats */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalUsers}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.verifiedUsers} verified • {stats.totalUsers - stats.verifiedUsers} unverified
-            </p>
-          </CardContent>
-        </Card>
+      <div className="flex flex-wrap gap-3">
+        <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-white border-gray-200">
+          <Users className="h-3 w-3 text-gray-500" />
+          <span className="text-sm font-medium">{stats.totalUsers} Total Users</span>
+          <span className="text-xs text-gray-400">{stats.verifiedUsers} verified</span>
+        </Badge>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Predictions</CardTitle>
-            <Trophy className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.activePredictions}</div>
-            <p className="text-xs text-muted-foreground">
-              Currently available
-            </p>
-          </CardContent>
-        </Card>
+        <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-blue-50 border-blue-200 text-blue-700">
+          <Trophy className="h-3 w-3" />
+          <span className="text-sm font-medium">{stats.activePredictions} Active Predictions</span>
+        </Badge>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Questions</CardTitle>
-            <HelpCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.activeQuestions}</div>
-            <p className="text-xs text-muted-foreground">
-              Daily check-in questions
-            </p>
-          </CardContent>
-        </Card>
+        <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-purple-50 border-purple-200 text-purple-700">
+          <HelpCircle className="h-3 w-3" />
+          <span className="text-sm font-medium">{stats.activeQuestions} Active Questions</span>
+        </Badge>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">New This Month</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.thisMonthUsers}</div>
-            <p className="text-xs text-muted-foreground">
-              New user registrations
-            </p>
-          </CardContent>
-        </Card>
+        <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-green-50 border-green-200 text-green-700">
+          <Calendar className="h-3 w-3" />
+          <span className="text-sm font-medium">{stats.thisMonthUsers} New This Month</span>
+        </Badge>
       </div>
 
       {/* Additional Stats */}

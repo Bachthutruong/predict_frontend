@@ -355,52 +355,28 @@ const AdminGrantPoints: React.FC = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Transactions</CardTitle>
-            <Coins className="h-4 w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl sm:text-2xl font-bold">{transactions.length}</div>
-            <p className="text-xs text-gray-500">Manual point operations</p>
-          </CardContent>
-        </Card>
+      <div className="flex flex-wrap gap-3">
+        <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-white border-gray-200">
+          <Coins className="h-3 w-3 text-gray-500" />
+          <span className="text-sm font-medium">{transactions.length} Total Transactions</span>
+        </Badge>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Points Granted</CardTitle>
-            <TrendingUp className="h-4 w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl sm:text-2xl font-bold text-green-600">+{totalPointsGranted}</div>
-            <p className="text-xs text-gray-500">Total points added</p>
-          </CardContent>
-        </Card>
+        <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-green-50 border-green-200 text-green-700">
+          <TrendingUp className="h-3 w-3" />
+          <span className="text-sm font-medium">+{totalPointsGranted} Points Granted</span>
+        </Badge>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Points Deducted</CardTitle>
-            <TrendingDown className="h-4 w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl sm:text-2xl font-bold text-red-600">-{totalPointsDeducted}</div>
-            <p className="text-xs text-gray-500">Total points removed</p>
-          </CardContent>
-        </Card>
+        <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-red-50 border-red-200 text-red-700">
+          <TrendingDown className="h-3 w-3" />
+          <span className="text-sm font-medium">-{totalPointsDeducted} Points Deducted</span>
+        </Badge>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Net Impact</CardTitle>
-            <Gift className="h-4 w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className={`text-xl sm:text-2xl font-bold ${totalPointsGranted - totalPointsDeducted >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {totalPointsGranted - totalPointsDeducted >= 0 ? '+' : ''}{totalPointsGranted - totalPointsDeducted}
-            </div>
-            <p className="text-xs text-gray-500">Overall point change</p>
-          </CardContent>
-        </Card>
+        <Badge variant="outline" className={`h-8 px-3 flex items-center gap-2 ${totalPointsGranted - totalPointsDeducted >= 0 ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700'}`}>
+          <Gift className="h-3 w-3" />
+          <span className="text-sm font-medium">
+            {totalPointsGranted - totalPointsDeducted >= 0 ? '+' : ''}{totalPointsGranted - totalPointsDeducted} Net Impact
+          </span>
+        </Badge>
       </div>
 
       {/* Users & Transactions */}

@@ -19,7 +19,8 @@ import {
   Users,
   HelpCircle,
   Menu,
-  X
+  X,
+  Package
 } from 'lucide-react';
 
 interface MainLayoutProps {
@@ -43,6 +44,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   const adminNavigation = [
     { name: 'Admin Predictions', href: '/admin/predictions', icon: Trophy },
+    { name: 'Order Management', href: '/admin/orders', icon: Package },
     { name: 'Questions Management', href: '/admin/questions', icon: HelpCircle },
     { name: 'Staff Management', href: '/admin/staff', icon: Shield },
     { name: 'User Management', href: '/admin/users', icon: User },

@@ -235,50 +235,26 @@ const AdminFeedback: React.FC = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Total Feedback</CardTitle>
-            <MessageSquare className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-lg sm:text-2xl font-bold">{feedback.length}</div>
-            <p className="text-xs text-gray-500">All submissions</p>
-          </CardContent>
-        </Card>
+      <div className="flex flex-wrap gap-3">
+        <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-white border-gray-200">
+          <MessageSquare className="h-3 w-3 text-gray-500" />
+          <span className="text-sm font-medium">{feedback.length} Total Feedback</span>
+        </Badge>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Pending Review</CardTitle>
-            <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-lg sm:text-2xl font-bold text-orange-600">{pendingFeedback.length}</div>
-            <p className="text-xs text-gray-500">Awaiting action</p>
-          </CardContent>
-        </Card>
+        <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-orange-50 border-orange-200 text-orange-700">
+          <Clock className="h-3 w-3" />
+          <span className="text-sm font-medium">{pendingFeedback.length} Pending Review</span>
+        </Badge>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Approved</CardTitle>
-            <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-lg sm:text-2xl font-bold text-green-600">{approvedFeedback.length}</div>
-            <p className="text-xs text-gray-500">Good suggestions</p>
-          </CardContent>
-        </Card>
+        <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-green-50 border-green-200 text-green-700">
+          <CheckCircle className="h-3 w-3" />
+          <span className="text-sm font-medium">{approvedFeedback.length} Approved</span>
+        </Badge>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Points Awarded</CardTitle>
-            <Coins className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-lg sm:text-2xl font-bold text-blue-600">{totalPointsAwarded}</div>
-            <p className="text-xs text-gray-500">Total points</p>
-          </CardContent>
-        </Card>
+        <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-blue-50 border-blue-200 text-blue-700">
+          <Coins className="h-3 w-3" />
+          <span className="text-sm font-medium">{totalPointsAwarded} Points Awarded</span>
+        </Badge>
       </div>
 
       {/* Feedback Lists */}

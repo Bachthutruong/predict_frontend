@@ -159,39 +159,21 @@ const StaffPredictions: React.FC = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Predictions</CardTitle>
-            <Trophy className="h-4 w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{predictions.length}</div>
-            <p className="text-xs text-gray-500">All time created</p>
-          </CardContent>
-        </Card>
+      <div className="flex flex-wrap gap-3">
+        <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-white border-gray-200">
+          <Trophy className="h-3 w-3 text-gray-500" />
+          <span className="text-sm font-medium">{predictions.length} Total Predictions</span>
+        </Badge>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Predictions</CardTitle>
-            <Clock className="h-4 w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">{activePredictions.length}</div>
-            <p className="text-xs text-gray-500">Currently available</p>
-          </CardContent>
-        </Card>
+        <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-orange-50 border-orange-200 text-orange-700">
+          <Clock className="h-3 w-3" />
+          <span className="text-sm font-medium">{activePredictions.length} Active</span>
+        </Badge>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Completed</CardTitle>
-            <CheckCircle className="h-4 w-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{finishedPredictions.length}</div>
-            <p className="text-xs text-gray-500">Finished predictions</p>
-          </CardContent>
-        </Card>
+        <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-green-50 border-green-200 text-green-700">
+          <CheckCircle className="h-3 w-3" />
+          <span className="text-sm font-medium">{finishedPredictions.length} Completed</span>
+        </Badge>
       </div>
 
       {/* Predictions List */}

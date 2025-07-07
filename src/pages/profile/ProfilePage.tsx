@@ -7,6 +7,7 @@ import { Input } from '../../components/ui/input';
 import { Badge } from '../../components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
+import ProfileEditForm from '../../components/forms/ProfileEditForm';
 // import { Separator } from '../../components/ui/separator';
 import { 
   History,
@@ -19,7 +20,8 @@ import {
   Coins,
   User,
   Trophy,
-  Activity
+  Activity,
+  Settings
 } from 'lucide-react';
 import { useToast } from '../../hooks/use-toast';
 import type { PointTransaction, Referral } from '../../types';
@@ -215,9 +217,10 @@ const ProfilePage: React.FC = () => {
 
       {/* Tabs */}
       <Tabs defaultValue="transactions" className="space-y-4 sm:space-y-6">
-        <TabsList className="grid w-full grid-cols-2 h-10 sm:h-12">
+        <TabsList className="grid w-full grid-cols-3 h-10 sm:h-12">
           <TabsTrigger value="transactions" className="text-xs sm:text-sm">Point History</TabsTrigger>
           <TabsTrigger value="referrals" className="text-xs sm:text-sm">Referrals</TabsTrigger>
+          <TabsTrigger value="edit" className="text-xs sm:text-sm">Edit Profile</TabsTrigger>
         </TabsList>
 
         {/* Transaction History Tab */}
@@ -455,6 +458,17 @@ const ProfilePage: React.FC = () => {
                 )}
               </CardContent>
             </Card>
+          </div>
+        </TabsContent>
+
+        {/* Edit Profile Tab */}
+        <TabsContent value="edit">
+          <div className="space-y-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Settings className="h-5 w-5" />
+              <h2 className="text-xl font-semibold">Edit Profile</h2>
+            </div>
+            <ProfileEditForm />
           </div>
         </TabsContent>
       </Tabs>
