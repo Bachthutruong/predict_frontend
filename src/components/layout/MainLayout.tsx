@@ -95,7 +95,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                     <Link
                       key={item.name}
                       to={item.href}
-                      className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                      className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
                         isActive(item.href)
                           ? 'bg-blue-100 text-blue-700'
                           : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
@@ -130,8 +130,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                     {user ? getInitials(user.name) : 'U'}
                   </div>
                 )}
-                <div className="hidden lg:block">
-                  <p className="text-sm font-medium text-gray-900">{user?.name}</p>
+                <div className="hidden lg:flex items-center space-x-2">
+                  <span className="text-sm font-medium text-gray-900 whitespace-nowrap">{user?.name}</span>
                   <Badge variant="outline" className="text-xs">
                     {user?.role?.toUpperCase()}
                   </Badge>
