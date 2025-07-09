@@ -19,6 +19,8 @@ import ProfilePage from './pages/profile/ProfilePage';
 import ReferralsPage from './pages/profile/ReferralsPage';
 import CheckInPage from './pages/dashboard/CheckInPage';
 import FeedbackPage from './pages/dashboard/FeedbackPage';
+import SurveysPage from './pages/surveys/SurveysPage';
+import SurveyDetailPage from './pages/surveys/SurveyDetailPage';
 
 // Admin pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -29,6 +31,9 @@ import AdminGrantPoints from './pages/admin/AdminGrantPoints';
 import AdminStaff from './pages/admin/AdminStaff';
 import AdminQuestions from './pages/admin/AdminQuestions';
 import AdminOrders from './pages/admin/AdminOrders';
+import AdminSurveys from './pages/admin/AdminSurveys';
+import AdminSurveyForm from './pages/admin/AdminSurveyForm';
+import AdminSurveyResults from './pages/admin/AdminSurveyResults';
 
 // Staff pages
 import StaffDashboard from './pages/staff/StaffDashboard';
@@ -177,6 +182,26 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/surveys"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <SurveysPage />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/surveys/:id"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <SurveyDetailPage />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
 
       {/* Admin Routes */}
       <Route
@@ -265,6 +290,46 @@ function AppRoutes() {
           <ProtectedRoute roles={['admin']}>
             <MainLayout>
               <AdminOrders />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/surveys"
+        element={
+          <ProtectedRoute roles={['admin']}>
+            <MainLayout>
+              <AdminSurveys />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/surveys/new"
+        element={
+          <ProtectedRoute roles={['admin']}>
+            <MainLayout>
+              <AdminSurveyForm />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/surveys/edit/:id"
+        element={
+          <ProtectedRoute roles={['admin']}>
+            <MainLayout>
+              <AdminSurveyForm />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/surveys/:id/results"
+        element={
+          <ProtectedRoute roles={['admin']}>
+            <MainLayout>
+              <AdminSurveyResults />
             </MainLayout>
           </ProtectedRoute>
         }

@@ -20,7 +20,8 @@ import {
   HelpCircle,
   Menu,
   X,
-  Package
+  Package,
+  ListChecks
 } from 'lucide-react';
 
 interface MainLayoutProps {
@@ -37,6 +38,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Predictions', href: '/predictions', icon: Target },
     { name: 'Check In', href: '/check-in', icon: Calendar },
+    { name: 'Surveys', href: '/surveys', icon: ListChecks },
     { name: 'Profile', href: '/profile', icon: User },
     { name: 'Referrals', href: '/referrals', icon: Gift },
     { name: 'Feedback', href: '/feedback', icon: MessageSquare },
@@ -45,6 +47,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const adminNavigation = [
     { name: 'Admin Predictions', href: '/admin/predictions', icon: Trophy },
     { name: 'Order Management', href: '/admin/orders', icon: Package },
+    { name: 'Survey Management', href: '/admin/surveys', icon: ListChecks },
     { name: 'Questions Management', href: '/admin/questions', icon: HelpCircle },
     { name: 'Staff Management', href: '/admin/staff', icon: Shield },
     { name: 'User Management', href: '/admin/users', icon: User },

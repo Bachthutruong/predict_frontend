@@ -263,4 +263,59 @@ export type ApiResponse<T = any> = {
   data?: T;
   message?: string;
   error?: string;
-}; 
+};
+
+// --- Survey Types ---
+
+export interface SurveyOption {
+  _id: string;
+  text: string;
+  antiFraudGroupId?: string;
+}
+
+export interface SurveyQuestion {
+  _id: string;
+  text: string;
+  type: 'short-text' | 'long-text' | 'single-choice' | 'multiple-choice';
+  isRequired: boolean;
+  options: SurveyOption[];
+  isAntiFraud: boolean;
+}
+
+export interface Survey {
+  _id: string;
+  title: string;
+  description: string;
+  imageUrl?: string;
+  status: 'draft' | 'published' | 'closed';
+  pointsAwarded: number;
+  endDate?: string;
+  questions: SurveyQuestion[];
+  createdBy: string; // User ID
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SurveyAnswer {
+  questionId: string;
+  questionText: string;
+  questionType: string;
+  answer: string[];
+  otherText?: string;
+}
+
+export interface SurveySubmission {
+  _id: string;
+  surveyId: string;
+  userId: string;
+  user: { // Populated from backend
+    name: string;
+    email: string;
+  };
+  answers: SurveyAnswer[];
+  isFraudulent: boolean;
+  fraudReason?: string;
+  submittedAt: string;
+  createdAt: string;
+  updatedAt: string;
+} 
