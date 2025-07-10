@@ -125,21 +125,17 @@ function AppRoutes() {
       <Route
         path="/predictions"
         element={
-          <ProtectedRoute>
-            <MainLayout>
-              <PredictionsPage />
-            </MainLayout>
-          </ProtectedRoute>
+          <MainLayout>
+            <PredictionsPage />
+          </MainLayout>
         }
       />
       <Route
         path="/predictions/:id"
         element={
-          <ProtectedRoute>
-            <MainLayout>
-              <PredictionDetailPage />
-            </MainLayout>
-          </ProtectedRoute>
+          <MainLayout>
+            <PredictionDetailPage />
+          </MainLayout>
         }
       />
       <Route
@@ -165,31 +161,25 @@ function AppRoutes() {
       <Route
         path="/check-in"
         element={
-          <ProtectedRoute>
-            <MainLayout>
-              <CheckInPage />
-            </MainLayout>
-          </ProtectedRoute>
+          <MainLayout>
+            <CheckInPage />
+          </MainLayout>
         }
       />
       <Route
         path="/feedback"
         element={
-          <ProtectedRoute>
-            <MainLayout>
-              <FeedbackPage />
-            </MainLayout>
-          </ProtectedRoute>
+          <MainLayout>
+            <FeedbackPage />
+          </MainLayout>
         }
       />
       <Route
         path="/surveys"
         element={
-          <ProtectedRoute>
-            <MainLayout>
-              <SurveysPage />
-            </MainLayout>
-          </ProtectedRoute>
+          <MainLayout>
+            <SurveysPage />
+          </MainLayout>
         }
       />
       <Route
@@ -384,10 +374,10 @@ function AppRoutes() {
       />
 
       {/* Default redirect */}
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="/" element={<Navigate to="/predictions" replace />} />
       
       {/* 404 */}
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      <Route path="*" element={<Navigate to="/predictions" replace />} />
     </Routes>
   );
 }

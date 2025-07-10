@@ -10,10 +10,25 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '../../components/ui/switch';
-import { Trash2, PlusCircle, AlertTriangle } from 'lucide-react';
+import { Trash2, PlusCircle, AlertTriangle, GripVertical } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import apiService from '@/services/api';
-// import type { Survey, SurveyQuestion, SurveyOption } from '@/types';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+//   arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 // Zod Schema for validation
 const optionSchema = z.object({
@@ -65,9 +80,10 @@ interface QuestionCardProps {
     control: any;
     index: number;
     remove: (index: number) => void;
+    dragHandleProps?: any;
 }
 
-const QuestionCard: React.FC<QuestionCardProps> = ({ control, index, remove }) => {
+const QuestionCard: React.FC<QuestionCardProps> = ({ control, index, remove, dragHandleProps }) => {
     const { fields, append, remove: removeOption } = useFieldArray({
         control,
         name: `questions.${index}.options`
@@ -89,7 +105,14 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ control, index, remove }) =
         <Card className="relative bg-gray-50/50 p-4 border">
             <div className="space-y-4">
                 <div className="flex justify-between items-start">
-                    <Label className="text-lg">Question {index + 1}</Label>
+                    <div className="flex items-center gap-2">
+                         {dragHandleProps && (
+                            <div {...dragHandleProps} className="cursor-grab p-1">
+                                <GripVertical className="h-5 w-5 text-gray-400" />
+                            </div>
+                        )}
+                        <Label className="text-lg">Question {index + 1}</Label>
+                    </div>
                     <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}>
                         <Trash2 className="h-4 w-4 text-red-500" />
                     </Button>
@@ -172,6 +195,33 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ control, index, remove }) =
     );
 };
 
+const SortableQuestionCard = ({ control, index, remove, id }: any) => {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+    } = useSortable({ id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+    };
+
+    return (
+        <div ref={setNodeRef} style={style} {...attributes}>
+            <QuestionCard 
+                control={control}
+                index={index}
+                remove={remove}
+                dragHandleProps={listeners}
+            />
+        </div>
+    );
+}
+
+
 const AdminSurveyForm: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
@@ -191,10 +241,17 @@ const AdminSurveyForm: React.FC = () => {
         }
     });
 
-    const { fields, append, remove } = useFieldArray({
+    const { fields, append, remove, move } = useFieldArray({
         control,
         name: "questions"
     });
+
+    const sensors = useSensors(
+        useSensor(PointerSensor),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
 
     useEffect(() => {
         if (isEditMode) {
@@ -213,6 +270,15 @@ const AdminSurveyForm: React.FC = () => {
                 .finally(() => setIsLoading(false));
         }
     }, [id, isEditMode, reset]);
+
+    const handleDragEnd = (event: any) => {
+        const { active, over } = event;
+        if (active.id !== over.id) {
+            const oldIndex = fields.findIndex(item => item.id === active.id);
+            const newIndex = fields.findIndex(item => item.id === over.id);
+            move(oldIndex, newIndex);
+        }
+    };
 
     const onSubmit = async (data: SurveyFormData) => {
         setIsLoading(true);
@@ -319,9 +385,26 @@ const AdminSurveyForm: React.FC = () => {
                     </div>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                    {fields.map((field, index) => (
-                        <QuestionCard key={field.id} index={index} control={control} remove={remove} />
-                    ))}
+                    <DndContext
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragEnd={handleDragEnd}
+                    >
+                        <SortableContext
+                            items={fields.map(field => field.id)}
+                            strategy={verticalListSortingStrategy}
+                        >
+                            {fields.map((field, index) => (
+                                <SortableQuestionCard 
+                                    key={field.id}
+                                    id={field.id}
+                                    index={index}
+                                    control={control} 
+                                    remove={remove} 
+                                />
+                            ))}
+                        </SortableContext>
+                    </DndContext>
                     {errors.questions && !errors.questions.root && <p className="text-sm font-medium text-destructive">{errors.questions.message}</p>}
                      {errors.questions?.root?.message && <p className="text-sm font-medium text-destructive">{errors.questions.root.message}</p>}
                 </CardContent>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { userAPI } from '../../services/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
@@ -8,7 +8,21 @@ import { Badge } from '../../components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
 import ProfileEditForm from '../../components/forms/ProfileEditForm';
-// import { Separator } from '../../components/ui/separator';
+import { 
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { 
   History,
   Users,
@@ -16,7 +30,7 @@ import {
   Copy,
   Share,
   Check,
-  TrendingUp,
+  // TrendingUp,
   Coins,
   User,
   Trophy,
@@ -33,6 +47,10 @@ const ProfilePage: React.FC = () => {
   const [referrals, setReferrals] = useState<Referral[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [copiedReferralCode, setCopiedReferralCode] = useState(false);
+  
+  // State for pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   useEffect(() => {
     fetchProfileData();
@@ -111,6 +129,15 @@ const ProfilePage: React.FC = () => {
   // Safe array operations with fallback
   const completedReferrals = Array.isArray(referrals) ? referrals.filter(r => r.status === 'completed').length : 0;
   const pendingReferrals = Array.isArray(referrals) ? referrals.filter(r => r.status === 'pending').length : 0;
+  
+  const paginatedTransactions = useMemo(() => {
+    if (!Array.isArray(transactions)) return [];
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    return transactions.slice(startIndex, startIndex + rowsPerPage);
+  }, [transactions, currentPage, rowsPerPage]);
+
+  const totalPages = Array.isArray(transactions) ? Math.ceil(transactions.length / rowsPerPage) : 1;
+
 
   if (!user) {
     return (
@@ -236,44 +263,91 @@ const ProfilePage: React.FC = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {!isLoading && Array.isArray(transactions) && transactions.length > 0 ? (
-                <div className="space-y-3 sm:space-y-4">
-                  {transactions.slice(0, 10).map((transaction) => (
-                    <div key={transaction.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-full ${transaction.amount > 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
-                          {transaction.amount > 0 ? (
-                            <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
-                          ) : (
-                            <Coins className="h-3 w-3 sm:h-4 sm:w-4" />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm sm:text-base font-medium capitalize truncate">{transaction.reason}</p>
-                          <p className="text-xs sm:text-sm text-muted-foreground">
-                            {new Date(transaction.createdAt).toLocaleDateString()}
-                          </p>
-                          {transaction.notes && (
-                            <p className="text-xs text-muted-foreground mt-1 truncate">
-                              {transaction.notes}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="text-right mt-2 sm:mt-0">
-                        <p className={`text-sm sm:text-base font-bold ${transaction.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {transaction.amount > 0 ? '+' : ''}{transaction.amount}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+              {isLoading ? (
+                <div className="text-center py-8">
+                  <p>Loading transactions...</p>
                 </div>
               ) : (
-                <div className="text-center py-8">
-                  <History className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-                  <p className="text-muted-foreground">No transactions yet</p>
-                  <p className="text-sm text-muted-foreground">Start by checking in daily or making predictions!</p>
-                </div>
+                transactions.length > 0 ? (
+                  <div className="space-y-4">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Reason</TableHead>
+                          <TableHead>Notes</TableHead>
+                          <TableHead className="text-right">Amount</TableHead>
+                          <TableHead className="text-right">Date</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {paginatedTransactions.map((transaction) => (
+                          <TableRow key={transaction.id}>
+                            <TableCell className="font-medium capitalize">
+                              {transaction.reason.replace(/-/g, ' ')}
+                            </TableCell>
+                            <TableCell className="text-muted-foreground max-w-[300px] truncate">
+                              {transaction.notes || '-'}
+                            </TableCell>
+                            <TableCell className={`text-right font-bold ${transaction.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              {transaction.amount > 0 ? '+' : ''}{transaction.amount}
+                            </TableCell>
+                            <TableCell className="text-right text-muted-foreground">
+                              {new Date(transaction.createdAt).toLocaleDateString()}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                    
+                    {/* Pagination Controls */}
+                    {totalPages > 1 && (
+                      <div className="flex items-center justify-between pt-4">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-muted-foreground">Rows per page:</span>
+                          <Select value={String(rowsPerPage)} onValueChange={value => { setRowsPerPage(Number(value)); setCurrentPage(1); }}>
+                            <SelectTrigger className="w-20">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {[5, 10, 20, 50].map(val => (
+                                <SelectItem key={val} value={String(val)}>{val}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <span className="text-sm text-muted-foreground">
+                            Page {currentPage} of {totalPages}
+                          </span>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                              disabled={currentPage === 1}
+                            >
+                              Previous
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                              disabled={currentPage === totalPages}
+                            >
+                              Next
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <History className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+                    <p className="text-muted-foreground">No transactions yet</p>
+                    <p className="text-sm text-muted-foreground">Start by checking in daily or making predictions!</p>
+                  </div>
+                )
               )}
             </CardContent>
           </Card>

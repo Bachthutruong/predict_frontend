@@ -55,7 +55,7 @@ const AdminFeedback: React.FC = () => {
       // Handle API response structure
       const feedbackData = response.data?.data || response.data || [];
       const validFeedback = Array.isArray(feedbackData) 
-        ? feedbackData.filter((item: Feedback) => item.user) 
+        ? feedbackData.filter((item: Feedback) => item.userId) 
         : [];
       setFeedback(validFeedback);
     } catch (error) {
@@ -119,7 +119,7 @@ const AdminFeedback: React.FC = () => {
   const pendingFeedback = feedback.filter(f => f.status === 'pending');
   const approvedFeedback = feedback.filter(f => f.status === 'approved');
   const rejectedFeedback = feedback.filter(f => f.status === 'rejected');
-  const totalPointsAwarded = approvedFeedback.reduce((sum, f) => sum + (f.awardedPoints || 0), 0);
+  const totalPointsAwarded = approvedFeedback.reduce((sum, f) => sum + (f.awardedPoints || f.pointsAwarded || 0), 0);
 
   // Pagination calculations
   const pendingTotalPages = Math.ceil(pendingFeedback.length / itemsPerPage);
@@ -522,10 +522,10 @@ const FeedbackTable: React.FC<FeedbackListProps> = ({
                   </Badge>
                 </td>
                 <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
-                  {feedback.awardedPoints ? (
+                  {feedback.awardedPoints || feedback.pointsAwarded ? (
                     <Badge variant="outline" className="text-xs">
                       <Coins className="h-3 w-3 mr-1" />
-                      <span className="hidden sm:inline">+</span>{feedback.awardedPoints}
+                      <span className="hidden sm:inline">+</span>{feedback.awardedPoints || feedback.pointsAwarded}
                     </Badge>
                   ) : (
                     <span className="text-xs sm:text-sm text-gray-400">-</span>

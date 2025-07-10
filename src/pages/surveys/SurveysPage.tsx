@@ -1,22 +1,31 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ListChecks, Coins, Calendar, ArrowRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import apiService from '@/services/api';
+import apiService, { publicApiService } from '@/services/api';
 import type { Survey } from '@/types';
+import { useAuth } from '@/context/AuthContext';
+import { AuthModal } from '@/components/auth/AuthModal';
 
 const SurveysPage: React.FC = () => {
     const { toast } = useToast();
+    const { user } = useAuth();
+    const navigate = useNavigate();
     const [surveys, setSurveys] = useState<Survey[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [showAuthModal, setShowAuthModal] = useState(false);
+    const [selectedSurveyId, setSelectedSurveyId] = useState<string | null>(null);
 
     useEffect(() => {
         const loadSurveys = async () => {
             setIsLoading(true);
             try {
-                const response = await apiService.get('/surveys');
+                // Use public API service for guests, authenticated service for logged-in users
+                const service = user ? apiService : publicApiService;
+                const endpoint = user ? '/surveys' : '/surveys/public';
+                const response = await service.get(endpoint);
                 setSurveys(response.data?.data || []);
             } catch (error: any) {
                 toast({
@@ -29,10 +38,28 @@ const SurveysPage: React.FC = () => {
             }
         };
         loadSurveys();
-    }, []);
+    }, [user]);
+
+    const handleStartSurvey = (surveyId: string) => {
+        if (!user) {
+            setSelectedSurveyId(surveyId);
+            setShowAuthModal(true);
+        } else {
+            // Navigate to survey detail page for logged-in users
+            navigate(`/surveys/${surveyId}`);
+        }
+    };
+
+    const handleAuthSuccess = () => {
+        if (selectedSurveyId) {
+            navigate(`/surveys/${selectedSurveyId}`);
+            setSelectedSurveyId(null);
+        }
+    };
 
     return (
         <div className="space-y-6">
+            <AuthModal open={showAuthModal} onOpenChange={setShowAuthModal} onSuccess={handleAuthSuccess} />
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -90,10 +117,11 @@ const SurveysPage: React.FC = () => {
                                )}
                             </CardContent>
                             <CardFooter>
-                                <Button asChild className="w-full">
-                                    <Link to={`/surveys/${survey._id}`}>
-                                        Start Survey <ArrowRight className="ml-2 h-4 w-4" />
-                                    </Link>
+                                <Button 
+                                    onClick={() => handleStartSurvey(survey._id)}
+                                    className="w-full"
+                                >
+                                    Start Survey <ArrowRight className="ml-2 h-4 w-4" />
                                 </Button>
                             </CardFooter>
                         </Card>

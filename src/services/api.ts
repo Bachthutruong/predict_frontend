@@ -10,6 +10,14 @@ const api = axios.create({
   },
 });
 
+// Public API instance without auth interceptor
+const publicApi = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
 // Request interceptor to add auth token
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
@@ -242,8 +250,9 @@ export const checkInAPI = {
     return response.data;
   },
 
-  getQuestion: async (): Promise<ApiResponse<Question>> => {
-    const response = await api.get('/check-in/question');
+  getQuestion: async (isPublic = false): Promise<ApiResponse<Question>> => {
+    const url = isPublic ? '/check-in/question/public' : '/check-in/question';
+    const response = await (isPublic ? publicApi.get(url) : api.get(url));
     return response.data;
   },
 
@@ -391,6 +400,15 @@ export const apiService = {
   feedback: feedbackAPI,
   dashboard: dashboardAPI,
   staff: staffAPI,
+};
+
+// Public API service for guest users (no interceptors)
+export const publicApiService = {
+  get: publicApi.get.bind(publicApi),
+  post: publicApi.post.bind(publicApi),
+  put: publicApi.put.bind(publicApi),
+  patch: publicApi.patch.bind(publicApi),
+  delete: publicApi.delete.bind(publicApi),
 };
 
 export default apiService; 

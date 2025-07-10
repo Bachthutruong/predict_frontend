@@ -34,7 +34,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
 
-  const navigation = [
+  const guestNavigation = [
+    { name: 'Predictions', href: '/predictions', icon: Target },
+    { name: 'Check In', href: '/check-in', icon: Calendar },
+    { name: 'Surveys', href: '/surveys', icon: ListChecks },
+    { name: 'Feedback', href: '/feedback', icon: MessageSquare },
+  ];
+
+  const userNavigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Predictions', href: '/predictions', icon: Target },
     { name: 'Check In', href: '/check-in', icon: Calendar },
@@ -43,6 +50,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     { name: 'Referrals', href: '/referrals', icon: Gift },
     { name: 'Feedback', href: '/feedback', icon: MessageSquare },
   ];
+
+  const navigation = user ? userNavigation : guestNavigation;
 
   const adminNavigation = [
     { name: 'Admin Predictions', href: '/admin/predictions', icon: Trophy },
@@ -82,7 +91,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           <div className="flex justify-between h-16">
             {/* Left side - Logo and Navigation */}
             <div className="flex items-center">
-              <Link to="/dashboard" className="flex items-center space-x-2 mr-8">
+              <Link to="/predictions" className="flex items-center space-x-2 mr-8">
                 <Trophy className="h-8 w-8 text-blue-600" />
                 <span className="text-xl sm:text-2xl font-bold text-blue-600">PredictWin</span>
               </Link>
@@ -111,60 +120,73 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             
             {/* Right side - User info and actions */}
             <div className="flex items-center space-x-2 sm:space-x-4">
-              {/* Points Display */}
-              <div className="hidden sm:flex items-center space-x-2 bg-blue-100 px-3 py-1 rounded-full">
-                <Coins className="h-4 w-4 text-blue-600" />
-                <span className="font-medium text-blue-600">{user?.points || 0}</span>
-              </div>
-
-              {/* User Info */}
-              <div className="flex items-center space-x-2 sm:space-x-3">
-                {user?.avatarUrl ? (
-                  <img
-                    src={user.avatarUrl}
-                    alt={user.name}
-                    className="h-8 w-8 rounded-full"
-                  />
-                ) : (
-                  <div className="h-8 w-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-medium">
-                    {user ? getInitials(user.name) : 'U'}
+              {user ? (
+                <>
+                  {/* Points Display */}
+                  <div className="hidden sm:flex items-center space-x-2 bg-blue-100 px-3 py-1 rounded-full">
+                    <Coins className="h-4 w-4 text-blue-600" />
+                    <span className="font-medium text-blue-600">{user?.points || 0}</span>
                   </div>
-                )}
-                <div className="hidden lg:flex items-center space-x-2">
-                  <span className="text-sm font-medium text-gray-900 whitespace-nowrap">{user?.name}</span>
-                  <Badge variant="outline" className="text-xs">
-                    {user?.role?.toUpperCase()}
-                  </Badge>
+
+                  {/* User Info */}
+                  <div className="flex items-center space-x-2 sm:space-x-3">
+                    {user?.avatarUrl ? (
+                      <img
+                        src={user.avatarUrl}
+                        alt={user.name}
+                        className="h-8 w-8 rounded-full"
+                      />
+                    ) : (
+                      <div className="h-8 w-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-medium">
+                        {user ? getInitials(user.name) : 'U'}
+                      </div>
+                    )}
+                    <div className="hidden lg:flex items-center space-x-2">
+                      <span className="text-sm font-medium text-gray-900 whitespace-nowrap">{user?.name}</span>
+                      <Badge variant="outline" className="text-xs">
+                        {user?.role?.toUpperCase()}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  {/* Admin/Staff Menu Toggle (Mobile) */}
+                  {isAdminOrStaff && (
+                    <button
+                      onClick={() => setIsAdminMenuOpen(!isAdminMenuOpen)}
+                      className="lg:hidden p-2 text-gray-600 hover:text-gray-900 border rounded-md"
+                    >
+                      <Settings className="h-5 w-5" />
+                    </button>
+                  )}
+
+                  {/* Mobile menu button */}
+                  <button
+                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                    className="md:hidden p-2 text-gray-600 hover:text-gray-900"
+                  >
+                    {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                  </button>
+
+                  {/* Logout Button */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={logout}
+                    className="hidden md:flex text-gray-500 hover:text-gray-700"
+                  >
+                    <LogOut className="h-4 w-4" />
+                  </Button>
+                </>
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <Button asChild variant="ghost">
+                    <Link to="/login">Login</Link>
+                  </Button>
+                  <Button asChild>
+                    <Link to="/register">Sign Up</Link>
+                  </Button>
                 </div>
-              </div>
-
-              {/* Admin/Staff Menu Toggle (Mobile) */}
-              {isAdminOrStaff && (
-                <button
-                  onClick={() => setIsAdminMenuOpen(!isAdminMenuOpen)}
-                  className="lg:hidden p-2 text-gray-600 hover:text-gray-900 border rounded-md"
-                >
-                  <Settings className="h-5 w-5" />
-                </button>
               )}
-
-              {/* Mobile menu button */}
-              <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="md:hidden p-2 text-gray-600 hover:text-gray-900"
-              >
-                {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-              </button>
-
-              {/* Logout Button */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={logout}
-                className="hidden md:flex text-gray-500 hover:text-gray-700"
-              >
-                <LogOut className="h-4 w-4" />
-              </Button>
             </div>
           </div>
         </div>
@@ -192,23 +214,27 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 );
               })}
               
-              {/* Mobile Points Display */}
-              <div className="flex items-center px-3 py-2 space-x-2 bg-blue-50 rounded-md">
-                <Coins className="h-5 w-5 text-blue-600" />
-                <span className="font-medium text-blue-600">{user?.points || 0} Points</span>
-              </div>
-              
-              {/* Mobile Logout */}
-              <button
-                onClick={() => {
-                  logout();
-                  closeAllMenus();
-                }}
-                className="flex items-center w-full px-3 py-2 text-base font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md"
-              >
-                <LogOut className="h-5 w-5 mr-3" />
-                Logout
-              </button>
+              {user && (
+                <>
+                  {/* Mobile Points Display */}
+                  <div className="flex items-center px-3 py-2 space-x-2 bg-blue-50 rounded-md">
+                    <Coins className="h-5 w-5 text-blue-600" />
+                    <span className="font-medium text-blue-600">{user?.points || 0} Points</span>
+                  </div>
+                  
+                  {/* Mobile Logout */}
+                  <button
+                    onClick={() => {
+                      logout();
+                      closeAllMenus();
+                    }}
+                    className="flex items-center w-full px-3 py-2 text-base font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md"
+                  >
+                    <LogOut className="h-5 w-5 mr-3" />
+                    Logout
+                  </button>
+                </>
+              )}
             </div>
           </div>
         )}

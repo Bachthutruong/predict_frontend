@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import apiService from '@/services/api';
 import type { Survey, SurveyQuestion } from '@/types';
 import { useAuth } from '@/context/AuthContext';
+import { AuthModal } from '@/components/auth/AuthModal';
 
 type FormValues = {
   [key: string]: string | string[];
@@ -23,12 +24,13 @@ const SurveyDetailPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { toast } = useToast();
-    const { refreshUser } = useAuth();
+    const { user, refreshUser } = useAuth();
     const [survey, setSurvey] = useState<Survey | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isAlreadyCompleted, setIsAlreadyCompleted] = useState(false);
+    const [showAuthModal, setShowAuthModal] = useState(false);
 
     const { register, handleSubmit, control, watch, setValue } = useForm<FormValues>({
         defaultValues: {}
@@ -36,20 +38,42 @@ const SurveyDetailPage: React.FC = () => {
 
     useEffect(() => {
         if (!id) return;
-        setIsLoading(true);
-        apiService.get(`/surveys/${id}`)
-            .then(res => setSurvey(res.data.data))
-            .catch(err => {
-                if (err.response?.status === 403) {
-                    setIsAlreadyCompleted(true);
-                } else {
-                    setError(err.response?.data?.message || 'Failed to load survey.');
-                }
-            })
-            .finally(() => setIsLoading(false));
+
+        const fetchSurvey = async () => {
+            try {
+                // Only authenticated users can access survey details
+                const res = await apiService.get(`/surveys/${id}`);
+                setSurvey(res.data.data);
+
+                // Check completion status for logged-in users
+                await checkCompletionStatus();
+            } catch (err: any) {
+                setError(err.response?.data?.message || 'Failed to load survey.');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchSurvey();
     }, [id]);
 
+    const checkCompletionStatus = async () => {
+        if (!id) return;
+        try {
+            await apiService.get(`/surveys/${id}/status`);
+        } catch (err: any) {
+            if (err.response?.status === 403) {
+                setIsAlreadyCompleted(true);
+            }
+        }
+    };
+
     const onSubmit = async (data: FormValues) => {
+        if (!user) {
+            setShowAuthModal(true);
+            return;
+        }
+
         setIsSubmitting(true);
         const answers = survey?.questions.map(q => {
             const value = data[q._id];
@@ -91,7 +115,7 @@ const SurveyDetailPage: React.FC = () => {
 
     if (isLoading) return <p>Loading survey...</p>;
 
-    if (isAlreadyCompleted) {
+    if (user && isAlreadyCompleted) {
         return (
             <Card className="text-center">
                  <CardHeader>
@@ -226,6 +250,7 @@ const SurveyDetailPage: React.FC = () => {
 
     return (
         <form onSubmit={handleSubmit(onSubmit)}>
+            <AuthModal open={showAuthModal} onOpenChange={setShowAuthModal} onSuccess={checkCompletionStatus} />
             <Card>
                 <CardHeader>
                     <CardTitle className="text-2xl">{survey.title}</CardTitle>

@@ -10,6 +10,7 @@ import { Badge } from '../../components/ui/badge';
 import { Calendar, CheckCircle, Loader2 } from 'lucide-react';
 import { useToast } from '../../hooks/use-toast';
 import type { Question } from '../../types';
+import { AuthModal } from '@/components/auth/AuthModal';
 
 const CheckInPage: React.FC = () => {
   const { user, refreshUser } = useAuth();
@@ -19,6 +20,7 @@ const CheckInPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasCheckedInToday, setHasCheckedInToday] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [result, setResult] = useState<{
     success: boolean;
     message?: string;
@@ -28,8 +30,13 @@ const CheckInPage: React.FC = () => {
   } | null>(null);
 
   useEffect(() => {
-    checkTodayStatus();
-  }, []);
+    if (user) {
+      checkTodayStatus();
+    } else {
+      // For guests, just fetch a question without checking their status
+      fetchQuestion(true);
+    }
+  }, [user]);
 
   const checkTodayStatus = async () => {
     setIsLoading(true);
@@ -56,9 +63,9 @@ const CheckInPage: React.FC = () => {
     }
   };
 
-  const fetchQuestion = async () => {
+  const fetchQuestion = async (isPublic = false) => {
     try {
-      const response = await checkInAPI.getQuestion();
+      const response = await checkInAPI.getQuestion(isPublic);
       if (response.success && response.data) {
         setQuestion(response.data);
       } else {
@@ -83,6 +90,11 @@ const CheckInPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!question || !answer.trim()) return;
+
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
 
     console.log('Submitting answer:', answer.trim());
     console.log('Question ID:', question.id);
@@ -204,8 +216,8 @@ const CheckInPage: React.FC = () => {
     );
   }
 
-  // Already checked in today
-  if (hasCheckedInToday || (result && result.success)) {
+  // Already checked in today (only for logged-in users)
+  if (user && (hasCheckedInToday || (result && result.success))) {
     return (
       <div className="space-y-8">
         <div>
@@ -253,6 +265,7 @@ const CheckInPage: React.FC = () => {
 
   return (
     <div className="space-y-8">
+      <AuthModal open={showAuthModal} onOpenChange={setShowAuthModal} onSuccess={checkTodayStatus} />
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -264,24 +277,32 @@ const CheckInPage: React.FC = () => {
         </p>
       </div>
 
-      {/* Current Streak */}
+      {/* Current Streak (or login prompt for guests) */}
       <Card>
         <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold">Current Streak</h3>
-              <p className="text-2xl font-bold text-primary">{user?.consecutiveCheckIns || 0} days</p>
+          {user ? (
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold">Current Streak</h3>
+                <p className="text-2xl font-bold text-primary">{user.consecutiveCheckIns || 0} days</p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm text-muted-foreground">Keep it up!</p>
+                <p className="text-sm text-muted-foreground">Next milestone at 7 days</p>
+              </div>
             </div>
-            <div className="text-right">
-              <p className="text-sm text-muted-foreground">Keep it up!</p>
-              <p className="text-sm text-muted-foreground">Next milestone at 7 days</p>
+          ) : (
+            <div className="text-center">
+              <h3 className="font-semibold">Want to track your streak?</h3>
+              <p className="text-sm text-muted-foreground mt-1 mb-3">Log in to save your progress and earn bonus points.</p>
+              <Button onClick={() => setShowAuthModal(true)}>Login or Sign Up</Button>
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
 
       {/* Result Alert */}
-      {result && !result.success && (
+      {user && result && !result.success && (
         <Alert variant="destructive">
           <AlertDescription>
             {result.message}

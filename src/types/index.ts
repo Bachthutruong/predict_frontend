@@ -49,20 +49,27 @@ export type UserPrediction = {
   createdAt: string;
 };
 
-export type Feedback = {
+export interface Feedback {
   id: string;
   userId: string;
-  user: User;
+  user?: {
+    id: string;
+    name: string;
+    email: string;
+    avatarUrl?: string;
+  };
   feedbackText: string;
-  status: 'pending' | 'approved' | 'rejected';
-  awardedPoints?: number;
+  status: 'pending' | 'approved' | 'rejected' | 'reviewed';
+  pointsAwarded?: number;
+  awardedPoints?: number; // Alternative property name used in admin
   createdAt: string;
+  updatedAt: string;
 };
 
 export type PointTransaction = {
   id: string;
   userId: string;
-  user: { name: string };
+  user?: { name: string };
   adminId?: string;
   admin?: { name: string };
   amount: number;
@@ -72,7 +79,9 @@ export type PointTransaction = {
     | 'feedback'
     | 'prediction-win'
     | 'admin-grant'
-    | 'streak-bonus';
+    | 'streak-bonus'
+    | 'survey-completion'
+    | 'order-completion';
   createdAt: string;
   notes?: string;
 };

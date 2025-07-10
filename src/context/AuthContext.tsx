@@ -2,6 +2,17 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { AuthUser, LoginCredentials, RegisterData } from '../types';
 import { authAPI, userAPI } from '../services/api';
+import axios from 'axios';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://predict-backend-63un.onrender.com/api';
+
+// Public API instance for token validation
+const publicApi = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
 interface AuthContextType {
   user: AuthUser | null;
@@ -30,6 +41,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const validateToken = async (token: string): Promise<boolean> => {
+    try {
+      // Use public API instance to avoid 401 redirect
+      const response = await publicApi.get('/users/profile', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      return response.data.success;
+    } catch (error) {
+      return false;
+    }
+  };
+
   useEffect(() => {
     const initAuth = async () => {
       const token = localStorage.getItem('token');
@@ -37,9 +60,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (token && storedUser) {
         try {
-          setUser(JSON.parse(storedUser));
-          // Optionally refresh user data from server
-          await refreshUser();
+          // Validate token before setting user
+          const isValid = await validateToken(token);
+          if (isValid) {
+            setUser(JSON.parse(storedUser));
+          } else {
+            // Clear invalid token
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+          }
         } catch (error) {
           console.error('Failed to restore auth state:', error);
           localStorage.removeItem('token');
