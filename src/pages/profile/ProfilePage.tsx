@@ -39,14 +39,17 @@ import {
 } from 'lucide-react';
 import { useToast } from '../../hooks/use-toast';
 import type { PointTransaction, Referral } from '../../types';
+import apiService from '../../services/api';
 
 const ProfilePage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const { toast } = useToast();
   const [transactions, setTransactions] = useState<PointTransaction[]>([]);
   const [referrals, setReferrals] = useState<Referral[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [copiedReferralCode, setCopiedReferralCode] = useState(false);
+  const [referralCodeInput, setReferralCodeInput] = useState('');
+  const [isSettingReferral, setIsSettingReferral] = useState(false);
   
   // State for pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -54,7 +57,16 @@ const ProfilePage: React.FC = () => {
 
   useEffect(() => {
     fetchProfileData();
+    // Refresh user data when component mounts
+    refreshUser();
   }, []);
+
+  // Clear input when user already has referral code
+  useEffect(() => {
+    if (user?.referralCode) {
+      setReferralCodeInput('');
+    }
+  }, [user?.referralCode]);
 
   const fetchProfileData = async () => {
     try {
@@ -119,6 +131,34 @@ const ProfilePage: React.FC = () => {
       }
     } else {
       copyReferralCode();
+    }
+  };
+
+  // Handler to set referral code
+  const handleSetReferralCode = async () => {
+    if (!referralCodeInput.trim() || referralCodeInput.trim().length < 4) {
+      toast({ title: 'Error', description: 'Referral code must be at least 4 characters.', variant: 'destructive' });
+      return;
+    }
+    setIsSettingReferral(true);
+    try {
+      console.log('Setting referral code:', referralCodeInput.trim());
+      const response = await apiService.post('/users/set-referral-code', { referralCode: referralCodeInput.trim() });
+      console.log('Set referral response:', response.data);
+      
+      if (response.data?.success) {
+        await refreshUser(); // Cập nhật lại user context
+        setReferralCodeInput(''); // Clear input after success
+        toast({ title: 'Success', description: 'Referral code set successfully.' });
+        console.log('User context after refresh:', user);
+      } else {
+        toast({ title: 'Error', description: response.data?.message || 'Failed to set referral code', variant: 'destructive' });
+      }
+    } catch (error: any) {
+      console.error('Set referral code error:', error);
+      toast({ title: 'Error', description: error.response?.data?.message || 'Failed to set referral code', variant: 'destructive' });
+    } finally {
+      setIsSettingReferral(false);
     }
   };
 
@@ -371,16 +411,38 @@ const ProfilePage: React.FC = () => {
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Referral Code</label>
                   <div className="flex items-center gap-2">
-                    <Input 
-                      value={user.referralCode || ''} 
-                      readOnly 
-                      className="font-mono text-sm"
-                    />
+                    {user?.referralCode ? (
+                      <Input 
+                        value={user.referralCode} 
+                        readOnly 
+                        className="font-mono text-sm"
+                      />
+                    ) : (
+                      <>
+                        <Input
+                          value={referralCodeInput}
+                          onChange={e => setReferralCodeInput(e.target.value)}
+                          placeholder="Enter your referral code"
+                          maxLength={16}
+                          className="font-mono text-sm"
+                          disabled={isSettingReferral}
+                        />
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={handleSetReferralCode}
+                          disabled={isSettingReferral || !referralCodeInput.trim() || referralCodeInput.trim().length < 4}
+                        >
+                          {isSettingReferral ? 'Saving...' : 'Set Code'}
+                        </Button>
+                      </>
+                    )}
                     <Button
                       variant="outline"
                       size="icon"
                       onClick={copyReferralCode}
                       className="shrink-0 h-9 w-9 sm:h-10 sm:w-10"
+                      disabled={!user?.referralCode}
                     >
                       {copiedReferralCode ? (
                         <Check className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -395,15 +457,23 @@ const ProfilePage: React.FC = () => {
                   <label className="text-sm font-medium">Referral Link</label>
                   <div className="flex items-center gap-2">
                     <Input 
-                      value={`${window.location.origin}/register?ref=${user.referralCode}`}
+                      value={
+                        user.referralCode
+                          ? `${window.location.origin}/register?ref=${user.referralCode}`
+                          : referralCodeInput
+                            ? `${window.location.origin}/register?ref=${referralCodeInput.trim().toUpperCase()}`
+                            : ''
+                      }
                       readOnly 
                       className="text-xs"
+                      placeholder="Set your referral code first"
                     />
                     <Button
                       variant="outline"
                       size="icon"
                       onClick={copyReferralCode}
                       className="shrink-0 h-9 w-9 sm:h-10 sm:w-10"
+                      disabled={!(user.referralCode || referralCodeInput)}
                     >
                       <Copy className="h-3 w-3 sm:h-4 sm:w-4" />
                     </Button>
@@ -412,6 +482,7 @@ const ProfilePage: React.FC = () => {
                       size="icon"
                       onClick={shareReferralLink}
                       className="shrink-0 h-9 w-9 sm:h-10 sm:w-10"
+                      disabled={!(user.referralCode || referralCodeInput)}
                     >
                       <Share className="h-3 w-3 sm:h-4 sm:w-4" />
                     </Button>

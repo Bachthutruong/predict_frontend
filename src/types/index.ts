@@ -49,27 +49,20 @@ export type UserPrediction = {
   createdAt: string;
 };
 
-export interface Feedback {
+export type Feedback = {
   id: string;
   userId: string;
-  user?: {
-    id: string;
-    name: string;
-    email: string;
-    avatarUrl?: string;
-  };
+  user: User;
   feedbackText: string;
-  status: 'pending' | 'approved' | 'rejected' | 'reviewed';
-  pointsAwarded?: number;
-  awardedPoints?: number; // Alternative property name used in admin
+  status: 'pending' | 'approved' | 'rejected';
+  awardedPoints?: number;
   createdAt: string;
-  updatedAt: string;
 };
 
 export type PointTransaction = {
   id: string;
   userId: string;
-  user?: { name: string };
+  user: { name: string };
   adminId?: string;
   admin?: { name: string };
   amount: number;
@@ -79,9 +72,7 @@ export type PointTransaction = {
     | 'feedback'
     | 'prediction-win'
     | 'admin-grant'
-    | 'streak-bonus'
-    | 'survey-completion'
-    | 'order-completion';
+    | 'streak-bonus';
   createdAt: string;
   notes?: string;
 };
@@ -327,4 +318,134 @@ export interface SurveySubmission {
   submittedAt: string;
   createdAt: string;
   updatedAt: string;
+}
+
+// --- Voting Types ---
+
+export interface VotingCampaign {
+  _id: string;
+  id: string;
+  title: string;
+  description: string;
+  imageUrl?: string;
+  startDate: string;
+  endDate: string;
+  pointsPerVote: number;
+  maxVotesPerUser: number;
+  votingFrequency: 'once' | 'daily';
+  status: 'draft' | 'active' | 'completed' | 'cancelled' | 'upcoming' | 'closed';
+  isActive: boolean;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  
+  // Additional computed fields from API
+  entryCount?: number;
+  totalVotes?: number;
+  isVotingOpen?: boolean;
+  isVotingCompleted?: boolean;
+  remainingTime?: number;
+}
+
+export interface VoteEntry {
+    _id: string;
+    id: string;
+  campaignId: string;
+  title: string;
+  description: string;
+  imageUrl?: string;
+  submittedBy: string | {
+    id: string;
+    name: string;
+  };
+  voteCount: number;
+  status: 'pending' | 'approved' | 'rejected';
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  
+  // Additional fields from API
+  votes?: Array<{
+    id: string;
+    voteDate: string;
+    userName: string; // Masked username
+  }>;
+}
+
+export interface UserVote {
+  id: string;
+  userId: string;
+  campaignId: string;
+  entryId: string;
+  voteDate: string;
+  createdAt: string;
+  updatedAt: string;
+  
+  // Populated fields when fetching voting history
+  campaignId_populated?: {
+    title: string;
+    description: string;
+    startDate: string;
+    endDate: string;
+    status: string;
+  };
+  entryId_populated?: {
+    title: string;
+    description: string;
+    voteCount: number;
+  };
+}
+
+export interface VotingCampaignDetail {
+  campaign: VotingCampaign & {
+    isVotingOpen: boolean;
+    isVotingCompleted: boolean;
+    remainingTime: number;
+  };
+  entries: VoteEntry[];
+  userVotes: string[]; // Array of entry IDs that current user has voted for
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  } | null;
+}
+
+export interface VotingStatistics {
+  campaign: {
+    title: string;
+    status: string;
+    startDate: string;
+    endDate: string;
+  };
+  summary: {
+    totalVotes: number;
+    uniqueVoters: number;
+    totalEntries: number;
+  };
+  topEntries: VoteEntry[];
+  votingActivity: Array<{
+    _id: string; // Date string
+    count: number;
+  }>;
+}
+
+// For creating/updating campaigns
+export interface CreateVotingCampaignData {
+  title: string;
+  description: string;
+  imageUrl?: string;
+  startDate: string;
+  endDate: string;
+  pointsPerVote: number;
+  maxVotesPerUser: number;
+  votingFrequency: 'once' | 'daily';
+}
+
+// For creating/updating entries
+export interface CreateVoteEntryData {
+  title: string;
+  description: string;
+  imageUrl?: string;
 } 

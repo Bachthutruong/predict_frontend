@@ -220,7 +220,7 @@ const FeedbackPage: React.FC = () => {
                           Approved
                         </Badge>
                       </TableCell>
-                      <TableCell className="font-medium text-center">{fb.pointsAwarded}</TableCell>
+                      <TableCell className="font-medium text-center">{fb.awardedPoints || 0}</TableCell>
                       <TableCell className="text-right">{new Date(fb.createdAt).toLocaleDateString()}</TableCell>
                     </TableRow>
                   ))}

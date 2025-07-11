@@ -11,7 +11,8 @@ import {
   Calendar,
   TrendingUp,
   RefreshCw,
-  Package
+  Package,
+  Vote
 } from 'lucide-react';
 import { useToast } from '../../hooks/use-toast';
 import apiService from '../../services/api';
@@ -276,6 +277,17 @@ const AdminDashboard: React.FC = () => {
               <div>
                 <h4 className="font-medium">Questions</h4>
                 <p className="text-sm text-gray-500">Manage daily questions</p>
+              </div>
+            </Link>
+
+            <Link 
+              to="/admin/voting/campaigns"
+              className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <Vote className="h-8 w-8 text-purple-600" />
+              <div>
+                <h4 className="font-medium">Voting Campaigns</h4>
+                <p className="text-sm text-gray-500">Manage voting campaigns</p>
               </div>
             </Link>
 

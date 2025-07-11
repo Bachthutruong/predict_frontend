@@ -8,6 +8,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 10000, // 10 second timeout
 });
 
 // Public API instance without auth interceptor
@@ -16,6 +17,7 @@ const publicApi = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 10000, // 10 second timeout
 });
 
 // Request interceptor to add auth token
@@ -27,14 +29,22 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Response interceptor for error handling
+// Response interceptor for better error handling
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+    if (error.code === 'ECONNABORTED') {
+      console.error('Request timeout:', error);
+    }
+    return Promise.reject(error);
+  }
+);
+
+publicApi.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.code === 'ECONNABORTED') {
+      console.error('Public request timeout:', error);
     }
     return Promise.reject(error);
   }
@@ -102,21 +112,46 @@ export const userAPI = {
   },
 };
 
-// Predictions API
+// Predictions API with retry logic
 export const predictionsAPI = {
-  getAll: async (): Promise<ApiResponse<Prediction[]>> => {
-    const response = await api.get('/predictions');
-    return response.data;
+  getAll: async (retries = 2): Promise<ApiResponse<Prediction[]>> => {
+    for (let i = 0; i <= retries; i++) {
+      try {
+        const response = await api.get('/predictions');
+        return response.data;
+      } catch (error) {
+        if (i === retries) throw error;
+        // Wait before retry (exponential backoff)
+        await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+      }
+    }
+    throw new Error('Failed after retries');
   },
 
-  getById: async (id: string): Promise<ApiResponse<{ prediction: Prediction; userPredictions: UserPrediction[] }>> => {
-    const response = await api.get(`/predictions/${id}`);
-    return response.data;
+  getById: async (id: string, retries = 2): Promise<ApiResponse<{ prediction: Prediction; userPredictions: UserPrediction[] }>> => {
+    for (let i = 0; i <= retries; i++) {
+      try {
+        const response = await api.get(`/predictions/${id}`);
+        return response.data;
+      } catch (error) {
+        if (i === retries) throw error;
+        await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+      }
+    }
+    throw new Error('Failed after retries');
   },
 
-  submit: async (id: string, guess: string): Promise<ApiResponse<{ isCorrect: boolean; bonusPoints?: number }>> => {
-    const response = await api.post(`/predictions/${id}/submit`, { guess });
-    return response.data;
+  submit: async (id: string, guess: string, retries = 1): Promise<ApiResponse<{ isCorrect: boolean; bonusPoints?: number }>> => {
+    for (let i = 0; i <= retries; i++) {
+      try {
+        const response = await api.post(`/predictions/${id}/submit`, { guess });
+        return response.data;
+      } catch (error) {
+        if (i === retries) throw error;
+        await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+      }
+    }
+    throw new Error('Failed after retries');
   },
 };
 
@@ -383,6 +418,166 @@ export const staffAPI = {
   },
 };
 
+// Voting API
+export const votingAPI = {
+  // Public endpoints (no auth required)
+  getCampaigns: async (params: {
+    page?: number;
+    limit?: number;
+    search?: string;
+  } = {}): Promise<ApiResponse<{
+    data: any[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      pages: number;
+    };
+  }>> => {
+    const response = await publicApi.get('/voting/campaigns', { params });
+    return response.data;
+  },
+
+  getCampaignDetail: async (
+    id: string,
+    params: {
+      sortBy?: 'random' | 'votes' | 'newest' | 'oldest';
+      page?: number;
+      limit?: number;
+    } = {}
+  ): Promise<ApiResponse<any>> => {
+    const response = await api.get(`/voting/campaigns/${id}`, { params });
+    return response.data;
+  },
+
+  // User endpoints (auth required)
+  voteForEntry: async (campaignId: string, entryId: string): Promise<ApiResponse<{ pointsEarned: number }>> => {
+    const response = await api.post(`/voting/campaigns/${campaignId}/entries/${entryId}/vote`);
+    return response.data;
+  },
+
+  removeVote: async (campaignId: string, entryId: string): Promise<ApiResponse> => {
+    const response = await api.delete(`/voting/campaigns/${campaignId}/entries/${entryId}/vote`);
+    return response.data;
+  },
+
+  getUserVotingHistory: async (params: {
+    page?: number;
+    limit?: number;
+  } = {}): Promise<ApiResponse<{
+    data: any[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      pages: number;
+    };
+  }>> => {
+    const response = await api.get('/voting/my-votes', { params });
+    return response.data;
+  },
+
+  // Admin endpoints
+  admin: {
+    getCampaigns: async (params: {
+      page?: number;
+      limit?: number;
+      status?: string;
+      search?: string;
+    } = {}): Promise<ApiResponse<{
+      data: any[];
+      pagination: {
+        page: number;
+        limit: number;
+        total: number;
+        pages: number;
+      };
+    }>> => {
+      const response = await api.get('/voting/admin/campaigns', { params });
+      return response.data;
+    },
+
+    getCampaign: async (id: string): Promise<ApiResponse<{
+      campaign: any;
+      entries: any[];
+      statistics: {
+        totalEntries: number;
+        totalVotes: number;
+        uniqueVoters: number;
+      };
+    }>> => {
+      const response = await api.get(`/voting/admin/campaigns/${id}`);
+      return response.data;
+    },
+
+    createCampaign: async (data: {
+      title: string;
+      description: string;
+      imageUrl?: string;
+      startDate: string;
+      endDate: string;
+      pointsPerVote: number;
+      maxVotesPerUser: number;
+      votingFrequency: 'once' | 'daily';
+      // status không còn bắt buộc
+    }): Promise<ApiResponse<any>> => {
+      const response = await api.post('/voting/admin/campaigns', data);
+      return response.data;
+    },
+
+    updateCampaign: async (id: string, data: any): Promise<ApiResponse<any>> => {
+      const response = await api.put(`/voting/admin/campaigns/${id}`, data);
+      return response.data;
+    },
+
+    deleteCampaign: async (id: string): Promise<ApiResponse> => {
+      const response = await api.delete(`/voting/admin/campaigns/${id}`);
+      return response.data;
+    },
+
+    addEntry: async (campaignId: string, data: {
+      title: string;
+      description: string;
+      imageUrl?: string;
+    }): Promise<ApiResponse<any>> => {
+      const response = await api.post(`/voting/admin/campaigns/${campaignId}/entries`, data);
+      return response.data;
+    },
+
+    updateEntry: async (entryId: string, data: any): Promise<ApiResponse<any>> => {
+      const response = await api.put(`/voting/admin/entries/${entryId}`, data);
+      return response.data;
+    },
+
+    deleteEntry: async (entryId: string): Promise<ApiResponse> => {
+      const response = await api.delete(`/voting/admin/entries/${entryId}`);
+      return response.data;
+    },
+
+    getStatistics: async (campaignId: string): Promise<ApiResponse<{
+      campaign: {
+        title: string;
+        status: string;
+        startDate: string;
+        endDate: string;
+      };
+      summary: {
+        totalVotes: number;
+        uniqueVoters: number;
+        totalEntries: number;
+      };
+      topEntries: any[];
+      votingActivity: Array<{
+        _id: string;
+        count: number;
+      }>;
+    }>> => {
+      const response = await api.get(`/voting/admin/campaigns/${campaignId}/statistics`);
+      return response.data;
+    },
+  },
+};
+
 // Unified API Service
 export const apiService = {
   get: api.get.bind(api),
@@ -400,15 +595,11 @@ export const apiService = {
   feedback: feedbackAPI,
   dashboard: dashboardAPI,
   staff: staffAPI,
+  voting: votingAPI,
 };
 
 // Public API service for guest users (no interceptors)
-export const publicApiService = {
-  get: publicApi.get.bind(publicApi),
-  post: publicApi.post.bind(publicApi),
-  put: publicApi.put.bind(publicApi),
-  patch: publicApi.patch.bind(publicApi),
-  delete: publicApi.delete.bind(publicApi),
-};
+export const publicApiService = publicApi;
 
-export default apiService; 
+// Export main API service
+export default api; 

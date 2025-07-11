@@ -21,7 +21,8 @@ import {
   Menu,
   X,
   Package,
-  ListChecks
+  ListChecks,
+  Vote
 } from 'lucide-react';
 
 interface MainLayoutProps {
@@ -36,7 +37,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   const guestNavigation = [
     { name: 'Predictions', href: '/predictions', icon: Target },
-    { name: 'Check In', href: '/check-in', icon: Calendar },
+    { name: 'Voting', href: '/voting', icon: Vote },
     { name: 'Surveys', href: '/surveys', icon: ListChecks },
     { name: 'Feedback', href: '/feedback', icon: MessageSquare },
   ];
@@ -44,6 +45,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const userNavigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Predictions', href: '/predictions', icon: Target },
+    { name: 'Voting', href: '/voting', icon: Vote },
     { name: 'Check In', href: '/check-in', icon: Calendar },
     { name: 'Surveys', href: '/surveys', icon: ListChecks },
     { name: 'Profile', href: '/profile', icon: User },
@@ -55,6 +57,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   const adminNavigation = [
     { name: 'Admin Predictions', href: '/admin/predictions', icon: Trophy },
+    { name: 'Voting Management', href: '/admin/voting/campaigns', icon: Vote },
     { name: 'Order Management', href: '/admin/orders', icon: Package },
     { name: 'Survey Management', href: '/admin/surveys', icon: ListChecks },
     { name: 'Questions Management', href: '/admin/questions', icon: HelpCircle },

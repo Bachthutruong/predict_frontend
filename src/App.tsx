@@ -21,6 +21,8 @@ import CheckInPage from './pages/dashboard/CheckInPage';
 import FeedbackPage from './pages/dashboard/FeedbackPage';
 import SurveysPage from './pages/surveys/SurveysPage';
 import SurveyDetailPage from './pages/surveys/SurveyDetailPage';
+import VotingCampaignsPage from './pages/voting/VotingCampaignsPage';
+import VotingDetailPage from './pages/voting/VotingDetailPage';
 
 // Admin pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -34,6 +36,10 @@ import AdminOrders from './pages/admin/AdminOrders';
 import AdminSurveys from './pages/admin/AdminSurveys';
 import AdminSurveyForm from './pages/admin/AdminSurveyForm';
 import AdminSurveyResults from './pages/admin/AdminSurveyResults';
+import AdminVotingCampaigns from './pages/admin/AdminVotingCampaigns';
+import AdminVotingForm from './pages/admin/AdminVotingForm';
+import AdminVotingDetail from './pages/admin/AdminVotingDetail';
+import AdminVotingStatistics from './pages/admin/AdminVotingStatistics';
 
 // Staff pages
 import StaffDashboard from './pages/staff/StaffDashboard';
@@ -193,6 +199,24 @@ function AppRoutes() {
         }
       />
 
+      {/* Voting Routes */}
+      <Route
+        path="/voting"
+        element={
+          <MainLayout>
+            <VotingCampaignsPage />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/voting/:id"
+        element={
+          <MainLayout>
+            <VotingDetailPage />
+          </MainLayout>
+        }
+      />
+
       {/* Admin Routes */}
       <Route
         path="/admin"
@@ -320,6 +344,58 @@ function AppRoutes() {
           <ProtectedRoute roles={['admin']}>
             <MainLayout>
               <AdminSurveyResults />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Admin Voting Routes */}
+      <Route
+        path="/admin/voting/campaigns"
+        element={
+          <ProtectedRoute roles={['admin']}>
+            <MainLayout>
+              <AdminVotingCampaigns />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/voting/campaigns/new"
+        element={
+          <ProtectedRoute roles={['admin']}>
+            <MainLayout>
+              <AdminVotingForm />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/voting/campaigns/:id/edit"
+        element={
+          <ProtectedRoute roles={['admin']}>
+            <MainLayout>
+              <AdminVotingForm />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/voting/campaigns/:id"
+        element={
+          <ProtectedRoute roles={['admin']}>
+            <MainLayout>
+              <AdminVotingDetail />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/voting/campaigns/:id/statistics"
+        element={
+          <ProtectedRoute roles={['admin']}>
+            <MainLayout>
+              <AdminVotingStatistics />
             </MainLayout>
           </ProtectedRoute>
         }
