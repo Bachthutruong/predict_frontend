@@ -13,6 +13,7 @@ import { Switch } from '../../components/ui/switch';
 import { Trash2, PlusCircle, AlertTriangle, GripVertical } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import apiService from '@/services/api';
+import { useLanguage } from '@/hooks/useLanguage';
 import {
   DndContext,
   closestCenter,
@@ -84,6 +85,7 @@ interface QuestionCardProps {
 }
 
 const QuestionCard: React.FC<QuestionCardProps> = ({ control, index, remove, dragHandleProps }) => {
+    const { t } = useLanguage();
     const { fields, append, remove: removeOption } = useFieldArray({
         control,
         name: `questions.${index}.options`
@@ -111,7 +113,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ control, index, remove, dra
                                 <GripVertical className="h-5 w-5 text-gray-400" />
                             </div>
                         )}
-                        <Label className="text-lg">Question {index + 1}</Label>
+                        <Label className="text-lg">{t('adminSurveys.question')} {index + 1}</Label>
                     </div>
                     <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}>
                         <Trash2 className="h-4 w-4 text-red-500" />
@@ -123,7 +125,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ control, index, remove, dra
                     control={control}
                     render={({ field, fieldState }) => (
                         <div>
-                            <Input {...field} placeholder="Enter your question" />
+                            <Input {...field} placeholder={t('adminSurveys.question')} />
                             {fieldState.error && <p className="text-sm text-destructive mt-1">{fieldState.error.message}</p>}
                         </div>
                     )}
@@ -135,12 +137,12 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ control, index, remove, dra
                         control={control}
                         render={({ field }) => (
                             <Select onValueChange={field.onChange} value={field.value}>
-                                <SelectTrigger><SelectValue placeholder="Select question type" /></SelectTrigger>
+                                <SelectTrigger><SelectValue placeholder={t('adminSurveys.selectQuestionType')} /></SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="short-text">Short Text</SelectItem>
-                                    <SelectItem value="long-text">Long Text</SelectItem>
-                                    <SelectItem value="single-choice">Single Choice (Radio)</SelectItem>
-                                    <SelectItem value="multiple-choice">Multiple Choice (Checkbox)</SelectItem>
+                                    <SelectItem value="short-text">{t('adminSurveys.shortText')}</SelectItem>
+                                    <SelectItem value="long-text">{t('adminSurveys.longText')}</SelectItem>
+                                    <SelectItem value="single-choice">{t('adminSurveys.singleChoice')}</SelectItem>
+                                    <SelectItem value="multiple-choice">{t('adminSurveys.multipleChoice')}</SelectItem>
                                 </SelectContent>
                             </Select>
                         )}
@@ -148,36 +150,36 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ control, index, remove, dra
                      <div className="flex items-center space-x-4">
                         <div className="flex items-center space-x-2">
                            <Controller name={`questions.${index}.isRequired`} control={control} render={({ field }) => <Switch id={`isRequired-${index}`} checked={field.value} onCheckedChange={field.onChange} />} />
-                            <Label htmlFor={`isRequired-${index}`}>Required</Label>
+                            <Label htmlFor={`isRequired-${index}`}>{t('adminSurveys.required')}</Label>
                         </div>
                         <div className="flex items-center space-x-2">
                             <Controller name={`questions.${index}.isAntiFraud`} control={control} render={({ field }) => <Switch id={`isAntiFraud-${index}`} checked={field.value} onCheckedChange={field.onChange} />} />
-                            <Label htmlFor={`isAntiFraud-${index}`}>Anti-Fraud</Label>
+                            <Label htmlFor={`isAntiFraud-${index}`}>{t('adminSurveys.antiFraud')}</Label>
                         </div>
                     </div>
                 </div>
 
                 {isAntiFraud && (
                      <div className="p-2 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700">
-                        <p className="text-xs flex items-center gap-1"><AlertTriangle size={14}/> This is an anti-fraud question. All options must have a Group ID.</p>
+                        <p className="text-xs flex items-center gap-1"><AlertTriangle size={14}/> {t('adminSurveys.antiFraudWarning')}</p>
                     </div>
                 )}
                 
                 {showOptions && (
                     <div className="space-y-2 pt-4 border-t">
-                        <h4 className="font-medium">Options</h4>
+                        <h4 className="font-medium">{t('adminSurveys.options')}</h4>
                         {fields.map((option, optionIndex) => (
                              <div key={option.id} className="flex items-center gap-2">
                                 <Controller name={`questions.${index}.options.${optionIndex}.text`} control={control} render={({ field, fieldState }) => (
                                      <div className="flex-grow">
-                                        <Input {...field} placeholder={`Option ${optionIndex + 1}`} />
+                                        <Input {...field} placeholder={`${t('adminSurveys.option')} ${optionIndex + 1}`} />
                                          {fieldState.error && <p className="text-sm text-destructive mt-1">{fieldState.error.message}</p>}
                                     </div>
                                 )} />
                                 {isAntiFraud && (
                                      <Controller name={`questions.${index}.options.${optionIndex}.antiFraudGroupId`} control={control} render={({ field, fieldState }) => (
                                          <div className="w-48">
-                                            <Input {...field} placeholder="Group ID"/>
+                                            <Input {...field} placeholder={t('adminSurveys.groupId')}/>
                                             {fieldState.error && <p className="text-sm text-destructive mt-1">{fieldState.error.message}</p>}
                                          </div>
                                      )} />
@@ -186,7 +188,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ control, index, remove, dra
                              </div>
                         ))}
                         <Button type="button" variant="outline" size="sm" onClick={() => append({ text: '', antiFraudGroupId: '' })}>
-                            <PlusCircle className="mr-2 h-4 w-4" /> Add Option
+                            <PlusCircle className="mr-2 h-4 w-4" /> {t('adminSurveys.addOption')}
                         </Button>
                     </div>
                 )}
@@ -226,6 +228,7 @@ const AdminSurveyForm: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { toast } = useToast();
+    const { t } = useLanguage();
     const isEditMode = Boolean(id);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -254,7 +257,7 @@ const AdminSurveyForm: React.FC = () => {
     );
 
     useEffect(() => {
-        if (isEditMode) {
+        if (isEditMode && id) {
             setIsLoading(true);
             apiService.get(`/surveys/admin/${id}`)
                 .then(response => {
@@ -264,12 +267,16 @@ const AdminSurveyForm: React.FC = () => {
                         endDate: surveyData.endDate ? new Date(surveyData.endDate).toISOString().split('T')[0] : ''
                     });
                 })
-                .catch(err => {
-                    toast({ title: 'Error fetching survey', description: err.message, variant: 'destructive' });
+                .catch(() => {
+                    toast({ 
+                        title: t('common.error'), 
+                        description: t('adminSurveys.errorFetchingSurvey'), 
+                        variant: 'destructive' 
+                    });
                 })
                 .finally(() => setIsLoading(false));
         }
-    }, [id, isEditMode, reset]);
+    }, [id, isEditMode]);
 
     const handleDragEnd = (event: any) => {
         const { active, over } = event;
@@ -285,16 +292,22 @@ const AdminSurveyForm: React.FC = () => {
         try {
             if (isEditMode) {
                 await apiService.put(`/surveys/admin/${id}`, data);
-                toast({ title: 'Success', description: 'Survey updated successfully.' });
+                toast({ 
+                    title: t('common.success'), 
+                    description: t('adminSurveys.surveyUpdatedSuccessfully') 
+                });
             } else {
                 await apiService.post('/surveys/admin', data);
-                toast({ title: 'Success', description: 'Survey created successfully.' });
+                toast({ 
+                    title: t('common.success'), 
+                    description: t('adminSurveys.surveyCreatedSuccessfully') 
+                });
             }
             navigate('/admin/surveys');
         } catch (error: any) {
             toast({
-                title: 'Error',
-                description: error.response?.data?.message || 'An error occurred.',
+                title: t('common.error'),
+                description: error.response?.data?.message || t('adminSurveys.errorOccurred'),
                 variant: 'destructive'
             });
         } finally {
@@ -313,34 +326,34 @@ const AdminSurveyForm: React.FC = () => {
     };
     
     if (isLoading && isEditMode) {
-        return <p>Loading survey form...</p>;
+        return <p>{t('adminSurveys.loadingSurveyForm')}</p>;
     }
     
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold">{isEditMode ? 'Edit Survey' : 'Create New Survey'}</h1>
-                    <p className="text-gray-600 mt-2">Fill in the details below.</p>
+                    <h1 className="text-3xl font-bold">{isEditMode ? t('adminSurveys.editSurvey') : t('adminSurveys.createNewSurveyForm')}</h1>
+                    <p className="text-gray-600 mt-2">{t('adminSurveys.fillInDetails')}</p>
                 </div>
                 <div className="flex gap-2">
-                     <Button type="button" variant="outline" onClick={() => navigate('/admin/surveys')}>Cancel</Button>
-                    <Button type="submit" disabled={isLoading}>{isLoading ? 'Saving...' : 'Save Survey'}</Button>
+                     <Button type="button" variant="outline" onClick={() => navigate('/admin/surveys')}>{t('adminSurveys.cancel')}</Button>
+                    <Button type="submit" disabled={isLoading}>{isLoading ? t('adminSurveys.saving') : t('adminSurveys.saveSurvey')}</Button>
                 </div>
             </div>
 
             {/* Main Survey Details */}
             <Card>
-                <CardHeader><CardTitle>Basic Information</CardTitle></CardHeader>
+                <CardHeader><CardTitle>{t('adminSurveys.basicInformation')}</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <Label htmlFor="title">Survey Title</Label>
+                            <Label htmlFor="title">{t('adminSurveys.surveyTitle')}</Label>
                             <Input id="title" {...register('title')} />
                             {errors.title && <p className="text-sm text-destructive">{errors.title.message}</p>}
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="status">Status</Label>
+                            <Label htmlFor="status">{t('adminSurveys.status')}</Label>
                             <Controller
                                 name="status"
                                 control={control}
@@ -348,25 +361,25 @@ const AdminSurveyForm: React.FC = () => {
                                     <Select onValueChange={field.onChange} value={field.value}>
                                         <SelectTrigger><SelectValue/></SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="draft">Draft</SelectItem>
-                                            <SelectItem value="published">Published</SelectItem>
-                                            <SelectItem value="closed">Closed</SelectItem>
+                                            <SelectItem value="draft">{t('adminSurveys.draft')}</SelectItem>
+                                            <SelectItem value="published">{t('adminSurveys.published')}</SelectItem>
+                                            <SelectItem value="closed">{t('adminSurveys.closed')}</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 )}
                             />
                         </div>
                          <div className="space-y-2">
-                            <Label htmlFor="pointsAwarded">Points Awarded</Label>
+                            <Label htmlFor="pointsAwarded">{t('adminSurveys.pointsAwarded')}</Label>
                             <Input id="pointsAwarded" type="number" {...register('pointsAwarded')} />
                             {errors.pointsAwarded && <p className="text-sm text-destructive">{errors.pointsAwarded.message}</p>}
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="endDate">End Date (Optional)</Label>
+                            <Label htmlFor="endDate">{t('adminSurveys.endDateOptional')}</Label>
                             <Input id="endDate" type="date" {...register('endDate')} />
                         </div>
                         <div className="space-y-2 md:col-span-2">
-                            <Label htmlFor="description">Description</Label>
+                            <Label htmlFor="description">{t('adminSurveys.description')}</Label>
                             <Textarea id="description" {...register('description')} />
                             {errors.description && <p className="text-sm text-destructive">{errors.description.message}</p>}
                         </div>
@@ -378,9 +391,9 @@ const AdminSurveyForm: React.FC = () => {
             <Card>
                  <CardHeader>
                     <div className="flex items-center justify-between">
-                        <CardTitle>Questions</CardTitle>
+                        <CardTitle>{t('adminSurveys.questions')}</CardTitle>
                         <Button type="button" size="sm" onClick={addQuestion}>
-                            <PlusCircle className="mr-2 h-4 w-4" /> Add Question
+                            <PlusCircle className="mr-2 h-4 w-4" /> {t('adminSurveys.addQuestion')}
                         </Button>
                     </div>
                 </CardHeader>

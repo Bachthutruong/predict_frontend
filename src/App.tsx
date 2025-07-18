@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Layout components
 import MainLayout from './components/layout/MainLayout';
@@ -27,6 +28,8 @@ import VotingDetailPage from './pages/voting/VotingDetailPage';
 // Admin pages
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminPredictions from './pages/admin/AdminPredictions';
+import AdminPredictionDetail from './pages/admin/AdminPredictionDetail';
+import AdminPredictionEdit from './pages/admin/AdminPredictionEdit';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminFeedback from './pages/admin/AdminFeedback';
 import AdminGrantPoints from './pages/admin/AdminGrantPoints';
@@ -94,7 +97,8 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 
 function AppRoutes() {
   return (
-    <Routes>
+    <ErrorBoundary>
+      <Routes>
       {/* Public Routes */}
       <Route
         path="/login"
@@ -244,6 +248,26 @@ function AppRoutes() {
           <ProtectedRoute roles={['admin']}>
             <MainLayout>
               <AdminPredictions />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/predictions/:id"
+        element={
+          <ProtectedRoute roles={['admin']}>
+            <MainLayout>
+              <AdminPredictionDetail />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/predictions/:id/edit"
+        element={
+          <ProtectedRoute roles={['admin']}>
+            <MainLayout>
+              <AdminPredictionEdit />
             </MainLayout>
           </ProtectedRoute>
         }
@@ -455,6 +479,7 @@ function AppRoutes() {
       {/* 404 */}
       <Route path="*" element={<Navigate to="/predictions" replace />} />
     </Routes>
+    </ErrorBoundary>
   );
 }
 

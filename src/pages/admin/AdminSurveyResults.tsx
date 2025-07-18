@@ -1,289 +1,337 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Download, Users, AlertTriangle, CheckCircle, PieChart } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
-import { useToast } from '@/hooks/use-toast';
-import apiService from '@/services/api';
-import type { Survey, SurveySubmission } from '@/types';
-import FileSaver from 'file-saver';
+import { useToast } from '../../hooks/use-toast';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
+import { Button } from '../../components/ui/button';
+import { Badge } from '../../components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
+import { ArrowLeft, Download, Users, CheckCircle, AlertTriangle } from 'lucide-react';
+import apiService from '../../services/api';
+import { useLanguage } from '../../hooks/useLanguage';
 
-// Define a color palette for charts
-const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+interface SurveyResult {
+  id: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  submittedAt: string;
+  isFraudulent: boolean;
+  answers: Array<{
+    questionId: string;
+    questionText: string;
+    answer: string;
+  }>;
+}
+
+interface Survey {
+  id: string;
+  title: string;
+  description: string;
+  points: number;
+  endDate?: string;
+  questions: Array<{
+    id: string;
+    text: string;
+    type: string;
+    options?: Array<{
+      id: string;
+      text: string;
+      groupId?: string;
+    }>;
+  }>;
+}
 
 const AdminSurveyResults: React.FC = () => {
-    const { id } = useParams<{ id: string }>();
-    const { toast } = useToast();
-    const [survey, setSurvey] = useState<Survey | null>(null);
-    const [submissions, setSubmissions] = useState<SurveySubmission[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [chartData, setChartData] = useState<any[]>([]);
+  const { id } = useParams<{ id: string }>();
+  const { toast } = useToast();
+  const { t } = useLanguage();
+  const [survey, setSurvey] = useState<Survey | null>(null);
+  const [results, setResults] = useState<SurveyResult[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
 
-    useEffect(() => {
-        if (!id) return;
-        
-        const loadData = async () => {
-            setIsLoading(true);
-            try {
-                const surveyRes = await apiService.get(`/surveys/admin/${id}`);
-                setSurvey(surveyRes.data.data);
-
-                const submissionsRes = await apiService.get(`/surveys/admin/${id}/submissions`);
-                setSubmissions(submissionsRes.data.data);
-
-                // Process data for charts
-                if (surveyRes.data.data && submissionsRes.data.data) {
-                    const currentSurvey: Survey = surveyRes.data.data;
-                    const currentSubmissions: SurveySubmission[] = submissionsRes.data.data;
-
-                    const dataForCharts = currentSurvey.questions
-                        .filter(q => ['single-choice', 'multiple-choice'].includes(q.type))
-                        .map(question => {
-                            const answerCounts = new Map<string, number>();
-
-                            question.options.forEach(opt => answerCounts.set(opt.text, 0));
-                            if (question.type === 'multiple-choice') {
-                                // Account for a potential "Other" answer not in predefined options
-                                answerCounts.set('Other', 0);
-                            }
-
-                            currentSubmissions.forEach(sub => {
-                                const submissionAnswer = sub.answers.find(a => a.questionId === question._id);
-                                if (submissionAnswer?.answer) {
-                                    submissionAnswer.answer.forEach(ans => {
-                                        answerCounts.set(ans, (answerCounts.get(ans) || 0) + 1);
-                                    });
-                                }
-                            });
-
-                            const chartFormattedData = Array.from(answerCounts.entries())
-                                .map(([name, count]) => ({ name, count }))
-                                .filter(item => item.count > 0); // Only show answers that were actually chosen
-
-                            return {
-                                questionId: question._id,
-                                questionText: question.text,
-                                data: chartFormattedData,
-                            };
-                        });
-                    
-                    setChartData(dataForCharts.filter(c => c.data.length > 0));
-                }
-
-            } catch (error: any) {
-                toast({
-                    title: "Error",
-                    description: error.response?.data?.message || 'Failed to load survey results',
-                    variant: "destructive"
-                });
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        loadData();
-    }, [id]);
-
-    const handleExport = async () => {
-        if (!survey) {
-            toast({ title: 'Error', description: 'Survey data is not available.', variant: 'destructive' });
-            return;
-        }
-
-        try {
-            const response = await apiService.get(`/surveys/admin/${id}/export`, {
-                responseType: 'blob', // Important for file downloads
-            });
-            
-            // Sanitize the survey title for the filename, same logic as backend
-            const safeFileName = survey.title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-            const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-            
-            FileSaver.saveAs(blob, `submissions_${safeFileName}.xlsx`);
-            
-            toast({ title: 'Success', description: 'Export started successfully.' });
-        } catch (error: any) {
-             toast({
-                title: "Export Error",
-                description: error.message || 'Could not export the file.',
-                variant: "destructive"
-            });
-        }
-    };
+  const fetchSurveyResults = async () => {
+    if (!id) return;
     
-    if (isLoading) {
-        return <p>Loading survey results...</p>;
+    try {
+      setLoading(true);
+      const [surveyResponse, resultsResponse] = await Promise.all([
+        apiService.get(`/surveys/admin/${id}`),
+        apiService.get(`/surveys/admin/${id}/submissions`)
+      ]);
+
+      if (surveyResponse.data?.success && surveyResponse.data?.data) {
+        setSurvey(surveyResponse.data.data);
+      }
+
+      if (resultsResponse.data?.success && resultsResponse.data?.data) {
+        setResults(resultsResponse.data.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch survey results:', error);
+      toast({
+        title: t('common.error'),
+        description: t('adminSurveys.failedToLoadResults'),
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
     }
+  };
 
-    if (!survey) {
-        return <p>Survey not found.</p>;
+  useEffect(() => {
+    fetchSurveyResults();
+  }, [id]);
+
+  const handleExport = async () => {
+    if (!id) return;
+
+    try {
+      setExporting(true);
+      const response = await apiService.get(`/surveys/admin/${id}/export`, {
+        responseType: 'blob'
+      });
+      
+      // Create download link
+      const blob = new Blob([response.data], { 
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `survey_results_${id}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast({
+        title: t('common.success'),
+        description: t('adminSurveys.exportStartedSuccessfully'),
+        variant: 'default',
+      });
+    } catch (error) {
+      console.error('Failed to export results:', error);
+      toast({
+        title: t('adminSurveys.exportError'),
+        description: t('adminSurveys.couldNotExportFile'),
+        variant: 'destructive',
+      });
+    } finally {
+      setExporting(false);
     }
+  };
 
-    // const totalSubmissions = submissions.length;
-    // const fraudulentSubmissions = submissions.filter(s => s.isFraudulent).length;
+  const validSubmissions = results.filter(result => !result.isFraudulent);
+  const fraudulentSubmissions = results.filter(result => result.isFraudulent);
 
+  if (loading) {
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold flex items-center gap-2">
-                       <PieChart className="h-8 w-8 text-blue-600" />
-                       Survey Results
-                    </h1>
-                    <p className="text-gray-600 mt-2">
-                        Results for: <span className="font-semibold">{survey?.title}</span>
-                    </p>
-                </div>
-                <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-                    <Button variant="outline" asChild className="w-full sm:w-auto">
-                        <Link to="/admin/surveys">Back to Surveys</Link>
-                    </Button>
-                    <Button onClick={handleExport} className="w-full sm:w-auto">
-                        <Download className="h-4 w-4 mr-2" />
-                        Export to Excel
-                    </Button>
-                </div>
-            </div>
-
-            {/* Stats Cards */}
-             <div className="grid gap-4 md:grid-cols-3">
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Submissions</CardTitle>
-                        <Users className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{submissions.length}</div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Fraudulent Submissions</CardTitle>
-                        <AlertTriangle className="h-4 w-4 text-destructive" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{submissions.filter(s => s.isFraudulent).length}</div>
-                    </CardContent>
-                </Card>
-                 <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Valid Submissions</CardTitle>
-                        <CheckCircle className="h-4 w-4 text-green-600" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{submissions.length - submissions.filter(s => s.isFraudulent).length}</div>
-                    </CardContent>
-                </Card>
-            </div>
-
-            {/* Submissions Table */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Individual Submissions</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    {submissions.length === 0 ? (
-                        <div className="text-center py-8 text-gray-500">
-                            <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                            <p>No submissions yet.</p>
-                        </div>
-                    ) : (
-                        <>
-                            {/* Desktop Table View */}
-                            <div className="hidden md:block">
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>User</TableHead>
-                                            <TableHead>Email</TableHead>
-                                            <TableHead>Submitted At</TableHead>
-                                            <TableHead>Fraudulent?</TableHead>
-                                            <TableHead>Actions</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {submissions.map(sub => (
-                                            <TableRow key={sub._id}>
-                                                <TableCell>{sub.user?.name || 'N/A'}</TableCell>
-                                                <TableCell>{sub.user?.email || 'N/A'}</TableCell>
-                                                <TableCell>{new Date(sub.submittedAt).toLocaleString()}</TableCell>
-                                                <TableCell>
-                                                    {sub.isFraudulent ? (
-                                                        <Badge variant="destructive">Yes</Badge>
-                                                    ) : (
-                                                        <Badge variant="secondary">No</Badge>
-                                                    )}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {/* We can add a "View Details" button here later */}
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </div>
-
-                            {/* Mobile Card View */}
-                            <div className="block md:hidden space-y-4">
-                                {submissions.map(sub => (
-                                    <Card key={sub._id}>
-                                        <CardHeader>
-                                            <CardTitle className="text-base">{sub.user?.name || 'N/A'}</CardTitle>
-                                            <CardDescription>{sub.user?.email || 'N/A'}</CardDescription>
-                                        </CardHeader>
-                                        <CardContent className="text-sm space-y-2">
-                                            <p>Submitted: {new Date(sub.submittedAt).toLocaleString()}</p>
-                                            <div>
-                                                Fraudulent: {sub.isFraudulent ? (
-                                                    <Badge variant="destructive">Yes</Badge>
-                                                ) : (
-                                                    <Badge variant="secondary">No</Badge>
-                                                )}
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                ))}
-                            </div>
-                        </>
-                    )}
-                </CardContent>
-            </Card>
-
-            {/* NEW: Answer Statistics Section */}
-            {chartData.length > 0 && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Answer Statistics</CardTitle>
-                        <CardDescription>Visual summary of answers for choice-based questions.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-12">
-                        {chartData.map((chart) => (
-                            <div key={chart.questionId}>
-                                <h3 className="font-semibold mb-4 text-lg">{chart.questionText}</h3>
-                                <ResponsiveContainer width="100%" height={300}>
-                                    <BarChart data={chart.data} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                                        <CartesianGrid strokeDasharray="3 3" />
-                                        <XAxis dataKey="name" />
-                                        <YAxis allowDecimals={false} />
-                                        <Tooltip />
-                                        <Legend />
-                                        <Bar dataKey="count" name="Submissions" >
-                                            {chart.data.map(( i: number) => (
-                                                <Cell key={`cell-${i}`} fill={COLORS[i % COLORS.length]} />
-                                            ))}
-                                        </Bar>
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </div>
-                        ))}
-                    </CardContent>
-                </Card>
-            )}
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground mt-2">{t('common.loading')}</p>
         </div>
+      </div>
     );
+  }
+
+  if (!survey) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-500">{t('adminSurveys.surveyNotFound')}</p>
+        <Button asChild className="mt-4">
+          <Link to="/admin/surveys">
+            {t('adminSurveys.backToSurveys')}
+          </Link>
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button asChild variant="outline" size="sm">
+            <Link to="/admin/surveys">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              {t('common.back')}
+            </Link>
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {t('adminSurveys.surveyResults')}
+            </h1>
+            <p className="text-gray-600">
+              {t('adminSurveys.resultsFor')} {survey.title}
+            </p>
+          </div>
+        </div>
+        <Button onClick={handleExport} disabled={exporting}>
+          <Download className="h-4 w-4 mr-2" />
+          {exporting ? t('common.loading') : t('adminSurveys.exportToExcel')}
+        </Button>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-3">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-gray-600">
+              {t('adminSurveys.totalSubmissions')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-blue-600" />
+              <span className="text-2xl font-bold">{results.length}</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-gray-600">
+              {t('adminSurveys.validSubmissions')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              <span className="text-2xl font-bold">{validSubmissions.length}</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-gray-600">
+              {t('adminSurveys.fraudulentSubmissions')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-red-600" />
+              <span className="text-2xl font-bold">{fraudulentSubmissions.length}</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('adminSurveys.individualSubmissions')}</CardTitle>
+          <CardDescription>
+            {results.length === 0 ? t('adminSurveys.noSubmissionsYet') : `${results.length} ${t('adminSurveys.submissions')}`}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {results.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t('adminSurveys.user')}</TableHead>
+                  <TableHead>{t('adminSurveys.email')}</TableHead>
+                  <TableHead>{t('adminSurveys.submittedAt')}</TableHead>
+                  <TableHead>{t('adminSurveys.fraudulent')}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {results.map((result) => (
+                  <TableRow key={result.id}>
+                    <TableCell className="font-medium">{result.user.name}</TableCell>
+                    <TableCell>{result.user.email}</TableCell>
+                    <TableCell>
+                      {new Date(result.submittedAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={result.isFraudulent ? 'destructive' : 'default'}>
+                        {result.isFraudulent ? t('adminSurveys.yes') : t('adminSurveys.no')}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="text-center py-8">
+              <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500">{t('adminSurveys.noSubmissionsYet')}</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {survey.questions.some(q => q.type === 'singleChoice' || q.type === 'multipleChoice') && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('adminSurveys.answerStatistics')}</CardTitle>
+            <CardDescription>
+              {t('adminSurveys.visualSummary')}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-6">
+              {survey.questions
+                .filter(q => q.type === 'singleChoice' || q.type === 'multipleChoice')
+                .map((question) => {
+                  const questionResults = validSubmissions.flatMap(result =>
+                    result.answers.filter(answer => answer.questionId === question.id)
+                  );
+
+                  const optionCounts: { [key: string]: number } = {};
+                  question.options?.forEach(option => {
+                    optionCounts[option.text] = 0;
+                  });
+
+                  questionResults.forEach(result => {
+                    const answers = result.answer.split(',').map(a => a.trim());
+                    answers.forEach(answer => {
+                      if (optionCounts.hasOwnProperty(answer)) {
+                        optionCounts[answer]++;
+                      }
+                    });
+                  });
+
+                  return (
+                    <div key={question.id} className="space-y-3">
+                      <h3 className="font-medium text-gray-900">{question.text}</h3>
+                      <div className="space-y-2">
+                        {question.options?.map((option) => {
+                          const count = optionCounts[option.text] || 0;
+                          const percentage = validSubmissions.length > 0 
+                            ? Math.round((count / validSubmissions.length) * 100) 
+                            : 0;
+
+                          return (
+                            <div key={option.id} className="flex items-center gap-3">
+                              <div className="flex-1">
+                                <div className="flex justify-between text-sm mb-1">
+                                  <span>{option.text}</span>
+                                  <span>{count} ({percentage}%)</span>
+                                </div>
+                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                  <div
+                                    className="bg-blue-600 h-2 rounded-full transition-all"
+                                    style={{ width: `${percentage}%` }}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
 };
 
 export default AdminSurveyResults; 

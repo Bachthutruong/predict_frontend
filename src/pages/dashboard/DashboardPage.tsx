@@ -8,10 +8,12 @@ import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { Trophy, Target, Coins, Calendar, Users, RefreshCw } from 'lucide-react';
 import type { Prediction } from '../../types';
+import { useLanguage } from '../../hooks/useLanguage';
 
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -29,9 +31,9 @@ const DashboardPage: React.FC = () => {
     } catch (error) {
       console.error('Failed to fetch predictions:', error);
       toast({
-        title: "Error",
-        description: "Failed to load predictions. Please try again.",
-        variant: "destructive"
+        title: t('common.error'),
+        description: t('dashboard.loadPredictionsError'),
+        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
@@ -43,36 +45,36 @@ const DashboardPage: React.FC = () => {
     await fetchPredictions();
     setRefreshing(false);
     toast({
-      title: "Dashboard Updated",
-      description: "Your dashboard has been refreshed successfully.",
-      variant: "default"
+      title: t('dashboard.updated'),
+      description: t('dashboard.refreshed'),
+      variant: 'default',
     });
   };
 
   const stats = [
     {
-      title: 'Your Points',
+      title: t('dashboard.yourPoints'),
       value: user?.points || 0,
       icon: Coins,
       color: 'text-yellow-600',
       bgColor: 'bg-yellow-50',
     },
     {
-      title: 'Check-in Streak',
+      title: t('dashboard.checkInStreak'),
       value: user?.consecutiveCheckIns || 0,
       icon: Calendar,
       color: 'text-green-600',
       bgColor: 'bg-green-50',
     },
     {
-      title: 'Total Referrals',
+      title: t('dashboard.totalReferrals'),
       value: user?.totalSuccessfulReferrals || 0,
       icon: Users,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',
     },
     {
-      title: 'Active Predictions',
+      title: t('dashboard.activePredictions'),
       value: predictions.length,
       icon: Target,
       color: 'text-purple-600',
@@ -85,15 +87,15 @@ const DashboardPage: React.FC = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">
-            Welcome back, {user?.name}! 👋
+            {t('dashboard.welcomeBack', { name: user?.name })}
           </h1>
           <p className="text-gray-600 mt-2">
-            Here's what's happening with your predictions today.
+            {t('dashboard.happeningToday')}
           </p>
         </div>
         <Button onClick={handleRefresh} variant="outline" size="sm" disabled={refreshing}>
           <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-          Refresh
+          {t('common.refresh')}
         </Button>
       </div>
 
@@ -123,16 +125,16 @@ const DashboardPage: React.FC = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
-              Daily Check-in
+              {t('dashboard.dailyCheckIn')}
             </CardTitle>
             <CardDescription>
-              Complete your daily check-in to earn points and maintain your streak!
+              {t('dashboard.checkInDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Button asChild className="w-full">
               <Link to="/check-in">
-                Complete Check-in
+                {t('dashboard.completeCheckIn')}
               </Link>
             </Button>
           </CardContent>
@@ -142,16 +144,16 @@ const DashboardPage: React.FC = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Target className="h-5 w-5" />
-              Active Predictions
+              {t('dashboard.activePredictions')}
             </CardTitle>
             <CardDescription>
-              Explore and participate in the latest prediction challenges.
+              {t('dashboard.activePredictionsDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Button asChild variant="outline" className="w-full">
               <Link to="/predictions">
-                View All Predictions
+                {t('dashboard.viewAllPredictions')}
               </Link>
             </Button>
           </CardContent>
@@ -164,15 +166,15 @@ const DashboardPage: React.FC = () => {
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Trophy className="h-5 w-5" />
-                Recent Predictions
+                {t('dashboard.recentPredictions')}
               </CardTitle>
               <CardDescription>
-                Latest prediction challenges available
+                {t('dashboard.latestPredictionChallenges')}
               </CardDescription>
             </div>
             <Button asChild variant="outline" size="sm">
               <Link to="/predictions">
-                View All
+                {t('dashboard.viewAll')}
               </Link>
             </Button>
           </div>
@@ -181,7 +183,7 @@ const DashboardPage: React.FC = () => {
           {isLoading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-              <p className="text-muted-foreground mt-2">Loading predictions...</p>
+              <p className="text-muted-foreground mt-2">{t('dashboard.loadingPredictions')}</p>
             </div>
           ) : predictions.length > 0 ? (
             <div className="space-y-4">
@@ -205,20 +207,20 @@ const DashboardPage: React.FC = () => {
                       </p>
                       <div className="flex items-center gap-2 mt-1">
                         <Badge variant="outline" className="text-xs">
-                          {prediction.pointsCost} points
+                          {prediction.pointsCost} {t('dashboard.points')}
                         </Badge>
                         <Badge 
                           variant={prediction.status === 'active' ? 'default' : 'secondary'}
                           className="text-xs"
                         >
-                          {prediction.status}
+                          {t(`predictions.${prediction.status}`)}
                         </Badge>
                       </div>
                     </div>
                   </div>
                   <Button asChild size="sm">
                     <Link to={`/predictions/${prediction.id}`}>
-                      View Details
+                      {t('dashboard.viewDetails')}
                     </Link>
                   </Button>
                 </div>
@@ -227,8 +229,8 @@ const DashboardPage: React.FC = () => {
           ) : (
             <div className="text-center py-8">
               <Trophy className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">No predictions available right now.</p>
-              <p className="text-sm text-gray-400">Check back later for new challenges!</p>
+              <p className="text-gray-500">{t('dashboard.noPredictions')}</p>
+              <p className="text-sm text-gray-400">{t('dashboard.checkBackLater')}</p>
             </div>
           )}
         </CardContent>

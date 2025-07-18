@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { votingAPI } from '../../services/api';
 import { useToast } from '../../hooks/use-toast';
+import { useLanguage } from '../../hooks/useLanguage';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -22,6 +23,7 @@ const AdminVotingForm: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const { toast } = useToast();
+  const { t } = useLanguage();
   
   const isEditing = Boolean(id);
   
@@ -38,16 +40,12 @@ const AdminVotingForm: React.FC = () => {
     votingFrequency: 'once',
   } as CreateVotingCampaignData);
 
-  useEffect(() => {
-    if (isEditing && id) {
-      loadCampaign();
-    }
-  }, [isEditing, id]);
-
   const loadCampaign = async () => {
+    if (!isEditing || !id) return;
+    
     try {
       setIsLoading(true);
-      const response = await votingAPI.admin.getCampaign(id!);
+      const response = await votingAPI.admin.getCampaign(id);
       
       if (response.success && response.data?.campaign) {
         const campaign = response.data.campaign;
@@ -72,8 +70,8 @@ const AdminVotingForm: React.FC = () => {
     } catch (error) {
       console.error('Failed to load campaign:', error);
       toast({
-        title: "Error",
-        description: "Failed to load campaign details",
+        title: t('common.error'),
+        description: t('voting.failedToLoadCampaignDetails'),
         variant: "destructive"
       });
       navigate('/admin/voting/campaigns');
@@ -82,14 +80,18 @@ const AdminVotingForm: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    loadCampaign();
+  }, [isEditing, id]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validation
     if (!formData.title.trim()) {
       toast({
-        title: "Validation Error",
-        description: "Title is required",
+        title: t('adminVoting.validationError'),
+        description: t('adminVoting.titleRequired'),
         variant: "destructive"
       });
       return;
@@ -97,8 +99,8 @@ const AdminVotingForm: React.FC = () => {
 
     if (!formData.description.trim()) {
       toast({
-        title: "Validation Error",
-        description: "Description is required",
+        title: t('adminVoting.validationError'),
+        description: t('adminVoting.descriptionRequired'),
         variant: "destructive"
       });
       return;
@@ -106,8 +108,8 @@ const AdminVotingForm: React.FC = () => {
 
     if (!formData.startDate || !formData.endDate) {
       toast({
-        title: "Validation Error",
-        description: "Start and end dates are required",
+        title: t('adminVoting.validationError'),
+        description: t('adminVoting.startDateMustBeInFuture'),
         variant: "destructive"
       });
       return;
@@ -118,8 +120,8 @@ const AdminVotingForm: React.FC = () => {
 
     if (endDate <= startDate) {
       toast({
-        title: "Validation Error",
-        description: "End date must be after start date",
+        title: t('adminVoting.validationError'),
+        description: t('adminVoting.endDateMustBeAfterStart'),
         variant: "destructive"
       });
       return;
@@ -127,8 +129,8 @@ const AdminVotingForm: React.FC = () => {
 
     if (!isEditing && startDate <= new Date()) {
       toast({
-        title: "Validation Error",
-        description: "Start date must be in the future",
+        title: t('adminVoting.validationError'),
+        description: t('adminVoting.startDateMustBeInFuture'),
         variant: "destructive"
       });
       return;
@@ -149,23 +151,23 @@ const AdminVotingForm: React.FC = () => {
 
       if (response.success) {
         toast({
-          title: "Success",
-          description: `Campaign ${isEditing ? 'updated' : 'created'} successfully`
+          title: t('common.success'),
+          description: isEditing ? t('adminVoting.campaignUpdatedSuccessfully') : t('adminVoting.campaignCreatedSuccessfully')
         });
         
         navigate('/admin/voting/campaigns');
       } else {
         toast({
-          title: "Error",
-          description: response.message || `Failed to ${isEditing ? 'update' : 'create'} campaign`,
+          title: t('common.error'),
+          description: response.message || (isEditing ? t('adminVoting.failedToUpdateCampaign') : t('adminVoting.failedToCreateCampaign')),
           variant: "destructive"
         });
       }
     } catch (error: any) {
       console.error('Failed to save campaign:', error);
       toast({
-        title: "Error",
-        description: error.response?.data?.message || `Failed to ${isEditing ? 'update' : 'create'} campaign`,
+        title: t('common.error'),
+        description: error.response?.data?.message || (isEditing ? t('adminVoting.failedToUpdateCampaign') : t('adminVoting.failedToCreateCampaign')),
         variant: "destructive"
       });
     } finally {
@@ -200,15 +202,15 @@ const AdminVotingForm: React.FC = () => {
           className="flex items-center gap-2"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to Campaigns
+          {t('adminVoting.backToCampaigns')}
         </Button>
         
         <div>
           <h1 className="text-3xl font-bold">
-            {isEditing ? 'Edit Campaign' : 'Create New Campaign'}
+            {isEditing ? t('adminVoting.editCampaign') : t('adminVoting.createCampaign')}
           </h1>
           <p className="text-muted-foreground">
-            {isEditing ? 'Update campaign details and settings' : 'Set up a new voting campaign'}
+            {isEditing ? t('adminVoting.updatePredictionInfo') : t('adminVoting.setVotingSchedule')}
           </p>
         </div>
       </div>
@@ -219,38 +221,38 @@ const AdminVotingForm: React.FC = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Image className="h-5 w-5" />
-              Basic Information
+              {t('adminVoting.basicInformation')}
             </CardTitle>
             <CardDescription>
-              Campaign title, description, and featured image
+              {t('adminVoting.campaignTitleDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="title">Campaign Title *</Label>
+              <Label htmlFor="title">{t('adminVoting.entryTitle')} *</Label>
               <Input
                 id="title"
                 value={formData.title}
                 onChange={(e) => handleInputChange('title', e.target.value)}
-                placeholder="Enter campaign title"
+                placeholder={t('adminVoting.enterCampaignTitle')}
                 required
               />
             </div>
 
             <div>
-              <Label htmlFor="description">Description *</Label>
+              <Label htmlFor="description">{t('adminVoting.entryDescription')} *</Label>
               <Textarea
                 id="description"
                 value={formData.description}
                 onChange={(e) => handleInputChange('description', e.target.value)}
-                placeholder="Describe the voting campaign"
+                placeholder={t('adminVoting.describeVotingCampaign')}
                 rows={4}
                 required
               />
             </div>
 
             <div>
-              <Label htmlFor="imageUrl">Featured Image</Label>
+              <Label htmlFor="imageUrl">{t('adminVoting.featuredImage')}</Label>
               <ImageUpload
                 value={formData.imageUrl}
                 onChange={(url) => handleInputChange('imageUrl', url)}
@@ -265,16 +267,16 @@ const AdminVotingForm: React.FC = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
-              Schedule
+              {t('adminVoting.schedule')}
             </CardTitle>
             <CardDescription>
-              Set when the voting campaign starts and ends
+              {t('adminVoting.setVotingSchedule')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="startDate">Start Date & Time *</Label>
+                <Label htmlFor="startDate">{t('adminVoting.startDateTime')} *</Label>
                 <Input
                   id="startDate"
                   type="datetime-local"
@@ -285,7 +287,7 @@ const AdminVotingForm: React.FC = () => {
               </div>
 
               <div>
-                <Label htmlFor="endDate">End Date & Time *</Label>
+                <Label htmlFor="endDate">{t('adminVoting.endDateTime')} *</Label>
                 <Input
                   id="endDate"
                   type="datetime-local"
@@ -303,16 +305,16 @@ const AdminVotingForm: React.FC = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Settings className="h-5 w-5" />
-              Voting Settings
+              {t('adminVoting.votingSettings')}
             </CardTitle>
             <CardDescription>
-              Configure voting rules and point rewards
+              {t('adminVoting.configureVotingRules')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="pointsPerVote">Points per Vote</Label>
+                <Label htmlFor="pointsPerVote">{t('adminVoting.pointsPerVote')}</Label>
                 <Input
                   id="pointsPerVote"
                   type="number"
@@ -322,12 +324,12 @@ const AdminVotingForm: React.FC = () => {
                   onChange={(e) => handleInputChange('pointsPerVote', parseInt(e.target.value) || 0)}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Points awarded to users for each vote
+                  {t('adminVoting.pointsAwardedPerVote')}
                 </p>
               </div>
 
               <div>
-                <Label htmlFor="maxVotesPerUser">Max Votes per User</Label>
+                <Label htmlFor="maxVotesPerUser">{t('adminVoting.maxVotesPerUser')}</Label>
                 <Input
                   id="maxVotesPerUser"
                   type="number"
@@ -337,12 +339,12 @@ const AdminVotingForm: React.FC = () => {
                   onChange={(e) => handleInputChange('maxVotesPerUser', parseInt(e.target.value) || 1)}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Maximum entries each user can vote for
+                  {t('adminVoting.maximumEntriesPerUser')}
                 </p>
               </div>
 
               <div>
-                <Label htmlFor="votingFrequency">Voting Frequency</Label>
+                <Label htmlFor="votingFrequency">{t('adminVoting.frequency')}</Label>
                 <Select
                   value={formData.votingFrequency}
                   onValueChange={(value) => handleInputChange('votingFrequency', value)}
@@ -351,12 +353,12 @@ const AdminVotingForm: React.FC = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="once">Once per campaign</SelectItem>
-                    <SelectItem value="daily">Once per day</SelectItem>
+                    <SelectItem value="once">{t('adminVoting.oncePerCampaign')}</SelectItem>
+                    <SelectItem value="daily">{t('adminVoting.oncePerDay')}</SelectItem>
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground mt-1">
-                  How often users can vote
+                  {t('adminVoting.howOftenUsersCanVote')}
                 </p>
               </div>
             </div>
@@ -375,7 +377,7 @@ const AdminVotingForm: React.FC = () => {
             ) : (
               <Save className="h-4 w-4" />
             )}
-            {isSaving ? 'Saving...' : (isEditing ? 'Update Campaign' : 'Create Campaign')}
+            {isSaving ? t('common.saving') : (isEditing ? t('common.save') : t('adminVoting.createCampaign'))}
           </Button>
           
           <Button 
@@ -383,7 +385,7 @@ const AdminVotingForm: React.FC = () => {
             variant="outline"
             onClick={() => navigate('/admin/voting/campaigns')}
           >
-            Cancel
+            {t('common.cancel')}
           </Button>
         </div>
       </form>

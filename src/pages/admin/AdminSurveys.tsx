@@ -8,6 +8,7 @@ import { PlusCircle, Edit, Trash2, BarChart, ListChecks } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import apiService from '@/services/api';
 import type { Survey } from '@/types';
+import { useLanguage } from '@/hooks/useLanguage';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,12 +23,9 @@ import {
 
 const AdminSurveys: React.FC = () => {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [surveys, setSurveys] = useState<Survey[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    loadSurveys();
-  }, []);
 
   const loadSurveys = async () => {
     setIsLoading(true);
@@ -36,8 +34,8 @@ const AdminSurveys: React.FC = () => {
       setSurveys(response.data?.data || []);
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.response?.data?.message || 'Failed to load surveys',
+        title: t('common.error'),
+        description: error.response?.data?.message || t('adminSurveys.failedToLoadSurveys'),
         variant: "destructive"
       });
     } finally {
@@ -45,18 +43,22 @@ const AdminSurveys: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    loadSurveys();
+  }, []);
+
   const handleDelete = async (surveyId: string) => {
     try {
       await apiService.delete(`/surveys/admin/${surveyId}`);
       toast({
-        title: "Success",
-        description: "Survey deleted successfully",
+        title: t('common.success'),
+        description: t('adminSurveys.surveyDeletedSuccessfully'),
       });
       loadSurveys();
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.response?.data?.message || 'Failed to delete survey',
+        title: t('common.error'),
+        description: error.response?.data?.message || t('adminSurveys.failedToDeleteSurvey'),
         variant: "destructive"
       });
     }
@@ -78,32 +80,32 @@ const AdminSurveys: React.FC = () => {
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
             <ListChecks className="h-8 w-8 text-purple-600" />
-            Survey Management
+            {t('adminSurveys.title')}
           </h1>
           <p className="text-gray-600 mt-2">
-            Create, manage, and view results of user surveys.
+            {t('adminSurveys.createManageViewResults')}
           </p>
         </div>
         <Button asChild className="w-full md:w-auto">
           <Link to="/admin/surveys/new">
             <PlusCircle className="h-4 w-4 mr-2" />
-            Create New Survey
+            {t('adminSurveys.createNewSurvey')}
           </Link>
         </Button>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>All Surveys</CardTitle>
-          <CardDescription>A list of all created surveys.</CardDescription>
+          <CardTitle>{t('adminSurveys.allSurveys')}</CardTitle>
+          <CardDescription>{t('adminSurveys.listOfAllSurveys')}</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <p>Loading surveys...</p>
+            <p>{t('adminSurveys.loadingSurveys')}</p>
           ) : surveys.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
                 <ListChecks className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                <p>No surveys found. Get started by creating one.</p>
+                <p>{t('adminSurveys.noSurveysFound')}</p>
             </div>
           ) : (
             <>
@@ -112,12 +114,12 @@ const AdminSurveys: React.FC = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Title</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Questions</TableHead>
-                      <TableHead>Points</TableHead>
-                      <TableHead>End Date</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead>{t('adminSurveys.title')}</TableHead>
+                      <TableHead>{t('adminSurveys.status')}</TableHead>
+                      <TableHead>{t('adminSurveys.questions')}</TableHead>
+                      <TableHead>{t('adminSurveys.points')}</TableHead>
+                      <TableHead>{t('adminSurveys.endDate')}</TableHead>
+                      <TableHead className="text-right">{t('adminSurveys.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -125,11 +127,11 @@ const AdminSurveys: React.FC = () => {
                       <TableRow key={survey._id}>
                         <TableCell className="font-medium">{survey.title}</TableCell>
                         <TableCell>
-                          <Badge variant={getStatusVariant(survey.status)}>{survey.status}</Badge>
+                          <Badge variant={getStatusVariant(survey.status)}>{t(`adminSurveys.${survey.status}`)}</Badge>
                         </TableCell>
                         <TableCell>{survey.questions.length}</TableCell>
                         <TableCell>{survey.pointsAwarded}</TableCell>
-                        <TableCell>{survey.endDate ? new Date(survey.endDate).toLocaleDateString() : 'No limit'}</TableCell>
+                        <TableCell>{survey.endDate ? new Date(survey.endDate).toLocaleDateString() : t('adminSurveys.noLimit')}</TableCell>
                         <TableCell className="text-right space-x-2">
                           <Button variant="outline" size="icon" asChild>
                             <Link to={`/admin/surveys/${survey._id}/results`}>
@@ -149,15 +151,15 @@ const AdminSurveys: React.FC = () => {
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
-                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                <AlertDialogTitle>{t('adminSurveys.areYouAbsolutelySure')}</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  This action cannot be undone. This will permanently delete the survey and all its submissions.
+                                  {t('adminSurveys.deleteSurveyWarning')}
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogCancel>{t('adminSurveys.cancel')}</AlertDialogCancel>
                                 <AlertDialogAction onClick={() => handleDelete(survey._id)}>
-                                  Continue
+                                  {t('adminSurveys.continue')}
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
@@ -176,38 +178,42 @@ const AdminSurveys: React.FC = () => {
                     <Card key={survey._id}>
                       <CardHeader>
                         <CardTitle>{survey.title}</CardTitle>
-                        <Badge variant={getStatusVariant(survey.status)} className="w-fit">{survey.status}</Badge>
+                        <Badge variant={getStatusVariant(survey.status)} className="w-fit">{t(`adminSurveys.${survey.status}`)}</Badge>
                       </CardHeader>
                       <CardContent className="space-y-2 text-sm text-gray-600">
-                        <div><strong>Questions:</strong> {survey.questions.length}</div>
-                        <div><strong>Points:</strong> {survey.pointsAwarded}</div>
-                        <div><strong>End Date:</strong> {survey.endDate ? new Date(survey.endDate).toLocaleDateString() : 'No limit'}</div>
+                        <div><strong>{t('adminSurveys.questions')}:</strong> {survey.questions.length}</div>
+                        <div><strong>{t('adminSurveys.points')}:</strong> {survey.pointsAwarded}</div>
+                        <div><strong>{t('adminSurveys.endDate')}:</strong> {survey.endDate ? new Date(survey.endDate).toLocaleDateString() : t('adminSurveys.noLimit')}</div>
                       </CardContent>
                       <CardFooter className="flex justify-end space-x-2 bg-gray-50/50 p-3">
                           <Button variant="outline" size="sm" asChild>
                             <Link to={`/admin/surveys/${survey._id}/results`}>
-                              <BarChart className="mr-1 h-4 w-4" /> Results
+                              <BarChart className="mr-1 h-4 w-4" /> {t('adminSurveys.results')}
                             </Link>
                           </Button>
                           <Button variant="outline" size="sm" asChild>
                             <Link to={`/admin/surveys/edit/${survey._id}`}>
-                              <Edit className="mr-1 h-4 w-4" /> Edit
+                              <Edit className="mr-1 h-4 w-4" /> {t('adminSurveys.edit')}
                             </Link>
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button variant="destructive" size="sm">
-                                <Trash2 className="mr-1 h-4 w-4" /> Delete
+                                <Trash2 className="mr-1 h-4 w-4" /> {t('adminSurveys.delete')}
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
-                               <AlertDialogHeader>
-                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                <AlertDialogDescription>This will permanently delete the survey and all submissions.</AlertDialogDescription>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>{t('adminSurveys.areYouSure')}</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  {t('adminSurveys.deleteSurveyWarningShort')}
+                                </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDelete(survey._id)}>Delete</AlertDialogAction>
+                                <AlertDialogCancel>{t('adminSurveys.cancel')}</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDelete(survey._id)}>
+                                  {t('adminSurveys.continue')}
+                                </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
                           </AlertDialog>

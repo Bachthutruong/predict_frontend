@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { votingAPI } from '../../services/api';
 import { useToast } from '../../hooks/use-toast';
+import { useLanguage } from '../../hooks/useLanguage';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
@@ -38,6 +39,7 @@ const AdminVotingStatistics: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const { toast } = useToast();
+  const { t } = useLanguage();
   
   const [campaign, setCampaign] = useState<VotingCampaign | null>(null);
   const [entries, setEntries] = useState<VoteEntry[]>([]);
@@ -45,16 +47,12 @@ const AdminVotingStatistics: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<'all' | 'today' | 'week' | 'month'>('all');
 
-  useEffect(() => {
-    if (id) {
-      loadStatistics();
-    }
-  }, [id, timeRange]);
-
   const loadStatistics = async () => {
+    if (!id) return;
+    
     try {
       setIsLoading(true);
-      const response = await votingAPI.admin.getCampaign(id!);
+      const response = await votingAPI.admin.getCampaign(id);
       
       if (response.success && response.data) {
         setCampaign(response.data.campaign);
@@ -62,8 +60,8 @@ const AdminVotingStatistics: React.FC = () => {
         setStatistics(response.data.statistics);
       } else {
         toast({
-          title: "Error",
-          description: "Failed to load campaign statistics",
+          title: t('common.error'),
+          description: t('voting.failedToLoadCampaignDetails'),
           variant: "destructive"
         });
         navigate('/admin/voting/campaigns');
@@ -71,8 +69,8 @@ const AdminVotingStatistics: React.FC = () => {
     } catch (error) {
       console.error('Failed to load statistics:', error);
       toast({
-        title: "Error",
-        description: "Failed to load campaign statistics",
+        title: t('common.error'),
+        description: t('voting.failedToLoadCampaignDetails'),
         variant: "destructive"
       });
       navigate('/admin/voting/campaigns');
@@ -81,36 +79,9 @@ const AdminVotingStatistics: React.FC = () => {
     }
   };
 
-//   const exportData = () => {
-//     if (!campaign || !entries) return;
-
-//     const csvData = [
-//       ['Entry Title', 'Description', 'Vote Count', 'Rank', 'Created At'],
-//       ...entries
-//         .sort((a, b) => (b.voteCount || 0) - (a.voteCount || 0))
-//         .map((entry, index) => [
-//           entry.title,
-//           entry.description,
-//           entry.voteCount || 0,
-//           index + 1,
-//           new Date(entry.createdAt).toLocaleDateString()
-//         ])
-//     ];
-
-//     const csvContent = csvData.map(row => row.join(',')).join('\n');
-//     const blob = new Blob([csvContent], { type: 'text/csv' });
-//     const url = window.URL.createObjectURL(blob);
-//     const a = document.createElement('a');
-//     a.href = url;
-//     a.download = `${campaign.title}-voting-results.csv`;
-//     a.click();
-//     window.URL.revokeObjectURL(url);
-
-//     toast({
-//       title: "Export Successful",
-//       description: "Voting results have been exported to CSV",
-//     });
-//   };
+  useEffect(() => {
+    loadStatistics();
+  }, [id, timeRange]);
 
   const exportExcel = () => {
     if (!campaign || !entries) return;
@@ -129,8 +100,8 @@ const AdminVotingStatistics: React.FC = () => {
     XLSX.utils.book_append_sheet(wb, ws, 'Voting Results');
     XLSX.writeFile(wb, `${campaign.title}-voting-results.xlsx`);
     toast({
-      title: 'Export Successful',
-      description: 'Voting results have been exported to Excel',
+      title: t('common.success'),
+      description: t('adminVoting.votingResultsExported'),
     });
   };
 
@@ -157,15 +128,7 @@ const AdminVotingStatistics: React.FC = () => {
   };
 
   const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'active': return 'Active';
-      case 'upcoming': return 'Upcoming';
-      case 'closed': return 'Closed';
-      case 'draft': return 'Draft';
-      case 'completed': return 'Completed';
-      case 'cancelled': return 'Cancelled';
-      default: return status;
-    }
+    return t(`voting.status.${status}`) || status;
   };
 
   if (isLoading) {
@@ -182,7 +145,7 @@ const AdminVotingStatistics: React.FC = () => {
     return (
       <div className="container mx-auto p-6">
         <div className="text-center py-12">
-          <p className="text-muted-foreground">Campaign not found</p>
+          <p className="text-muted-foreground">{t('voting.campaignNotFound')}</p>
         </div>
       </div>
     );
@@ -200,13 +163,13 @@ const AdminVotingStatistics: React.FC = () => {
           className="flex items-center gap-2 w-fit"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to Campaigns
+          {t('adminVoting.backToCampaigns')}
         </Button>
         <div className="flex-1 min-w-0">
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full">
             <h1 className="text-lg md:text-2xl font-bold flex items-center gap-2 truncate break-words max-w-full">
               <BarChart3 className="h-6 w-6 text-primary" />
-              <span className="truncate break-words max-w-full">{campaign.title} - Statistics</span>
+              <span className="truncate break-words max-w-full">{campaign.title} - {t('adminVoting.statistics')}</span>
             </h1>
             <Badge variant={getStatusBadgeVariant(campaign.status)} className="text-xs px-2 py-1 max-w-full truncate">
               {getStatusLabel(campaign.status)}
@@ -221,7 +184,7 @@ const AdminVotingStatistics: React.FC = () => {
             className="flex items-center gap-2 w-full md:w-auto"
           >
             <Download className="h-4 w-4" />
-            Export Excel
+            {t('adminVoting.exportExcel')}
           </Button>
           <Button 
             variant="outline"
@@ -229,7 +192,7 @@ const AdminVotingStatistics: React.FC = () => {
             className="flex items-center gap-2 w-full md:w-auto"
           >
             <Eye className="h-4 w-4" />
-            View Campaign
+            {t('adminVoting.viewCampaign')}
           </Button>
         </div>
       </div>
@@ -238,46 +201,46 @@ const AdminVotingStatistics: React.FC = () => {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Entries</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('adminVoting.totalEntries')}</CardTitle>
             <Trophy className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{entries.length}</div>
             <p className="text-xs text-muted-foreground">
-              Submitted for voting
+              {t('adminVoting.submittedForVoting')}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Votes</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('adminVoting.totalVotes')}</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{statistics?.totalVotes || 0}</div>
             <p className="text-xs text-muted-foreground">
-              Across all entries
+              {t('adminVoting.acrossAllEntries')}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Unique Voters</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('adminVoting.uniqueVoters')}</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{statistics?.uniqueVoters || 0}</div>
             <p className="text-xs text-muted-foreground">
-              Participated in voting
+              {t('adminVoting.participatedInVoting')}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Votes/Entry</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('adminVoting.averageVotesPerEntry')}</CardTitle>
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -285,7 +248,7 @@ const AdminVotingStatistics: React.FC = () => {
               {entries.length > 0 ? Math.round((statistics?.totalVotes || 0) / entries.length) : 0}
             </div>
             <p className="text-xs text-muted-foreground">
-              Average votes per entry
+              {t('adminVoting.averageVotesPerEntry')}
             </p>
           </CardContent>
         </Card>
@@ -296,26 +259,26 @@ const AdminVotingStatistics: React.FC = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
-            Campaign Timeline
+            {t('adminVoting.campaignTimeline')}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <h4 className="font-medium mb-2">Start Date</h4>
+              <h4 className="font-medium mb-2">{t('adminVoting.start')}</h4>
               <p className="text-muted-foreground">{formatDate(campaign.startDate)}</p>
             </div>
             <div>
-              <h4 className="font-medium mb-2">End Date</h4>
+              <h4 className="font-medium mb-2">{t('adminVoting.end')}</h4>
               <p className="text-muted-foreground">{formatDate(campaign.endDate)}</p>
             </div>
             <div>
-              <h4 className="font-medium mb-2">Points per Vote</h4>
-              <p className="text-muted-foreground">{campaign.pointsPerVote} points</p>
+              <h4 className="font-medium mb-2">{t('adminVoting.pointsPerVote')}</h4>
+              <p className="text-muted-foreground">{campaign.pointsPerVote} {t('admin.points')}</p>
             </div>
             <div>
-              <h4 className="font-medium mb-2">Max Votes per User</h4>
-              <p className="text-muted-foreground">{campaign.maxVotesPerUser} votes</p>
+              <h4 className="font-medium mb-2">{t('adminVoting.maxVotesPerUser')}</h4>
+              <p className="text-muted-foreground">{campaign.maxVotesPerUser} {t('adminVoting.votes')}</p>
             </div>
           </div>
         </CardContent>
@@ -327,7 +290,7 @@ const AdminVotingStatistics: React.FC = () => {
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Trophy className="h-5 w-5" />
-              Voting Results
+              {t('adminVoting.finalVotingResults')}
             </CardTitle>
             <Select value={timeRange} onValueChange={(value) => setTimeRange(value as any)}>
               <SelectTrigger className="w-[150px]">
@@ -342,7 +305,7 @@ const AdminVotingStatistics: React.FC = () => {
             </Select>
           </div>
           <CardDescription>
-            Final voting results ranked by vote count
+            {t('adminVoting.finalVotingResults')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -351,11 +314,11 @@ const AdminVotingStatistics: React.FC = () => {
               <Table className="min-w-[300px] md:min-w-0 w-full">
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Rank</TableHead>
-                    <TableHead>Entry</TableHead>
-                    <TableHead className="hidden md:table-cell">Description</TableHead>
-                    <TableHead className="text-right">Votes</TableHead>
-                    <TableHead className="text-right">Percentage</TableHead>
+                    <TableHead>{t('adminVoting.rank')}</TableHead>
+                    <TableHead>{t('adminVoting.entry')}</TableHead>
+                    <TableHead className="hidden md:table-cell">{t('adminVoting.description')}</TableHead>
+                    <TableHead className="text-right">{t('adminVoting.votes')}</TableHead>
+                    <TableHead className="text-right">{t('adminVoting.percentage')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -408,7 +371,7 @@ const AdminVotingStatistics: React.FC = () => {
           ) : (
             <div className="text-center py-8">
               <Trophy className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-              <p className="text-muted-foreground">No entries found</p>
+              <p className="text-muted-foreground">{t('adminVoting.noEntriesFound')}</p>
             </div>
           )}
         </CardContent>

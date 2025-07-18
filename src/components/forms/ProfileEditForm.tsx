@@ -5,6 +5,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../hooks/useLanguage';
 import { userAPI } from '../../services/api';
 import { useToast } from '../../hooks/use-toast';
 import { User, Lock, Save, Eye, EyeOff } from 'lucide-react';
@@ -32,6 +33,7 @@ interface PasswordData {
 const ProfileEditForm: React.FC = () => {
   const { user, refreshUser } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   
   const [isLoading, setIsLoading] = useState(false);
   const [showPasswords, setShowPasswords] = useState({
@@ -76,17 +78,17 @@ const ProfileEditForm: React.FC = () => {
       if (response.success) {
         await refreshUser();
         toast({
-          title: "Success",
-          description: "Profile updated successfully"
+          title: t('common.success'),
+          description: t('profile.profileUpdated')
         });
       } else {
-        throw new Error(response.message || 'Failed to update profile');
+        throw new Error(response.message || t('profile.failedToUpdateProfile'));
       }
     } catch (error) {
       console.error('Profile update error:', error);
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to update profile",
+        title: t('common.error'),
+        description: error instanceof Error ? error.message : t('profile.failedToUpdateProfile'),
         variant: "destructive"
       });
     } finally {
@@ -99,8 +101,8 @@ const ProfileEditForm: React.FC = () => {
     
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       toast({
-        title: "Error",
-        description: "New passwords don't match",
+        title: t('common.error'),
+        description: t('profile.passwordsDoNotMatch'),
         variant: "destructive"
       });
       return;
@@ -108,8 +110,8 @@ const ProfileEditForm: React.FC = () => {
 
     if (passwordData.newPassword.length < 6) {
       toast({
-        title: "Error",
-        description: "Password must be at least 6 characters long",
+        title: t('common.error'),
+        description: t('profile.passwordTooShort'),
         variant: "destructive"
       });
       return;
@@ -131,17 +133,17 @@ const ProfileEditForm: React.FC = () => {
         });
         await refreshUser();
         toast({
-          title: "Success",
-          description: "Password changed successfully"
+          title: t('common.success'),
+          description: t('profile.passwordChangedSuccessfully')
         });
       } else {
-        throw new Error(response.message || 'Failed to change password');
+        throw new Error(response.message || t('profile.failedToChangePassword'));
       }
     } catch (error) {
       console.error('Password change error:', error);
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to change password",
+        title: t('common.error'),
+        description: error instanceof Error ? error.message : t('profile.failedToChangePassword'),
         variant: "destructive"
       });
     } finally {
@@ -163,36 +165,36 @@ const ProfileEditForm: React.FC = () => {
         <CardHeader>
           <div className="flex items-center gap-2">
             <User className="h-5 w-5" />
-            <CardTitle>Personal Information</CardTitle>
+            <CardTitle>{t('profile.personalInformation')}</CardTitle>
           </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleProfileSubmit} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
+                <Label htmlFor="name">{t('profile.fullName')}</Label>
                 <Input
                   id="name"
                   value={profileData.name}
                   onChange={(e) => setProfileData(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="Enter your full name"
+                  placeholder={t('profile.enterFullName')}
                   required
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
+                <Label htmlFor="phone">{t('profile.phoneNumber')}</Label>
                 <Input
                   id="phone"
                   type="tel"
                   value={profileData.phone}
                   onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
-                  placeholder="Enter your phone number"
+                  placeholder={t('profile.enterPhoneNumber')}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="dateOfBirth">Date of Birth</Label>
+                <Label htmlFor="dateOfBirth">{t('profile.dateOfBirth')}</Label>
                 <Input
                   id="dateOfBirth"
                   type="date"
@@ -202,16 +204,16 @@ const ProfileEditForm: React.FC = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="gender">Gender</Label>
+                <Label htmlFor="gender">{t('profile.gender')}</Label>
                 <Select value={profileData.gender} onValueChange={(value) => setProfileData(prev => ({ ...prev, gender: value }))}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select gender" />
+                    <SelectValue placeholder={t('profile.selectGender')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="male">Male</SelectItem>
-                    <SelectItem value="female">Female</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                    <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
+                    <SelectItem value="male">{t('profile.male')}</SelectItem>
+                    <SelectItem value="female">{t('profile.female')}</SelectItem>
+                    <SelectItem value="other">{t('profile.other')}</SelectItem>
+                    <SelectItem value="prefer-not-to-say">{t('profile.preferNotToSay')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -219,10 +221,10 @@ const ProfileEditForm: React.FC = () => {
 
             {/* Address Information */}
             <div className="border-t pt-4 mt-6">
-              <h3 className="text-sm font-medium mb-4">Address Information</h3>
+              <h3 className="text-sm font-medium mb-4">{t('profile.addressInformation')}</h3>
               <div className="grid grid-cols-1 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="street">Street Address</Label>
+                  <Label htmlFor="street">{t('profile.streetAddress')}</Label>
                   <Input
                     id="street"
                     value={profileData.address.street}
@@ -230,13 +232,13 @@ const ProfileEditForm: React.FC = () => {
                       ...prev,
                       address: { ...prev.address, street: e.target.value }
                     }))}
-                    placeholder="Enter your street address"
+                    placeholder={t('profile.enterStreetAddress')}
                   />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="city">City</Label>
+                    <Label htmlFor="city">{t('profile.city')}</Label>
                     <Input
                       id="city"
                       value={profileData.address.city}
@@ -244,12 +246,12 @@ const ProfileEditForm: React.FC = () => {
                         ...prev,
                         address: { ...prev.address, city: e.target.value }
                       }))}
-                      placeholder="Enter your city"
+                      placeholder={t('profile.enterCity')}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="state">State/Province</Label>
+                    <Label htmlFor="state">{t('profile.stateProvince')}</Label>
                     <Input
                       id="state"
                       value={profileData.address.state}
@@ -257,14 +259,14 @@ const ProfileEditForm: React.FC = () => {
                         ...prev,
                         address: { ...prev.address, state: e.target.value }
                       }))}
-                      placeholder="Enter your state"
+                      placeholder={t('profile.enterState')}
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="postalCode">Postal Code</Label>
+                    <Label htmlFor="postalCode">{t('profile.postalCode')}</Label>
                     <Input
                       id="postalCode"
                       value={profileData.address.postalCode}
@@ -272,12 +274,12 @@ const ProfileEditForm: React.FC = () => {
                         ...prev,
                         address: { ...prev.address, postalCode: e.target.value }
                       }))}
-                      placeholder="Enter your postal code"
+                      placeholder={t('profile.enterPostalCode')}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="country">Country</Label>
+                    <Label htmlFor="country">{t('profile.country')}</Label>
                     <Input
                       id="country"
                       value={profileData.address.country}
@@ -285,7 +287,7 @@ const ProfileEditForm: React.FC = () => {
                         ...prev,
                         address: { ...prev.address, country: e.target.value }
                       }))}
-                      placeholder="Enter your country"
+                      placeholder={t('profile.enterCountry')}
                     />
                   </div>
                 </div>
@@ -294,7 +296,7 @@ const ProfileEditForm: React.FC = () => {
 
             <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
               <Save className="h-4 w-4 mr-2" />
-              {isLoading ? 'Saving...' : 'Save Changes'}
+              {isLoading ? t('profile.saving') : t('profile.saveChanges')}
             </Button>
           </form>
         </CardContent>
@@ -305,11 +307,11 @@ const ProfileEditForm: React.FC = () => {
         <CardHeader>
           <div className="flex items-center gap-2">
             <Lock className="h-5 w-5" />
-            <CardTitle>Change Password</CardTitle>
+            <CardTitle>{t('profile.changePassword')}</CardTitle>
           </div>
           {user?.isAutoCreated && (
             <p className="text-sm text-muted-foreground">
-              Your account was created automatically. You can set a new password here.
+              {t('profile.accountCreatedAutomatically')}
             </p>
           )}
         </CardHeader>
@@ -317,14 +319,14 @@ const ProfileEditForm: React.FC = () => {
           <form onSubmit={handlePasswordSubmit} className="space-y-4">
             {!user?.isAutoCreated && (
               <div className="space-y-2">
-                <Label htmlFor="currentPassword">Current Password</Label>
+                <Label htmlFor="currentPassword">{t('profile.currentPassword')}</Label>
                 <div className="relative">
                   <Input
                     id="currentPassword"
                     type={showPasswords.current ? "text" : "password"}
                     value={passwordData.currentPassword}
                     onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
-                    placeholder="Enter current password"
+                    placeholder={t('profile.enterCurrentPassword')}
                     required
                   />
                   <Button
@@ -345,14 +347,14 @@ const ProfileEditForm: React.FC = () => {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="newPassword">New Password</Label>
+              <Label htmlFor="newPassword">{t('profile.newPassword')}</Label>
               <div className="relative">
                 <Input
                   id="newPassword"
                   type={showPasswords.new ? "text" : "password"}
                   value={passwordData.newPassword}
                   onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
-                  placeholder="Enter new password (min 6 characters)"
+                  placeholder={t('profile.enterNewPassword')}
                   required
                   minLength={6}
                 />
@@ -373,14 +375,14 @@ const ProfileEditForm: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm New Password</Label>
+              <Label htmlFor="confirmPassword">{t('profile.confirmNewPassword')}</Label>
               <div className="relative">
                 <Input
                   id="confirmPassword"
                   type={showPasswords.confirm ? "text" : "password"}
                   value={passwordData.confirmPassword}
                   onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                  placeholder="Confirm new password"
+                  placeholder={t('profile.confirmNewPasswordPlaceholder')}
                   required
                   minLength={6}
                 />
@@ -402,7 +404,7 @@ const ProfileEditForm: React.FC = () => {
 
             <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
               <Lock className="h-4 w-4 mr-2" />
-              {isLoading ? 'Changing...' : 'Change Password'}
+              {isLoading ? t('profile.changing') : t('profile.changePassword')}
             </Button>
           </form>
         </CardContent>

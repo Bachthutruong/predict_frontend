@@ -18,6 +18,7 @@ import {
   Flame
 } from 'lucide-react';
 import { useToast } from '../../hooks/use-toast';
+import { useLanguage } from '../../hooks/useLanguage';
 import apiService from '../../services/api';
 import type { User, Referral } from '../../types';
 
@@ -28,6 +29,7 @@ interface ReferralsData {
 
 const ReferralsPage: React.FC = () => {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [referralsData, setReferralsData] = useState<ReferralsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [copiedCode, setCopiedCode] = useState(false);
@@ -47,8 +49,8 @@ const ReferralsPage: React.FC = () => {
       console.error('Failed to load referrals data:', error);
       setReferralsData(null);
       toast({
-        title: "Error",
-        description: "Failed to load referrals data. Please try again.",
+        title: t('common.error'),
+        description: t('referrals.failedToLoadData'),
         variant: "destructive"
       });
     } finally {
@@ -62,8 +64,8 @@ const ReferralsPage: React.FC = () => {
       setCopiedCode(true);
       setTimeout(() => setCopiedCode(false), 2000);
       toast({
-        title: "Copied!",
-        description: "Referral code copied to clipboard",
+        title: t('referrals.copied'),
+        description: t('referrals.referralCodeCopied'),
         variant: "default"
       });
     }
@@ -76,8 +78,8 @@ const ReferralsPage: React.FC = () => {
       setCopiedLink(true);
       setTimeout(() => setCopiedLink(false), 2000);
       toast({
-        title: "Copied!",
-        description: "Referral link copied to clipboard",
+        title: t('referrals.copied'),
+        description: t('referrals.referralLinkCopied'),
         variant: "default"
       });
     }
@@ -88,13 +90,13 @@ const ReferralsPage: React.FC = () => {
       const link = `${window.location.origin}/register?ref=${referralsData.currentUser.referralCode}`;
       try {
         await navigator.share({
-          title: 'Join PredictWin!',
-          text: 'Join me on PredictWin and start earning points by making predictions!',
+          title: t('referrals.joinPredictWin'),
+          text: t('referrals.shareMessage'),
           url: link,
         });
         toast({
-          title: "Shared!",
-          description: "Referral link shared successfully",
+          title: t('referrals.shared'),
+          description: t('referrals.referralLinkShared'),
           variant: "default"
         });
               } catch (error: any) {
@@ -131,9 +133,9 @@ const ReferralsPage: React.FC = () => {
       <div className="max-w-4xl mx-auto p-6">
         <Card>
           <CardContent className="text-center py-10">
-            <p>Unable to load referral data. Please try again.</p>
+            <p>{t('referrals.unableToLoadData')}</p>
             <Button onClick={loadReferralsData} className="mt-4">
-              Retry
+              {t('common.retry')}
             </Button>
           </CardContent>
         </Card>
@@ -153,10 +155,10 @@ const ReferralsPage: React.FC = () => {
       <div className="text-center">
         <h1 className="text-3xl font-bold flex items-center justify-center gap-2">
           <Gift className="h-8 w-8 text-blue-600" />
-          Referral Program
+          {t('referrals.referralProgram')}
         </h1>
         <p className="text-gray-600 mt-2">
-          Invite friends to PredictWin and earn bonus points together!
+          {t('referrals.inviteFriendsDescription')}
         </p>
       </div>
 
@@ -164,45 +166,45 @@ const ReferralsPage: React.FC = () => {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Referrals</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('referrals.totalReferrals')}</CardTitle>
             <Users className="h-4 w-4 text-gray-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{referrals.length}</div>
-            <p className="text-xs text-gray-500">Friends invited</p>
+            <p className="text-xs text-gray-500">{t('referrals.friendsInvited')}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Successful</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('referrals.successful')}</CardTitle>
             <CheckCircle className="h-4 w-4 text-gray-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">{completedReferrals}</div>
-            <p className="text-xs text-gray-500">Completed referrals</p>
+            <p className="text-xs text-gray-500">{t('referrals.completedReferrals')}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('referrals.pending')}</CardTitle>
             <Clock className="h-4 w-4 text-gray-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">{pendingReferrals}</div>
-            <p className="text-xs text-gray-500">Awaiting completion</p>
+            <p className="text-xs text-gray-500">{t('referrals.awaitingCompletion')}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Next Milestone</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('referrals.nextMilestone')}</CardTitle>
             <Target className="h-4 w-4 text-gray-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-purple-600">{pointsToNextMilestone}</div>
-            <p className="text-xs text-gray-500">referrals to {nextMilestone}</p>
+            <p className="text-xs text-gray-500">{t('referrals.referralsTo', { count: nextMilestone })}</p>
           </CardContent>
         </Card>
       </div>
@@ -212,19 +214,19 @@ const ReferralsPage: React.FC = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Share2 className="h-5 w-5" />
-            Your Referral Code
+            {t('referrals.yourReferralCode')}
           </CardTitle>
           <CardDescription>
-            Share your unique code or link with friends to start earning
+            {t('referrals.shareCodeToStartEarning')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Referral Code */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Referral Code</label>
+            <label className="text-sm font-medium">{t('referrals.referralCode')}</label>
             <div className="flex items-center gap-2">
               <Input
-                value={currentUser.referralCode || 'Generating...'}
+                value={currentUser.referralCode || t('referrals.generating')}
                 readOnly
                 className="font-mono"
               />
@@ -245,7 +247,7 @@ const ReferralsPage: React.FC = () => {
 
           {/* Referral Link */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Referral Link</label>
+            <label className="text-sm font-medium">{t('referrals.referralLink')}</label>
             <div className="flex items-center gap-2">
               <Input
                 value={`${window.location.origin}/register?ref=${currentUser.referralCode}`}
@@ -279,8 +281,8 @@ const ReferralsPage: React.FC = () => {
             <Gift className="h-4 w-4" />
             <AlertDescription>
               <div className="space-y-1">
-                <p><strong>Earn 100 points</strong> for each friend who joins and checks in for 3 consecutive days.</p>
-                <p><strong>Milestone Bonus:</strong> Get 500 extra points for every 10 successful referrals!</p>
+                <p><strong>{t('referrals.earn100Points')}</strong> {t('referrals.forEachFriendJoins')}</p>
+                <p><strong>{t('referrals.milestoneBonus')}</strong> {t('referrals.get500ExtraPoints')}</p>
               </div>
             </AlertDescription>
           </Alert>
@@ -293,13 +295,13 @@ const ReferralsPage: React.FC = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Trophy className="h-5 w-5" />
-              Milestone Progress
+              {t('referrals.milestoneProgress')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Progress to {nextMilestone} referrals</span>
+                <span className="text-sm font-medium">{t('referrals.progressToReferrals', { count: nextMilestone })}</span>
                 <span className="text-sm text-gray-500">{completedReferrals}/{nextMilestone}</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
@@ -311,11 +313,11 @@ const ReferralsPage: React.FC = () => {
               <div className="text-center">
                 {pointsToNextMilestone > 0 ? (
                   <p className="text-sm text-gray-500">
-                    {pointsToNextMilestone} more successful referral{pointsToNextMilestone > 1 ? 's' : ''} to earn <strong>500 bonus points!</strong>
+                    {t('referrals.moreSuccessfulReferrals', { count: pointsToNextMilestone })} {t('referrals.toEarnBonusPoints')}
                   </p>
                 ) : (
                   <p className="text-sm text-green-600">
-                    🎉 Milestone reached! You've earned bonus points!
+                    🎉 {t('referrals.milestoneReached')}
                   </p>
                 )}
               </div>
@@ -329,10 +331,10 @@ const ReferralsPage: React.FC = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
-            Your Referrals
+            {t('referrals.yourReferrals')}
           </CardTitle>
           <CardDescription>
-            Track the status of friends you've invited
+            {t('referrals.trackInvitedFriends')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -350,7 +352,7 @@ const ReferralsPage: React.FC = () => {
                       <div>
                         <p className="font-medium">{referral.referredUser.name}</p>
                         <p className="text-sm text-gray-500">
-                          Joined {new Date(referral.referredUser.createdAt).toLocaleDateString()}
+                          {t('referrals.joined')} {new Date(referral.referredUser.createdAt).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
@@ -359,24 +361,24 @@ const ReferralsPage: React.FC = () => {
                         {referral.status === 'completed' ? (
                           <>
                             <CheckCircle className="h-3 w-3 mr-1" />
-                            Completed
+                            {t('referrals.completed')}
                           </>
                         ) : (
                           <>
                             <Clock className="h-3 w-3 mr-1" />
-                            Pending
+                            {t('referrals.pending')}
                           </>
                         )}
                       </Badge>
                       {referral.status === 'completed' ? (
                         <p className="text-xs text-green-600 flex items-center">
                           <Coins className="h-3 w-3 mr-1" />
-                          +100 points earned
+                          {t('referrals.plus100PointsEarned')}
                         </p>
                       ) : (
                         <p className="text-xs text-gray-500 flex items-center">
                           <Flame className="h-3 w-3 mr-1" />
-                          Check-in: {referral.referredUser.consecutiveCheckIns || 0}/3 days
+                          {t('referrals.checkInProgress', { count: referral.referredUser.consecutiveCheckIns || 0 })}
                         </p>
                       )}
                     </div>
@@ -387,13 +389,13 @@ const ReferralsPage: React.FC = () => {
           ) : (
             <div className="text-center py-8">
               <Gift className="h-12 w-12 mx-auto text-gray-400 mb-3" />
-              <h3 className="font-medium mb-2">No referrals yet</h3>
+              <h3 className="font-medium mb-2">{t('referrals.noReferralsYet')}</h3>
               <p className="text-sm text-gray-500 mb-4">
-                Start inviting friends to earn bonus points!
+                {t('referrals.startInvitingFriends')}
               </p>
               <Button onClick={shareReferralLink} disabled={!currentUser.referralCode}>
                 <Share2 className="h-4 w-4 mr-2" />
-                Share Your Link
+                {t('referrals.shareYourLink')}
               </Button>
             </div>
           )}
@@ -403,20 +405,20 @@ const ReferralsPage: React.FC = () => {
       {/* How It Works */}
       <Card>
         <CardHeader>
-          <CardTitle>How Referrals Work</CardTitle>
+          <CardTitle>{t('referrals.howReferralsWork')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-4">
-              <h4 className="font-medium">For You (Referrer)</h4>
+              <h4 className="font-medium">{t('referrals.forYou')}</h4>
               <div className="space-y-3">
                 <div className="flex items-start gap-3">
                   <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-medium mt-0.5">
                     1
                   </div>
                   <div>
-                    <p className="font-medium">Share your code</p>
-                    <p className="text-sm text-gray-500">Send your referral link to friends</p>
+                    <p className="font-medium">{t('referrals.shareYourCode')}</p>
+                    <p className="text-sm text-gray-500">{t('referrals.sendReferralLink')}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -424,8 +426,8 @@ const ReferralsPage: React.FC = () => {
                     2
                   </div>
                   <div>
-                    <p className="font-medium">They join & stay active</p>
-                    <p className="text-sm text-gray-500">Friend registers and checks in for 3 days</p>
+                    <p className="font-medium">{t('referrals.theyJoinStayActive')}</p>
+                    <p className="text-sm text-gray-500">{t('referrals.friendRegistersChecksIn')}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -433,22 +435,22 @@ const ReferralsPage: React.FC = () => {
                     3
                   </div>
                   <div>
-                    <p className="font-medium">Earn rewards</p>
-                    <p className="text-sm text-gray-500">Get 100 points + milestone bonuses</p>
+                    <p className="font-medium">{t('referrals.earnRewards')}</p>
+                    <p className="text-sm text-gray-500">{t('referrals.get100PointsMilestoneBonuses')}</p>
                   </div>
                 </div>
               </div>
             </div>
             <div className="space-y-4">
-              <h4 className="font-medium">For Your Friends</h4>
+              <h4 className="font-medium">{t('referrals.forYourFriends')}</h4>
               <div className="space-y-3">
                 <div className="flex items-start gap-3">
                   <div className="w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-medium mt-0.5">
                     1
                   </div>
                   <div>
-                    <p className="font-medium">Register using your link</p>
-                    <p className="text-sm text-gray-500">Get started with bonus welcome points</p>
+                    <p className="font-medium">{t('referrals.registerUsingLink')}</p>
+                    <p className="text-sm text-gray-500">{t('referrals.getStartedBonusWelcome')}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -456,8 +458,8 @@ const ReferralsPage: React.FC = () => {
                     2
                   </div>
                   <div>
-                    <p className="font-medium">Stay active for 3 days</p>
-                    <p className="text-sm text-gray-500">Check in daily to maintain streak</p>
+                    <p className="font-medium">{t('referrals.stayActive3Days')}</p>
+                    <p className="text-sm text-gray-500">{t('referrals.checkInDailyMaintainStreak')}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -465,8 +467,8 @@ const ReferralsPage: React.FC = () => {
                     3
                   </div>
                   <div>
-                    <p className="font-medium">Both earn rewards!</p>
-                    <p className="text-sm text-gray-500">Continue earning through predictions</p>
+                    <p className="font-medium">{t('referrals.bothEarnRewards')}</p>
+                    <p className="text-sm text-gray-500">{t('referrals.continueEarningPredictions')}</p>
                   </div>
                 </div>
               </div>

@@ -7,9 +7,11 @@ import { Button } from '../../components/ui/button';
 import { PredictionCard } from '../../components/PredictionCard';
 import { Trophy, Target, Coins, Activity, RefreshCw } from 'lucide-react';
 import type { Prediction } from '../../types';
+import { useLanguage } from '../../hooks/useLanguage';
 
 const PredictionsPage: React.FC = () => {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -25,16 +27,16 @@ const PredictionsPage: React.FC = () => {
         setPredictions(response.data);
       } else {
         toast({
-          title: "Error",
-          description: "Failed to load predictions. Please try again.",
+          title: t('common.error'),
+          description: t('predictions.loadError'),
           variant: "destructive"
         });
       }
     } catch (error) {
       console.error('Failed to fetch predictions:', error);
       toast({
-        title: "Error",
-        description: "Failed to load predictions. Please try again.",
+        title: t('common.error'),
+        description: t('predictions.loadError'),
         variant: "destructive"
       });
     } finally {
@@ -47,8 +49,8 @@ const PredictionsPage: React.FC = () => {
     await fetchPredictions();
     setRefreshing(false);
     toast({
-      title: "Predictions Updated",
-      description: "The predictions list has been refreshed.",
+      title: t('predictions.updated'),
+      description: t('predictions.refreshed'),
       variant: "default"
     });
   };
@@ -79,9 +81,9 @@ const PredictionsPage: React.FC = () => {
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
             <Trophy className="h-8 w-8 text-primary" />
-            Active Predictions
+            {t('predictions.activePredictions')}
           </h1>
-          <p className="text-muted-foreground mt-2">Loading predictions...</p>
+          <p className="text-muted-foreground mt-2">{t('predictions.loading')}</p>
         </div>
         
         <div className="grid gap-4 md:grid-cols-3">
@@ -100,15 +102,15 @@ const PredictionsPage: React.FC = () => {
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
             <Trophy className="h-8 w-8 text-primary" />
-            Active Predictions
+            {t('predictions.activePredictions')}
           </h1>
           <p className="text-muted-foreground mt-2">
-            Make your predictions and win points! You can predict multiple times if you have enough points.
+            {t('predictions.makePredictions')}
           </p>
         </div>
         <Button onClick={handleRefresh} variant="outline" size="sm" disabled={refreshing}>
           <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-          Refresh
+          {t('common.refresh')}
         </Button>
       </div>
 
@@ -116,40 +118,40 @@ const PredictionsPage: React.FC = () => {
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Prediction System</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('predictions.predictionSystem')}</CardTitle>
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">Available</div>
+            <div className="text-2xl font-bold">{t('predictions.available')}</div>
             <p className="text-xs text-muted-foreground">
-              Multiple predictions to choose from
+              {t('predictions.multiplePredictions')}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Reward System</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('predictions.rewardSystem')}</CardTitle>
             <Coins className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">150%</div>
             <p className="text-xs text-muted-foreground">
-              Return on correct predictions
+              {t('predictions.returnOnCorrect')}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">How It Works</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('predictions.howItWorks')}</CardTitle>
             <Trophy className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-sm">
-              <p className="font-medium">1. Pay entry cost</p>
-              <p className="text-muted-foreground">2. Make prediction</p>
-              <p className="text-muted-foreground">3. Win 150% if correct!</p>
+              <p className="font-medium">{t('predictions.step1')}</p>
+              <p className="text-muted-foreground">{t('predictions.step2')}</p>
+              <p className="text-muted-foreground">{t('predictions.step3')}</p>
             </div>
           </CardContent>
         </Card>
@@ -159,10 +161,10 @@ const PredictionsPage: React.FC = () => {
       {activePredictions.length > 0 ? (
         <div className="space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold">Active Predictions ({activePredictions.length})</h2>
+            <h2 className="text-2xl font-bold">{t('predictions.activePredictions')} ({activePredictions.length})</h2>
             <Badge variant="default" className="flex items-center gap-1">
               <Activity className="h-3 w-3" />
-              Live
+              {t('predictions.live')}
             </Badge>
           </div>
           
@@ -176,13 +178,13 @@ const PredictionsPage: React.FC = () => {
         <Card>
           <CardContent className="text-center py-16">
             <Activity className="h-16 w-16 mx-auto text-primary mb-4" />
-            <h3 className="text-xl font-medium mb-2">No Active Predictions</h3>
+            <h3 className="text-xl font-medium mb-2">{t('predictions.noActivePredictions')}</h3>
             <p className="text-muted-foreground mb-6">
-              There are no active predictions right now. Check back later for new challenges!
+              {t('predictions.checkBackLater')}
             </p>
             <Button onClick={handleRefresh} variant="outline" disabled={refreshing}>
               <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-              Refresh Now
+              {t('predictions.refreshNow')}
             </Button>
           </CardContent>
         </Card>
@@ -191,7 +193,7 @@ const PredictionsPage: React.FC = () => {
       {/* Finished Predictions */}
       {finishedPredictions.length > 0 && (
         <div className="space-y-6">
-          <h2 className="text-2xl font-bold">Recently Finished ({finishedPredictions.length})</h2>
+          <h2 className="text-2xl font-bold">{t('predictions.recentlyFinished')} ({finishedPredictions.length})</h2>
           
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {finishedPredictions.slice(0, 6).map((prediction) => (
@@ -204,8 +206,8 @@ const PredictionsPage: React.FC = () => {
       {/* How It Works */}
       <Card>
         <CardHeader>
-          <CardTitle>How Predictions Work</CardTitle>
-          <CardDescription>Understanding the prediction system</CardDescription>
+          <CardTitle>{t('predictions.howPredictionsWork')}</CardTitle>
+          <CardDescription>{t('predictions.understandingSystem')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2">
@@ -215,9 +217,9 @@ const PredictionsPage: React.FC = () => {
                   1
                 </div>
                 <div>
-                  <h4 className="font-medium">Choose a Prediction</h4>
+                  <h4 className="font-medium">{t('predictions.choosePrediction')}</h4>
                   <p className="text-sm text-muted-foreground">
-                    Browse available predictions and select one that interests you
+                    {t('predictions.browseAvailable')}
                   </p>
                 </div>
               </div>
@@ -227,9 +229,9 @@ const PredictionsPage: React.FC = () => {
                   2
                 </div>
                 <div>
-                  <h4 className="font-medium">Pay Entry Cost</h4>
+                  <h4 className="font-medium">{t('predictions.payEntryCost')}</h4>
                   <p className="text-sm text-muted-foreground">
-                    Each prediction requires a certain number of points to participate
+                    {t('predictions.requiresPoints')}
                   </p>
                 </div>
               </div>
@@ -241,9 +243,9 @@ const PredictionsPage: React.FC = () => {
                   3
                 </div>
                 <div>
-                  <h4 className="font-medium">Make Your Prediction</h4>
+                  <h4 className="font-medium">{t('predictions.makePrediction')}</h4>
                   <p className="text-sm text-muted-foreground">
-                    Submit your answer - you can predict multiple times if you have enough points
+                    {t('predictions.submitAnswer')}
                   </p>
                 </div>
               </div>
@@ -253,9 +255,9 @@ const PredictionsPage: React.FC = () => {
                   4
                 </div>
                 <div>
-                  <h4 className="font-medium">Win Rewards</h4>
+                  <h4 className="font-medium">{t('predictions.waitForResult')}</h4>
                   <p className="text-sm text-muted-foreground">
-                    Correct predictions earn 150% of the entry cost in points! Others can still participate even after someone wins.
+                    {t('predictions.correctAnswer')}
                   </p>
                 </div>
               </div>

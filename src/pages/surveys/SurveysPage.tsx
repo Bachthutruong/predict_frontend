@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Button } from '@/components/ui/button';
 import { ListChecks, Coins, Calendar, ArrowRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/hooks/useLanguage';
 import apiService, { publicApiService } from '@/services/api';
 import type { Survey } from '@/types';
 import { useAuth } from '@/context/AuthContext';
@@ -12,6 +13,7 @@ import { AuthModal } from '@/components/auth/AuthModal';
 const SurveysPage: React.FC = () => {
     const { toast } = useToast();
     const { user } = useAuth();
+    const { t } = useLanguage();
     const navigate = useNavigate();
     const [surveys, setSurveys] = useState<Survey[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -29,8 +31,8 @@ const SurveysPage: React.FC = () => {
                 setSurveys(response.data?.data || []);
             } catch (error: any) {
                 toast({
-                    title: "Error",
-                    description: error.response?.data?.message || 'Failed to load available surveys',
+                    title: t('common.error'),
+                    description: error.response?.data?.message || t('surveys.failedToLoad'),
                     variant: "destructive"
                 });
             } finally {
@@ -64,10 +66,10 @@ const SurveysPage: React.FC = () => {
                 <div>
                     <h1 className="text-3xl font-bold flex items-center gap-2">
                         <ListChecks className="h-8 w-8 text-green-600" />
-                        Available Surveys
+                        {t('surveys.availableSurveys')}
                     </h1>
                     <p className="text-gray-600 mt-2">
-                        Complete a survey to earn points!
+                        {t('surveys.completeToEarnPoints')}
                     </p>
                 </div>
             </div>
@@ -93,8 +95,8 @@ const SurveysPage: React.FC = () => {
             ) : surveys.length === 0 ? (
                 <div className="text-center py-16 text-gray-500 border-2 border-dashed rounded-lg">
                     <ListChecks className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                    <h3 className="text-xl font-semibold">No Surveys Available</h3>
-                    <p className="mt-2">Please check back later for new surveys.</p>
+                    <h3 className="text-xl font-semibold">{t('surveys.noSurveysAvailable')}</h3>
+                    <p className="mt-2">{t('surveys.checkBackLater')}</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -107,12 +109,12 @@ const SurveysPage: React.FC = () => {
                             <CardContent className="flex-grow space-y-4">
                                <div className="flex items-center text-sm text-gray-600">
                                    <Coins className="h-4 w-4 mr-2 text-yellow-500" />
-                                   <span>Earn {survey.pointsAwarded} points</span>
+                                   <span>{t('surveys.earnPoints', { points: survey.pointsAwarded })}</span>
                                </div>
                                {survey.endDate && (
                                    <div className="flex items-center text-sm text-gray-600">
                                        <Calendar className="h-4 w-4 mr-2 text-red-500" />
-                                       <span>Ends on: {new Date(survey.endDate).toLocaleDateString()}</span>
+                                       <span>{t('surveys.endsOn')}: {new Date(survey.endDate).toLocaleDateString()}</span>
                                    </div>
                                )}
                             </CardContent>
@@ -121,7 +123,7 @@ const SurveysPage: React.FC = () => {
                                     onClick={() => handleStartSurvey(survey._id)}
                                     className="w-full"
                                 >
-                                    Start Survey <ArrowRight className="ml-2 h-4 w-4" />
+                                    {t('surveys.startSurvey')} <ArrowRight className="ml-2 h-4 w-4" />
                                 </Button>
                             </CardFooter>
                         </Card>

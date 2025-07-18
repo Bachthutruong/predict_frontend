@@ -20,6 +20,7 @@ import {
   Coins
 } from 'lucide-react';
 import { useToast } from '../../hooks/use-toast';
+import { useLanguage } from '../../hooks/useLanguage';
 
 interface Question {
   id: string;
@@ -65,6 +66,7 @@ const AdminQuestions: React.FC = () => {
   });
 
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   useEffect(() => {
     loadQuestions();
@@ -198,7 +200,7 @@ const AdminQuestions: React.FC = () => {
     return (
       <div className="space-y-8">
         <div>
-          <h1 className="text-3xl font-bold">Loading...</h1>
+          <h1 className="text-3xl font-bold">{t('adminQuestions.loadingQuestions')}</h1>
         </div>
       </div>
     );
@@ -260,7 +262,7 @@ const AdminQuestions: React.FC = () => {
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage <= 1}
         >
-          Previous
+          {t('adminQuestions.previous')}
         </Button>
         
         {startPage > 1 && (
@@ -296,7 +298,7 @@ const AdminQuestions: React.FC = () => {
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage >= totalPages}
         >
-          Next
+          {t('adminQuestions.next')}
         </Button>
       </div>
     );
@@ -309,11 +311,11 @@ const AdminQuestions: React.FC = () => {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
             <HelpCircle className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
-            <span className="hidden sm:inline">Admin: Manage Questions</span>
-            <span className="sm:hidden">Manage Questions</span>
+            <span className="hidden sm:inline">{t('adminQuestions.title')}</span>
+            <span className="sm:hidden">{t('adminQuestions.title')}</span>
           </h1>
           <p className="text-muted-foreground mt-2 text-sm sm:text-base">
-            Create and manage questions for daily check-ins
+            {t('adminQuestions.manageDailyQuestions')}
           </p>
         </div>
       </div>
@@ -322,22 +324,22 @@ const AdminQuestions: React.FC = () => {
       <div className="flex flex-wrap gap-3">
         <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-white border-gray-200">
           <HelpCircle className="h-3 w-3 text-gray-500" />
-          <span className="text-sm font-medium">{questions.length} Total Questions</span>
+          <span className="text-sm font-medium">{questions.length} {t('adminQuestions.questions')}</span>
         </Badge>
 
         <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-green-50 border-green-200 text-green-700">
           <CheckCircle className="h-3 w-3" />
-          <span className="text-sm font-medium">{activeQuestions.length} Active</span>
+          <span className="text-sm font-medium">{activeQuestions.length} {t('adminQuestions.active')}</span>
         </Badge>
 
         <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-orange-50 border-orange-200 text-orange-700">
           <Star className="h-3 w-3" />
-          <span className="text-sm font-medium">{priorityQuestions.length} Priority</span>
+          <span className="text-sm font-medium">{priorityQuestions.length} {t('adminQuestions.isPriority')}</span>
         </Badge>
 
         <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-red-50 border-red-200 text-red-700">
           <XCircle className="h-3 w-3" />
-          <span className="text-sm font-medium">{inactiveQuestions.length} Inactive</span>
+          <span className="text-sm font-medium">{inactiveQuestions.length} {t('adminQuestions.inactive')}</span>
         </Badge>
       </div>
 
@@ -347,26 +349,26 @@ const AdminQuestions: React.FC = () => {
           <DialogTrigger asChild>
             <Button className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Create Question</span>
-              <span className="sm:hidden">Create</span>
+              <span className="hidden sm:inline">{t('adminQuestions.createQuestion')}</span>
+              <span className="sm:hidden">{t('adminQuestions.createQuestion')}</span>
             </Button>
           </DialogTrigger>
           <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Create New Question</DialogTitle>
+              <DialogTitle>{t('adminQuestions.createNewQuestion')}</DialogTitle>
               <DialogDescription className="text-sm">
-                Create a new question for daily check-ins. Users will answer to earn points.
+                {t('adminQuestions.fillInQuestionDetails')}
               </DialogDescription>
             </DialogHeader>
             
             <form onSubmit={handleCreateSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="questionText">Question *</Label>
+                <Label htmlFor="questionText">{t('adminQuestions.questionText')} *</Label>
                 <Textarea
                   id="questionText"
                   value={newQuestion.questionText}
                   onChange={(e) => setNewQuestion(prev => ({...prev, questionText: e.target.value}))}
-                  placeholder="Enter your question..."
+                  placeholder={t('adminQuestions.questionText')}
                   required
                   disabled={isSubmitting}
                   rows={3}
@@ -374,37 +376,37 @@ const AdminQuestions: React.FC = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="imageUrl">Question Image URL</Label>
+                <Label htmlFor="imageUrl">{t('formFields.imageUrlLabel')}</Label>
                 <Input
                   id="imageUrl"
                   value={newQuestion.imageUrl}
                   onChange={(e) => setNewQuestion(prev => ({...prev, imageUrl: e.target.value}))}
-                  placeholder="https://example.com/image.jpg"
+                  placeholder={t('formFields.imageUrlPlaceholder')}
                   disabled={isSubmitting}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Optional: Add an image URL to accompany the question
+                  {t('formFields.imageUrlHint')}
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="answer">Correct Answer *</Label>
+                <Label htmlFor="answer">{t('formFields.correctAnswerLabel')}</Label>
                 <Input
                   id="answer"
                   value={newQuestion.answer}
                   onChange={(e) => setNewQuestion(prev => ({...prev, answer: e.target.value}))}
-                  placeholder="Enter the correct answer..."
+                  placeholder={t('formFields.correctAnswerPlaceholder')}
                   required
                   disabled={isSubmitting}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Answer comparison is case-insensitive
+                  {t('formFields.correctAnswerHint')}
                 </p>
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="points">Points Reward *</Label>
+                  <Label htmlFor="points">{t('formFields.pointsReward')} *</Label>
                   <Input
                     id="points"
                     type="number"
@@ -418,7 +420,7 @@ const AdminQuestions: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="priority">Priority Question</Label>
+                  <Label htmlFor="priority">{t('formFields.priorityQuestion')}</Label>
                   <div className="flex items-center space-x-2 mt-2">
                     <input
                       type="checkbox"
@@ -428,7 +430,7 @@ const AdminQuestions: React.FC = () => {
                       disabled={isSubmitting}
                     />
                     <Label htmlFor="priority" className="text-sm">
-                      Show this question more frequently
+                      {t('formFields.priorityQuestionHint')}
                     </Label>
                   </div>
                 </div>
@@ -442,10 +444,10 @@ const AdminQuestions: React.FC = () => {
                   disabled={isSubmitting}
                   className="w-full sm:w-auto"
                 >
-                  Cancel
+                  {t('formFields.cancel')}
                 </Button>
                 <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
-                  {isSubmitting ? 'Creating...' : 'Create Question'}
+                  {isSubmitting ? t('formFields.saving') : t('formFields.createQuestion')}
                 </Button>
               </div>
             </form>
@@ -457,28 +459,28 @@ const AdminQuestions: React.FC = () => {
       <Tabs defaultValue="active" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4 h-auto p-1">
           <TabsTrigger value="active" className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 py-1.5 sm:py-2 h-auto whitespace-nowrap">
-            <span className="hidden sm:inline">Active ({activeQuestions.length})</span>
-            <span className="sm:hidden">Act ({activeQuestions.length})</span>
+            <span className="hidden sm:inline">{t('formFields.active')} ({activeQuestions.length})</span>
+            <span className="sm:hidden">{t('formFields.active')} ({activeQuestions.length})</span>
           </TabsTrigger>
           <TabsTrigger value="inactive" className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 py-1.5 sm:py-2 h-auto whitespace-nowrap">
-            <span className="hidden sm:inline">Inactive ({inactiveQuestions.length})</span>
-            <span className="sm:hidden">Ina ({inactiveQuestions.length})</span>
+            <span className="hidden sm:inline">{t('formFields.inactive')} ({inactiveQuestions.length})</span>
+            <span className="sm:hidden">{t('formFields.inactive')} ({inactiveQuestions.length})</span>
           </TabsTrigger>
           <TabsTrigger value="priority" className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 py-1.5 sm:py-2 h-auto whitespace-nowrap">
-            <span className="hidden sm:inline">Priority ({priorityQuestions.length})</span>
-            <span className="sm:hidden">Pri ({priorityQuestions.length})</span>
+            <span className="hidden sm:inline">{t('formFields.priority')} ({priorityQuestions.length})</span>
+            <span className="sm:hidden">{t('formFields.priority')} ({priorityQuestions.length})</span>
           </TabsTrigger>
           <TabsTrigger value="all" className="text-[10px] sm:text-xs md:text-sm px-1 sm:px-2 py-1.5 sm:py-2 h-auto whitespace-nowrap">
-            <span className="hidden sm:inline">All ({questions.length})</span>
-            <span className="sm:hidden">All ({questions.length})</span>
+            <span className="hidden sm:inline">{t('formFields.all')} ({questions.length})</span>
+            <span className="sm:hidden">{t('formFields.all')} ({questions.length})</span>
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="active">
           <Card className=" max-w-[350px] md:max-w-full">
             <CardHeader>
-              <CardTitle>Active Questions</CardTitle>
-              <CardDescription>Questions currently available for check-ins</CardDescription>
+              <CardTitle>{t('formFields.active')} {t('formFields.questions')}</CardTitle>
+              <CardDescription>{t('adminQuestions.overviewOfAllQuestions')}</CardDescription>
             </CardHeader>
             <CardContent>
               <QuestionsTable 
@@ -486,7 +488,8 @@ const AdminQuestions: React.FC = () => {
                 onStatusToggle={handleStatusToggle}
                 onPriorityToggle={handlePriorityToggle}
                 onEdit={openEditDialog}
-                emptyMessage="No active questions"
+                emptyMessage={t('adminQuestions.noQuestionsFound')}
+                t={t}
               />
               <PaginationControls
                 currentPage={activeCurrentPage}
@@ -500,8 +503,8 @@ const AdminQuestions: React.FC = () => {
         <TabsContent value="inactive">
           <Card className=" max-w-[350px] md:max-w-full">
             <CardHeader>
-              <CardTitle>Inactive Questions</CardTitle>
-              <CardDescription>Questions that are currently disabled</CardDescription>
+              <CardTitle>{t('formFields.inactive')} {t('formFields.questions')}</CardTitle>
+              <CardDescription>{t('adminQuestions.overviewOfAllQuestions')}</CardDescription>
             </CardHeader>
             <CardContent>
               <QuestionsTable 
@@ -509,7 +512,8 @@ const AdminQuestions: React.FC = () => {
                 onStatusToggle={handleStatusToggle}
                 onPriorityToggle={handlePriorityToggle}
                 onEdit={openEditDialog}
-                emptyMessage="No inactive questions"
+                emptyMessage={t('adminQuestions.noQuestionsFound')}
+                t={t}
               />
               <PaginationControls
                 currentPage={inactiveCurrentPage}
@@ -523,8 +527,8 @@ const AdminQuestions: React.FC = () => {
         <TabsContent value="priority">
           <Card className=" max-w-[350px] md:max-w-full">
             <CardHeader>
-              <CardTitle>Priority Questions</CardTitle>
-              <CardDescription>High priority questions shown more frequently</CardDescription>
+              <CardTitle>{t('formFields.priority')} {t('formFields.questions')}</CardTitle>
+              <CardDescription>{t('adminQuestions.overviewOfAllQuestions')}</CardDescription>
             </CardHeader>
             <CardContent>
               <QuestionsTable 
@@ -532,7 +536,8 @@ const AdminQuestions: React.FC = () => {
                 onStatusToggle={handleStatusToggle}
                 onPriorityToggle={handlePriorityToggle}
                 onEdit={openEditDialog}
-                emptyMessage="No priority questions"
+                emptyMessage={t('adminQuestions.noQuestionsFound')}
+                t={t}
               />
               <PaginationControls
                 currentPage={priorityCurrentPage}
@@ -546,8 +551,8 @@ const AdminQuestions: React.FC = () => {
         <TabsContent value="all">
           <Card className=" max-w-[350px] md:max-w-full">
             <CardHeader>
-              <CardTitle>All Questions</CardTitle>
-              <CardDescription>Complete list of all questions</CardDescription>
+              <CardTitle>{t('formFields.all')} {t('formFields.questions')}</CardTitle>
+              <CardDescription>{t('adminQuestions.overviewOfAllQuestions')}</CardDescription>
             </CardHeader>
             <CardContent>
               <QuestionsTable 
@@ -555,7 +560,8 @@ const AdminQuestions: React.FC = () => {
                 onStatusToggle={handleStatusToggle}
                 onPriorityToggle={handlePriorityToggle}
                 onEdit={openEditDialog}
-                emptyMessage="No questions created yet"
+                emptyMessage={t('adminQuestions.noQuestionsFound')}
+                t={t}
               />
               <PaginationControls
                 currentPage={allCurrentPage}
@@ -571,20 +577,20 @@ const AdminQuestions: React.FC = () => {
       <Dialog open={!!editingQuestion} onOpenChange={(open) => !open && setEditingQuestion(null)}>
         <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit Question</DialogTitle>
+            <DialogTitle>{t('formFields.editQuestion')}</DialogTitle>
             <DialogDescription className="text-sm">
-              Update the question details.
+              {t('adminQuestions.fillInQuestionDetails')}
             </DialogDescription>
           </DialogHeader>
           
           <form onSubmit={handleEditSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-questionText">Question *</Label>
+              <Label htmlFor="edit-questionText">{t('formFields.questionTextLabel')}</Label>
               <Textarea
                 id="edit-questionText"
                 value={editQuestion.questionText}
                 onChange={(e) => setEditQuestion(prev => ({...prev, questionText: e.target.value}))}
-                placeholder="Enter your question..."
+                placeholder={t('formFields.questionTextPlaceholder')}
                 required
                 disabled={isSubmitting}
                 rows={3}
@@ -592,23 +598,23 @@ const AdminQuestions: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit-imageUrl">Question Image URL</Label>
+              <Label htmlFor="edit-imageUrl">{t('formFields.imageUrlLabel')}</Label>
               <Input
                 id="edit-imageUrl"
                 value={editQuestion.imageUrl}
                 onChange={(e) => setEditQuestion(prev => ({...prev, imageUrl: e.target.value}))}
-                placeholder="https://example.com/image.jpg"
+                placeholder={t('formFields.imageUrlPlaceholder')}
                 disabled={isSubmitting}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit-answer">Correct Answer *</Label>
+              <Label htmlFor="edit-answer">{t('formFields.correctAnswerLabel')}</Label>
               <Input
                 id="edit-answer"
                 value={editQuestion.answer}
                 onChange={(e) => setEditQuestion(prev => ({...prev, answer: e.target.value}))}
-                placeholder="Enter the correct answer..."
+                placeholder={t('formFields.correctAnswerPlaceholder')}
                 required
                 disabled={isSubmitting}
               />
@@ -616,7 +622,7 @@ const AdminQuestions: React.FC = () => {
 
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="edit-points">Points Reward *</Label>
+                <Label htmlFor="edit-points">{t('formFields.pointsRewardLabel')}</Label>
                 <Input
                   id="edit-points"
                   type="number"
@@ -630,7 +636,7 @@ const AdminQuestions: React.FC = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="edit-priority">Priority Question</Label>
+                <Label htmlFor="edit-priority">{t('formFields.priorityQuestionLabel')}</Label>
                 <div className="flex items-center space-x-2 mt-2">
                   <input
                     type="checkbox"
@@ -640,7 +646,7 @@ const AdminQuestions: React.FC = () => {
                     disabled={isSubmitting}
                   />
                   <Label htmlFor="edit-priority" className="text-sm">
-                    Show this question more frequently
+                    {t('formFields.priorityQuestionHint')}
                   </Label>
                 </div>
               </div>
@@ -654,10 +660,10 @@ const AdminQuestions: React.FC = () => {
                 disabled={isSubmitting}
                 className="w-full sm:w-auto"
               >
-                Cancel
+                {t('formFields.cancelButton')}
               </Button>
               <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
-                {isSubmitting ? 'Updating...' : 'Update Question'}
+                {isSubmitting ? t('formFields.saving') : t('formFields.saveQuestionButton')}
               </Button>
             </div>
           </form>
@@ -673,6 +679,7 @@ interface QuestionsTableProps {
   onPriorityToggle: (id: string, priority: boolean) => void;
   onEdit: (question: Question) => void;
   emptyMessage: string;
+  t: (key: string) => string;
 }
 
 function QuestionsTable({ 
@@ -680,7 +687,8 @@ function QuestionsTable({
   onStatusToggle, 
   onPriorityToggle, 
   onEdit,
-  emptyMessage
+  emptyMessage,
+  t
 }: QuestionsTableProps) {
   if (questions.length === 0) {
     return (
@@ -697,13 +705,13 @@ function QuestionsTable({
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
-              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px]">Question</th>
-              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">Answer</th>
-              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Points</th>
-              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">Stats</th>
-              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">Actions</th>
+              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('formFields.image')}</th>
+              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px]">{t('formFields.question')}</th>
+              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">{t('formFields.answer')}</th>
+              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('formFields.points')}</th>
+              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('formFields.status')}</th>
+              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">{t('formFields.stats')}</th>
+              <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">{t('formFields.actions')}</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -729,7 +737,7 @@ function QuestionsTable({
                       {question.isPriority && (
                         <Badge variant="outline" className="text-xs">
                           <Star className="h-3 w-3 mr-1" />
-                          Priority
+                          {t('formFields.priority')}
                         </Badge>
                       )}
                     </div>

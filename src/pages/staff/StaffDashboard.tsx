@@ -1,273 +1,210 @@
 import React, { useState, useEffect } from 'react';
-import { staffAPI } from '../../services/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
-import { useToast } from '../../hooks/use-toast';
 import { 
+  Shield, 
   Users, 
-  Trophy,
-  HelpCircle,
-  Calendar,
-  TrendingUp,
-  CheckCircle,
-  Clock,
-  Shield,
-  RefreshCw
+  Trophy, 
+  MessageSquare, 
+  // Calendar,
+  // TrendingUp,
+  RefreshCw,
+  // Coins,
+  Activity,
+  // CheckCircle
 } from 'lucide-react';
+import { useToast } from '../../hooks/use-toast';
+import { useLanguage } from '../../hooks/useLanguage';
+import apiService from '../../services/api';
+import { Link } from 'react-router-dom';
 
 interface StaffStats {
   totalUsers: number;
-  verifiedUsers: number;
+  totalPredictions: number;
   activePredictions: number;
-  activeQuestions: number;
   pendingFeedback: number;
   thisMonthUsers: number;
-  topUsers: Array<{
-    id: string;
-    name: string;
-    email: string;
-    points: number;
-    consecutiveCheckIns: number;
-  }>;
+  thisMonthPredictions: number;
+  recentActivity: any[];
 }
 
 const StaffDashboard: React.FC = () => {
+  const { toast } = useToast();
+  const { t } = useLanguage();
   const [stats, setStats] = useState<StaffStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { toast } = useToast();
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    loadDashboardData();
+    loadStaffStats();
   }, []);
 
-  const loadDashboardData = async () => {
+  const loadStaffStats = async () => {
     setIsLoading(true);
     try {
-      const response = await staffAPI.getDashboardStats();
-      if (response.success && response.data) {
-        setStats(response.data);
-      }
+      const response = await apiService.get('/staff/dashboard-stats');
+      const statsData = response.data?.data || response.data || {};
+      setStats(statsData);
     } catch (error) {
-      console.error('Failed to load dashboard data:', error);
+      console.error('Failed to load staff stats:', error);
+      setStats(null);
       toast({
-        title: "Error",
-        description: "Failed to load dashboard data. Please try again.",
-        variant: "destructive",
+        title: t('common.error'),
+        description: t('staff.failedToLoadStats'),
+        variant: "destructive"
       });
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await loadStaffStats();
+    setRefreshing(false);
+    toast({
+      title: t('staff.dashboardUpdated'),
+      description: t('staff.statsRefreshed'),
+      variant: "default"
+    });
+  };
+
   if (isLoading) {
     return (
-      <div className="space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold">Loading...</h1>
+      <div className="space-y-6">
+        <div className="h-8 bg-gray-200 rounded w-1/3 animate-pulse"></div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-24 bg-gray-200 rounded animate-pulse"></div>
+          ))}
         </div>
-      </div>
-    );
-  }
-
-  if (!stats) {
-    return (
-      <div className="space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold">Staff Dashboard</h1>
-          <p className="text-muted-foreground mt-2">Unable to load dashboard data.</p>
-        </div>
+        <div className="h-64 bg-gray-200 rounded animate-pulse"></div>
       </div>
     );
   }
 
   return (
-    <div className="w-full space-y-4 lg:space-y-8">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="min-w-0">
-          <h1 className="text-2xl lg:text-3xl font-bold flex items-center gap-2">
-            <Shield className="h-6 w-6 lg:h-8 lg:w-8 text-primary flex-shrink-0" />
-            <span className="truncate">Staff Dashboard</span>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            <Shield className="h-8 w-8 text-blue-600" />
+            {t('staff.title')}
           </h1>
-          <p className="text-sm lg:text-base text-muted-foreground mt-1 lg:mt-2">
-            Monitor user activity, predictions, and system health
+          <p className="text-gray-600 mt-2">
+            {t('staff.manageUserInteractions')}
           </p>
         </div>
-        <Button onClick={loadDashboardData} variant="outline" size="sm" className="w-full sm:w-auto">
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Refresh
+        <Button onClick={handleRefresh} variant="outline" size="sm" disabled={refreshing}>
+          <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+          {t('common.refresh')}
         </Button>
       </div>
 
-      {/* Main Stats */}
-      <div className="flex flex-wrap gap-3">
-        <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-white border-gray-200">
-          <Users className="h-3 w-3 text-gray-500" />
-          <span className="text-sm font-medium">{stats.totalUsers} Total Users</span>
-          <span className="text-xs text-gray-400">{stats.verifiedUsers} verified</span>
-        </Badge>
+      {/* Stats Grid */}
+      <div className="space-y-3">
+        {/* Main Stats Row - Badges */}
+        <div className="flex flex-wrap gap-3">
+          <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-white border-gray-200">
+            <Users className="h-3 w-3 text-gray-500" />
+            <span className="text-sm font-medium">{stats?.totalUsers || 0} {t('staff.users')}</span>
+            <span className="text-xs text-gray-400">+{stats?.thisMonthUsers || 0} {t('staff.thisMonth')}</span>
+          </Badge>
 
-        <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-blue-50 border-blue-200 text-blue-700">
-          <Trophy className="h-3 w-3" />
-          <span className="text-sm font-medium">{stats.activePredictions} Active Predictions</span>
-        </Badge>
+          <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-blue-50 border-blue-200 text-blue-700">
+            <Trophy className="h-3 w-3" />
+            <span className="text-sm font-medium">{stats?.totalPredictions || 0} {t('staff.predictions')}</span>
+            <span className="text-xs text-blue-400">{stats?.activePredictions || 0} {t('staff.active')}</span>
+          </Badge>
 
-        <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-purple-50 border-purple-200 text-purple-700">
-          <HelpCircle className="h-3 w-3" />
-          <span className="text-sm font-medium">{stats.activeQuestions} Active Questions</span>
-        </Badge>
+          <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-orange-50 border-orange-200 text-orange-700">
+            <MessageSquare className="h-3 w-3" />
+            <span className="text-sm font-medium">{stats?.pendingFeedback || 0} {t('staff.pendingReviews')}</span>
+          </Badge>
 
-        <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-green-50 border-green-200 text-green-700">
-          <Calendar className="h-3 w-3" />
-          <span className="text-sm font-medium">{stats.thisMonthUsers} New This Month</span>
-        </Badge>
+          <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-green-50 border-green-200 text-green-700">
+            <Activity className="h-3 w-3" />
+            <span className="text-sm font-medium">{stats?.recentActivity?.length || 0} {t('staff.recentActivity')}</span>
+          </Badge>
+        </div>
       </div>
 
-      {/* Additional Stats */}
-      <div className="grid gap-4 lg:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base lg:text-lg">User Verification Status</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="text-sm">Verified Users</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">{stats.verifiedUsers}</span>
-                  <Badge variant="outline" className="text-green-600">
-                    {stats.totalUsers > 0 ? Math.round((stats.verifiedUsers / stats.totalUsers) * 100) : 0}%
-                  </Badge>
-                </div>
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-orange-500" />
-                  <span className="text-sm">Pending Verification</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">{stats.totalUsers - stats.verifiedUsers}</span>
-                  <Badge variant="secondary">
-                    {stats.totalUsers > 0 ? Math.round(((stats.totalUsers - stats.verifiedUsers) / stats.totalUsers) * 100) : 0}%
-                  </Badge>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="md:col-span-2 lg:col-span-1">
-          <CardHeader>
-            <CardTitle className="text-base lg:text-lg">Recent Activity</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="text-sm">
-                <div className="flex items-center gap-2 mb-1">
-                  <TrendingUp className="h-3 w-3 text-green-500" />
-                  <span className="font-medium">Growth Trend</span>
-                </div>
-                <p className="text-muted-foreground">
-                  {stats.thisMonthUsers} new users this month
-                </p>
-              </div>
-              
-              <div className="text-sm">
-                <div className="flex items-center gap-2 mb-1">
-                  <Trophy className="h-3 w-3 text-blue-500" />
-                  <span className="font-medium">Predictions</span>
-                </div>
-                <p className="text-muted-foreground">
-                  {stats.activePredictions} active predictions
-                </p>
-              </div>
-              
-              <div className="text-sm">
-                <div className="flex items-center gap-2 mb-1">
-                  <HelpCircle className="h-3 w-3 text-purple-500" />
-                  <span className="font-medium">Questions</span>
-                </div>
-                <p className="text-muted-foreground">
-                  {stats.activeQuestions} active questions available
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="md:col-span-2 lg:col-span-1">
-          <CardHeader>
-            <CardTitle className="text-base lg:text-lg">Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <Button 
-                variant="outline" 
-                className="w-full justify-start"
-                onClick={() => window.location.href = '/staff/users'}
-              >
-                <Users className="h-4 w-4 mr-2" />
-                Manage Users
-              </Button>
-              <Button 
-                variant="outline" 
-                className="w-full justify-start"
-                onClick={() => window.location.href = '/staff/predictions'}
-              >
-                <Trophy className="h-4 w-4 mr-2" />
-                Review Predictions
-              </Button>
-              <Button 
-                variant="outline" 
-                className="w-full justify-start"
-                onClick={() => window.location.href = '/staff/questions'}
-              >
-                <HelpCircle className="h-4 w-4 mr-2" />
-                Manage Questions
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Top Users by Points */}
+      {/* Recent Activity */}
       <Card>
         <CardHeader>
-          <CardTitle>Top Users by Points</CardTitle>
-          <CardDescription>Users with the highest point totals</CardDescription>
+          <CardTitle>{t('staff.recentActivity')}</CardTitle>
+          <CardDescription>{t('staff.latestUserActivity')}</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            {stats.topUsers && stats.topUsers.length > 0 ? (
-              stats.topUsers.map((user, index) => (
-                <div key={user.id} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-medium flex-shrink-0">
-                      {index + 1}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium truncate">{user.name}</p>
-                      <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+          {stats?.recentActivity && stats.recentActivity.length > 0 ? (
+            <div className="space-y-4">
+              {stats.recentActivity.slice(0, 5).map((activity: any) => (
+                <div key={activity.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <Activity className="h-5 w-5 text-blue-600" />
+                    <div>
+                      <h4 className="font-medium">{activity.description}</h4>
+                      <p className="text-sm text-gray-500">
+                        {t('staff.by')} {activity.userName} • {new Date(activity.createdAt).toLocaleDateString()}
+                      </p>
                     </div>
                   </div>
-                  <div className="text-right flex-shrink-0 ml-4">
-                    <p className="font-medium">{user.points} points</p>
-                    <p className="text-xs text-muted-foreground">
-                      {user.consecutiveCheckIns || 0} day streak
-                    </p>
-                  </div>
+                  <Badge variant={activity.type === 'prediction' ? 'default' : 'secondary'}>
+                    {t(`staff.${activity.type}`)}
+                  </Badge>
                 </div>
-              ))
-            ) : (
-              <p className="text-center text-muted-foreground py-4">
-                No users found
-              </p>
-            )}
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              {t('staff.noRecentActivity')}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Quick Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('staff.quickActions')}</CardTitle>
+          <CardDescription>{t('staff.commonTasks')}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <Link 
+              to="/staff/users"
+              className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <Users className="h-8 w-8 text-blue-600" />
+              <div>
+                <h4 className="font-medium">{t('staff.manageUsers')}</h4>
+                <p className="text-sm text-gray-500">{t('staff.viewUserProfiles')}</p>
+              </div>
+            </Link>
+
+            <Link 
+              to="/staff/predictions"
+              className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <Trophy className="h-8 w-8 text-green-600" />
+              <div>
+                <h4 className="font-medium">{t('staff.viewPredictions')}</h4>
+                <p className="text-sm text-gray-500">{t('staff.monitorUserPredictions')}</p>
+              </div>
+            </Link>
+
+            <Link 
+              to="/staff/questions"
+              className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <MessageSquare className="h-8 w-8 text-orange-600" />
+              <div>
+                <h4 className="font-medium">{t('staff.answerQuestions')}</h4>
+                <p className="text-sm text-gray-500">{t('staff.helpUserQuestions')}</p>
+              </div>
+            </Link>
           </div>
         </CardContent>
       </Card>

@@ -23,6 +23,7 @@ import {
   TrendingDown
 } from 'lucide-react';
 import { useToast } from '../../hooks/use-toast';
+import { useLanguage } from '../../hooks/useLanguage';
 import apiService from '../../services/api';
 import type { User as UserType, PointTransaction } from '../../types';
 
@@ -34,6 +35,7 @@ interface GrantPointsData {
 
 const AdminGrantPoints: React.FC = () => {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [users, setUsers] = useState<UserType[]>([]);
   const [transactions, setTransactions] = useState<PointTransaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -81,8 +83,8 @@ const AdminGrantPoints: React.FC = () => {
       setUsers([]);
       setTransactions([]);
       toast({
-        title: "Error",
-        description: "Failed to load users data. Please try again.",
+        title: t('common.error'),
+        description: t('admin.failedToLoadUsers'),
         variant: "destructive"
       });
     } finally {
@@ -97,8 +99,8 @@ const AdminGrantPoints: React.FC = () => {
     try {
       await apiService.post('/admin/grant-points', grantData);
       toast({
-        title: "Success!",
-        description: `${grantData.amount > 0 ? 'Granted' : 'Deducted'} ${Math.abs(grantData.amount)} points successfully`,
+        title: t('common.success'),
+        description: `${grantData.amount > 0 ? t('admin.granted') : t('admin.deducted')} ${Math.abs(grantData.amount)} ${t('admin.points')} ${t('common.success')}`,
         variant: "default"
       });
       setGrantData({
@@ -111,8 +113,8 @@ const AdminGrantPoints: React.FC = () => {
     } catch (error: any) {
       console.error('Grant points error:', error);
       toast({
-        title: "Error",
-        description: error.response?.data?.message || 'Failed to grant points. Please try again.',
+        title: t('common.error'),
+        description: error.response?.data?.message || t('admin.failedToGrantPoints'),
         variant: "destructive"
       });
     } finally {
@@ -171,7 +173,7 @@ const AdminGrantPoints: React.FC = () => {
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage <= 1}
         >
-          Previous
+          {t('admin.previous')}
         </Button>
         
         {startPage > 1 && (
@@ -207,7 +209,7 @@ const AdminGrantPoints: React.FC = () => {
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage >= totalPages}
         >
-          Next
+          {t('admin.next')}
         </Button>
       </div>
     );
@@ -234,10 +236,10 @@ const AdminGrantPoints: React.FC = () => {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
             <Coins className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
-            Grant Points
+            {t('admin.grantPoints')}
           </h1>
           <p className="text-gray-600 mt-2">
-            Manually grant or deduct points for users with detailed tracking
+            {t('admin.grantPointsDescription')}
           </p>
         </div>
         
@@ -245,20 +247,20 @@ const AdminGrantPoints: React.FC = () => {
           <DialogTrigger asChild>
             <Button size="sm">
               <Plus className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Grant Points</span>
+              <span className="hidden sm:inline">{t('admin.grantPoints')}</span>
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-md sm:max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Grant Points to User</DialogTitle>
+              <DialogTitle>{t('admin.grantPointsToUser')}</DialogTitle>
               <DialogDescription>
-                Award or deduct points for a specific user with optional notes.
+                {t('admin.grantPointsDescription')}
               </DialogDescription>
             </DialogHeader>
             
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="user">Select User *</Label>
+                <Label htmlFor="user">{t('admin.selectUser')}</Label>
                 <select
                   value={grantData.userId} 
                   onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setGrantData(prev => ({...prev, userId: e.target.value}))}
@@ -266,22 +268,22 @@ const AdminGrantPoints: React.FC = () => {
                   disabled={isSubmitting}
                   className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
-                  <option value="">Choose a user...</option>
+                  <option value="">{t('admin.chooseUser')}</option>
                   {users.map((user) => (
                     <option key={user.id} value={user.id}>
-                      {user.name} - {user.points} pts
+                      {user.name} - {user.points} {t('admin.points')}
                     </option>
                   ))}
                 </select>
                 {selectedUser && (
                   <div className="text-sm text-gray-500">
-                    Current balance: <span className="font-medium">{selectedUser.points} points</span>
+                    {t('admin.currentBalance')}: <span className="font-medium">{selectedUser.points} {t('admin.points')}</span>
                   </div>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="amount">Amount *</Label>
+                <Label htmlFor="amount">{t('admin.amount')}</Label>
                 <Input
                   id="amount"
                   type="number"
@@ -291,20 +293,20 @@ const AdminGrantPoints: React.FC = () => {
                   onChange={(e) => setGrantData(prev => ({...prev, amount: parseInt(e.target.value) || 0}))}
                   required
                   disabled={isSubmitting}
-                  placeholder="Enter points amount (negative to deduct)"
+                  placeholder={t('admin.enterPointsAmount')}
                 />
                 <div className="text-xs text-gray-500">
-                  Enter a positive number to add points, negative to deduct points
+                  {t('admin.positiveNegativeHint')}
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="notes">Notes</Label>
+                <Label htmlFor="notes">{t('admin.notes')}</Label>
                 <Textarea
                   id="notes"
                   value={grantData.notes}
                   onChange={(e) => setGrantData(prev => ({...prev, notes: e.target.value}))}
-                  placeholder="Optional reason for granting/deducting points..."
+                  placeholder={t('admin.optionalReason')}
                   disabled={isSubmitting}
                   rows={3}
                 />
@@ -316,15 +318,15 @@ const AdminGrantPoints: React.FC = () => {
                   <AlertDescription>
                     {grantData.amount > 0 ? (
                       <>
-                        <strong>{selectedUser.name}</strong> will receive <strong>+{grantData.amount} points</strong>
+                        <strong>{selectedUser.name}</strong> {t('admin.willReceive')} <strong>+{grantData.amount} {t('admin.points')}</strong>
                         <br />
-                        New balance: <strong>{selectedUser.points + grantData.amount} points</strong>
+                        {t('admin.newBalance')}: <strong>{selectedUser.points + grantData.amount} {t('admin.points')}</strong>
                       </>
                     ) : (
                       <>
-                        <strong>{selectedUser.name}</strong> will lose <strong>{Math.abs(grantData.amount)} points</strong>
+                        <strong>{selectedUser.name}</strong> {t('admin.willLose')} <strong>{Math.abs(grantData.amount)} {t('admin.points')}</strong>
                         <br />
-                        New balance: <strong>{selectedUser.points + grantData.amount} points</strong>
+                        {t('admin.newBalance')}: <strong>{selectedUser.points + grantData.amount} {t('admin.points')}</strong>
                       </>
                     )}
                   </AlertDescription>
@@ -339,14 +341,14 @@ const AdminGrantPoints: React.FC = () => {
                   disabled={isSubmitting}
                   className="w-full sm:w-auto"
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </Button>
                 <Button 
                   type="submit" 
                   disabled={isSubmitting || !grantData.userId || grantData.amount === 0}
                   className="w-full sm:w-auto"
                 >
-                  {isSubmitting ? 'Processing...' : grantData.amount > 0 ? 'Grant Points' : 'Deduct Points'}
+                  {isSubmitting ? t('admin.processing') : grantData.amount > 0 ? t('admin.grantPoints') : t('admin.deductPoints')}
                 </Button>
               </div>
             </form>
@@ -358,23 +360,23 @@ const AdminGrantPoints: React.FC = () => {
       <div className="flex flex-wrap gap-3">
         <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-white border-gray-200">
           <Coins className="h-3 w-3 text-gray-500" />
-          <span className="text-sm font-medium">{transactions.length} Total Transactions</span>
+          <span className="text-sm font-medium">{transactions.length} {t('admin.totalTransactions')}</span>
         </Badge>
 
         <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-green-50 border-green-200 text-green-700">
           <TrendingUp className="h-3 w-3" />
-          <span className="text-sm font-medium">+{totalPointsGranted} Points Granted</span>
+          <span className="text-sm font-medium">+{totalPointsGranted} {t('admin.pointsGranted')}</span>
         </Badge>
 
         <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-red-50 border-red-200 text-red-700">
           <TrendingDown className="h-3 w-3" />
-          <span className="text-sm font-medium">-{totalPointsDeducted} Points Deducted</span>
+          <span className="text-sm font-medium">-{totalPointsDeducted} {t('admin.pointsDeducted')}</span>
         </Badge>
 
         <Badge variant="outline" className={`h-8 px-3 flex items-center gap-2 ${totalPointsGranted - totalPointsDeducted >= 0 ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700'}`}>
           <Gift className="h-3 w-3" />
           <span className="text-sm font-medium">
-            {totalPointsGranted - totalPointsDeducted >= 0 ? '+' : ''}{totalPointsGranted - totalPointsDeducted} Net Impact
+            {totalPointsGranted - totalPointsDeducted >= 0 ? '+' : ''}{totalPointsGranted - totalPointsDeducted} {t('admin.netImpact')}
           </span>
         </Badge>
       </div>
@@ -383,19 +385,19 @@ const AdminGrantPoints: React.FC = () => {
       <Tabs defaultValue="users" className="space-y-6">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="users" className="text-sm">
-            Users ({users.length})
+            {t('admin.users')} ({users.length})
           </TabsTrigger>
           <TabsTrigger value="transactions" className="text-sm">
-            Transactions ({transactions.length})
+            {t('admin.transactions')} ({transactions.length})
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="users">
           <Card className=" max-w-[350px] md:max-w-full">
             <CardHeader>
-              <CardTitle>All Users</CardTitle>
+              <CardTitle>{t('admin.allUsers')}</CardTitle>
               <CardDescription>
-                Select users to grant or deduct points
+                {t('admin.selectUsersToGrant')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -406,11 +408,11 @@ const AdminGrantPoints: React.FC = () => {
                       <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                           <tr>
-                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[180px]">User</th>
-                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Points</th>
-                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
-                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[180px]">{t('admin.user')}</th>
+                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('admin.role')}</th>
+                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('admin.points')}</th>
+                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('admin.joined')}</th>
+                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('admin.actions')}</th>
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
@@ -435,7 +437,7 @@ const AdminGrantPoints: React.FC = () => {
                               <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
                                 <div className="text-center">
                                   <p className="font-bold text-sm sm:text-lg">{user.points}</p>
-                                  <p className="text-xs text-gray-500 hidden sm:block">points</p>
+                                  <p className="text-xs text-gray-500 hidden sm:block">{t('admin.points')}</p>
                                 </div>
                               </td>
                               <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
@@ -451,7 +453,7 @@ const AdminGrantPoints: React.FC = () => {
                                   className="text-xs p-1 sm:p-2"
                                 >
                                   <Coins className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                                  <span className="hidden sm:inline">Grant</span>
+                                  <span className="hidden sm:inline">{t('admin.grant')}</span>
                                 </Button>
                               </td>
                             </tr>
@@ -469,7 +471,7 @@ const AdminGrantPoints: React.FC = () => {
               ) : (
                 <div className="text-center py-8">
                   <User className="h-12 w-12 mx-auto text-gray-400 mb-3" />
-                  <p className="text-gray-500">No users found</p>
+                  <p className="text-gray-500">{t('admin.noUsersFound')}</p>
                 </div>
               )}
             </CardContent>
@@ -479,9 +481,9 @@ const AdminGrantPoints: React.FC = () => {
         <TabsContent value="transactions">
           <Card className=" max-w-[350px] md:max-w-full">
             <CardHeader>
-              <CardTitle>Recent Point Transactions</CardTitle>
+              <CardTitle>{t('admin.recentPointTransactions')}</CardTitle>
               <CardDescription>
-                History of manually granted/deducted points
+                {t('admin.historyOfManuallyGranted')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -492,12 +494,12 @@ const AdminGrantPoints: React.FC = () => {
                       <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                           <tr>
-                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">Type</th>
-                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">User</th>
-                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[150px]">Notes</th>
-                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Admin</th>
+                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">{t('admin.type')}</th>
+                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">{t('admin.user')}</th>
+                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('admin.amount')}</th>
+                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[150px]">{t('admin.notes')}</th>
+                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('common.date')}</th>
+                            <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('admin.admin')}</th>
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
@@ -513,31 +515,31 @@ const AdminGrantPoints: React.FC = () => {
                                     )}
                                   </div>
                                   <span className="font-medium text-xs sm:text-sm">
-                                    {transaction.amount > 0 ? 'Granted' : 'Deducted'}
+                                    {transaction.amount > 0 ? t('admin.granted') : t('admin.deducted')}
                                   </span>
                                 </div>
                               </td>
                               <td className="px-2 sm:px-4 py-3">
-                                <span className="font-medium text-xs sm:text-sm truncate block max-w-[100px]">{transaction.user?.name || 'Unknown User'}</span>
+                                <span className="font-medium text-xs sm:text-sm truncate block max-w-[100px]">{transaction.user?.name || t('admin.unknownUser')}</span>
                               </td>
                               <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
                                 <div className="text-center">
                                   <p className={`font-bold text-sm sm:text-lg ${transaction.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
                                     {transaction.amount > 0 ? '+' : ''}{transaction.amount}
                                   </p>
-                                  <p className="text-xs text-gray-500 hidden sm:block">points</p>
+                                  <p className="text-xs text-gray-500 hidden sm:block">{t('admin.points')}</p>
                                 </div>
                               </td>
                               <td className="px-2 sm:px-4 py-3">
                                 <span className="text-xs sm:text-sm max-w-xs truncate block">
-                                  {transaction.notes || 'No notes'}
+                                  {transaction.notes || t('admin.noNotes')}
                                 </span>
                               </td>
                               <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
                                 <span className="text-xs sm:text-sm">{new Date(transaction.createdAt).toLocaleDateString()}</span>
                               </td>
                               <td className="px-2 sm:px-4 py-3">
-                                <span className="text-xs sm:text-sm truncate block max-w-[100px]">{transaction.admin?.name || 'Unknown Admin'}</span>
+                                <span className="text-xs sm:text-sm truncate block max-w-[100px]">{transaction.admin?.name || t('admin.unknownAdmin')}</span>
                               </td>
                             </tr>
                           ))}
@@ -554,7 +556,7 @@ const AdminGrantPoints: React.FC = () => {
               ) : (
                 <div className="text-center py-8">
                   <Coins className="h-12 w-12 mx-auto text-gray-400 mb-3" />
-                  <p className="text-gray-500">No transactions yet</p>
+                  <p className="text-gray-500">{t('admin.noTransactionsYet')}</p>
                 </div>
               )}
             </CardContent>
@@ -565,9 +567,9 @@ const AdminGrantPoints: React.FC = () => {
       {/* Quick Actions */}
       <Card>
         <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
+          <CardTitle>{t('admin.quickActions')}</CardTitle>
           <CardDescription>
-            Common point granting scenarios
+            {t('admin.commonPointGrantingScenarios')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -576,39 +578,39 @@ const AdminGrantPoints: React.FC = () => {
               variant="outline" 
               className="h-auto flex-col p-4 text-center"
               onClick={() => {
-                setGrantData(prev => ({ ...prev, amount: 50, notes: 'Bonus for excellent participation' }));
+                setGrantData(prev => ({ ...prev, amount: 50, notes: t('admin.bonusForExcellentParticipation') }));
                 setIsDialogOpen(true);
               }}
             >
               <Gift className="h-6 w-6 mb-2" />
-              <span className="font-medium text-xs sm:text-sm">Participation Bonus</span>
-              <span className="text-xs opacity-80">+50 points</span>
+              <span className="font-medium text-xs sm:text-sm">{t('admin.participationBonus')}</span>
+              <span className="text-xs opacity-80">+50 {t('admin.points')}</span>
             </Button>
             
             <Button 
               variant="outline" 
               className="h-auto flex-col p-4 text-center"
               onClick={() => {
-                setGrantData(prev => ({ ...prev, amount: 100, notes: 'Special event reward' }));
+                setGrantData(prev => ({ ...prev, amount: 100, notes: t('admin.specialEventReward') }));
                 setIsDialogOpen(true);
               }}
             >
               <TrendingUp className="h-6 w-6 mb-2" />
-              <span className="font-medium text-xs sm:text-sm">Event Reward</span>
-              <span className="text-xs opacity-80">+100 points</span>
+              <span className="font-medium text-xs sm:text-sm">{t('admin.eventReward')}</span>
+              <span className="text-xs opacity-80">+100 {t('admin.points')}</span>
             </Button>
             
             <Button 
               variant="outline" 
               className="h-auto flex-col p-4 text-center"
               onClick={() => {
-                setGrantData(prev => ({ ...prev, amount: -25, notes: 'Penalty for inappropriate behavior' }));
+                setGrantData(prev => ({ ...prev, amount: -25, notes: t('admin.penaltyForInappropriateBehavior') }));
                 setIsDialogOpen(true);
               }}
             >
               <TrendingDown className="h-6 w-6 mb-2" />
-              <span className="font-medium text-xs sm:text-sm">Minor Penalty</span>
-              <span className="text-xs opacity-80">-25 points</span>
+              <span className="font-medium text-xs sm:text-sm">{t('admin.minorPenalty')}</span>
+              <span className="text-xs opacity-80">-25 {t('admin.points')}</span>
             </Button>
             
             <Button 
@@ -620,8 +622,8 @@ const AdminGrantPoints: React.FC = () => {
               }}
             >
               <Coins className="h-6 w-6 mb-2" />
-              <span className="font-medium text-xs sm:text-sm">Custom Amount</span>
-              <span className="text-xs opacity-80">Set your own</span>
+              <span className="font-medium text-xs sm:text-sm">{t('admin.customAmount')}</span>
+              <span className="text-xs opacity-80">{t('admin.setYourOwn')}</span>
             </Button>
           </div>
         </CardContent>

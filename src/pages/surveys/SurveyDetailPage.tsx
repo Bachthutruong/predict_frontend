@@ -11,6 +11,7 @@ import { Checkbox } from '../../components/ui/checkbox';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle, Send, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/hooks/useLanguage';
 import apiService from '@/services/api';
 import type { Survey, SurveyQuestion } from '@/types';
 import { useAuth } from '@/context/AuthContext';
@@ -24,6 +25,7 @@ const SurveyDetailPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { toast } = useToast();
+    const { t } = useLanguage();
     const { user, refreshUser } = useAuth();
     const [survey, setSurvey] = useState<Survey | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -48,7 +50,7 @@ const SurveyDetailPage: React.FC = () => {
                 // Check completion status for logged-in users
                 await checkCompletionStatus();
             } catch (err: any) {
-                setError(err.response?.data?.message || 'Failed to load survey.');
+                setError(err.response?.data?.message || t('surveys.failedToLoadSurvey'));
             } finally {
                 setIsLoading(false);
             }
@@ -96,7 +98,7 @@ const SurveyDetailPage: React.FC = () => {
         try {
             const response = await apiService.post(`/surveys/${id}/submit`, { answers });
             toast({
-                title: response.data.data?.isFraudulent ? "Submission Flagged" : "Success!",
+                title: response.data.data?.isFraudulent ? t('surveys.submissionFlagged') : t('common.success'),
                 description: response.data.message,
                 variant: response.data.data?.isFraudulent ? "destructive" : "default"
             });
@@ -104,8 +106,8 @@ const SurveyDetailPage: React.FC = () => {
             navigate('/surveys');
         } catch (error: any) {
             toast({
-                title: "Submission Error",
-                description: error.response?.data?.message || 'Could not submit your answers.',
+                title: t('surveys.submissionError'),
+                description: error.response?.data?.message || t('surveys.couldNotSubmit'),
                 variant: "destructive"
             });
         } finally {
@@ -113,7 +115,7 @@ const SurveyDetailPage: React.FC = () => {
         }
     };
 
-    if (isLoading) return <p>Loading survey...</p>;
+    if (isLoading) return <p>{t('surveys.loadingSurvey')}</p>;
 
     if (user && isAlreadyCompleted) {
         return (
@@ -124,14 +126,14 @@ const SurveyDetailPage: React.FC = () => {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <CardTitle className="text-2xl">Survey Already Completed</CardTitle>
+                    <CardTitle className="text-2xl">{t('surveys.alreadyCompleted')}</CardTitle>
                     <CardDescription className="mt-2 text-base">
-                        Thank you! You have already submitted your answers for this survey.
+                        {t('surveys.thankYouAlreadySubmitted')}
                     </CardDescription>
                 </CardContent>
                 <CardFooter className="flex justify-center">
                     <Button asChild>
-                        <Link to="/surveys">Back to Surveys List</Link>
+                        <Link to="/surveys">{t('surveys.backToSurveysList')}</Link>
                     </Button>
                 </CardFooter>
             </Card>
@@ -141,12 +143,12 @@ const SurveyDetailPage: React.FC = () => {
     if (error) return (
         <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
+            <AlertTitle>{t('common.error')}</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
         </Alert>
     );
 
-    if (!survey) return <p>Survey not found.</p>;
+    if (!survey) return <p>{t('surveys.surveyNotFound')}</p>;
 
     const renderQuestion = (q: SurveyQuestion) => {
         const fieldName = q._id;
@@ -230,13 +232,13 @@ const SurveyDetailPage: React.FC = () => {
                                     />
                                 )}}
                             />
-                            <Label htmlFor={`${fieldName}-other-checkbox`} className="flex-1 cursor-pointer">Other</Label>
+                            <Label htmlFor={`${fieldName}-other-checkbox`} className="flex-1 cursor-pointer">{t('surveys.other')}</Label>
                         </div>
                         {/* "Other" text input */}
                         {watchedValues.includes("Other") && (
                              <Input
                                 {...register(otherFieldName)}
-                                placeholder="Please specify"
+                                placeholder={t('surveys.pleaseSpecify')}
                                 className="mt-2"
                             />
                         )}
@@ -270,7 +272,7 @@ const SurveyDetailPage: React.FC = () => {
                 </CardContent>
                 <CardFooter>
                     <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto">
-                        {isSubmitting ? 'Submitting...' : 'Submit Answers'}
+                        {isSubmitting ? t('surveys.submitting') : t('surveys.submitAnswers')}
                         <Send className="ml-2 h-4 w-4" />
                     </Button>
                 </CardFooter>

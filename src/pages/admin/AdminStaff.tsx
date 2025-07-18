@@ -20,6 +20,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { useToast } from '../../hooks/use-toast';
+import { useLanguage } from '../../hooks/useLanguage';
 import apiService from '../../services/api';
 import { ImageUpload } from '../../components/ui/image-upload';
 import type { User } from '../../types';
@@ -33,6 +34,7 @@ interface StaffFormData {
 
 const AdminStaff: React.FC = () => {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [staff, setStaff] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -232,7 +234,7 @@ const AdminStaff: React.FC = () => {
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage <= 1}
         >
-          Previous
+          {t('adminUsers.previous')}
         </Button>
         
         {startPage > 1 && (
@@ -268,7 +270,7 @@ const AdminStaff: React.FC = () => {
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage >= totalPages}
         >
-          Next
+          {t('adminUsers.next')}
         </Button>
       </div>
     );
@@ -295,69 +297,69 @@ const AdminStaff: React.FC = () => {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
             <Shield className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
-            Staff Management
+            {t('adminUsers.staffMembers')}
           </h1>
           <p className="text-gray-600 mt-2">
-            Create and manage staff accounts
+            {t('adminUsers.createAndManageStaff')}
           </p>
         </div>
         
         <div className="flex items-center gap-2">
           <Button onClick={handleRefresh} variant="outline" size="sm" disabled={refreshing}>
             <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''} sm:mr-2`} />
-            <span className="hidden sm:inline">Refresh</span>
+            <span className="hidden sm:inline">{t('adminUsers.refresh')}</span>
           </Button>
           
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button size="sm">
                 <Plus className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Add Staff</span>
+                <span className="hidden sm:inline">{t('adminUsers.addStaff')}</span>
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-md sm:max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Create New Staff Account</DialogTitle>
+                <DialogTitle>{t('adminStaff.createNewStaff')}</DialogTitle>
                 <DialogDescription>
-                  Create a new staff account with admin privileges.
+                  {t('adminStaff.fillInStaffDetails')}
                 </DialogDescription>
               </DialogHeader>
               
               <form onSubmit={handleCreateSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Full Name *</Label>
+                  <Label htmlFor="name">{t('formFields.staffName')} *</Label>
                   <Input
                     id="name"
                     value={newStaff.name}
                     onChange={(e) => setNewStaff(prev => ({...prev, name: e.target.value}))}
-                    placeholder="Enter full name..."
+                    placeholder={t('formFields.staffName')}
                     required
                     disabled={isSubmitting}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email *</Label>
+                  <Label htmlFor="email">{t('formFields.staffEmail')} *</Label>
                   <Input
                     id="email"
                     type="email"
                     value={newStaff.email}
                     onChange={(e) => setNewStaff(prev => ({...prev, email: e.target.value}))}
-                    placeholder="Enter email address..."
+                    placeholder={t('formFields.staffEmail')}
                     required
                     disabled={isSubmitting}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="password">Password *</Label>
+                  <Label htmlFor="password">{t('formFields.password')} *</Label>
                   <div className="relative">
                     <Input
                       id="password"
                       type={showPassword ? "text" : "password"}
                       value={newStaff.password}
                       onChange={(e) => setNewStaff(prev => ({...prev, password: e.target.value}))}
-                      placeholder="Enter password..."
+                      placeholder={t('formFields.password')}
                       required
                       disabled={isSubmitting}
                     />
@@ -378,12 +380,12 @@ const AdminStaff: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Avatar Image</Label>
+                  <Label>{t('formFields.avatarUrl')}</Label>
                   <ImageUpload
                     value={newStaff.avatarUrl}
                     onChange={(url) => setNewStaff(prev => ({...prev, avatarUrl: url}))}
                     disabled={isSubmitting}
-                    placeholder="Upload avatar image"
+                    placeholder={t('formFields.avatarUrl')}
                   />
                 </div>
 
@@ -395,10 +397,10 @@ const AdminStaff: React.FC = () => {
                     disabled={isSubmitting}
                     className="w-full sm:w-auto"
                   >
-                    Cancel
+                    {t('formFields.cancelButton')}
                   </Button>
                   <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
-                    {isSubmitting ? 'Creating...' : 'Create Staff Account'}
+                    {isSubmitting ? t('formFields.saving') : t('formFields.saveStaff')}
                   </Button>
                 </div>
               </form>
@@ -411,12 +413,12 @@ const AdminStaff: React.FC = () => {
       <div className="flex flex-wrap gap-3">
         <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-white border-gray-200">
           <Users className="h-3 w-3 text-gray-500" />
-          <span className="text-sm font-medium">{staff.length} Total Staff</span>
+          <span className="text-sm font-medium">{staff.length} {t('formFields.totalStaffLabel')}</span>
         </Badge>
 
         <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-green-50 border-green-200 text-green-700">
           <UserCheck className="h-3 w-3" />
-          <span className="text-sm font-medium">{staff.filter(s => s.isEmailVerified).length} Verified</span>
+          <span className="text-sm font-medium">{staff.filter(s => s.isEmailVerified).length} {t('formFields.verifiedLabel')}</span>
         </Badge>
 
         <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-blue-50 border-blue-200 text-blue-700">
@@ -426,7 +428,7 @@ const AdminStaff: React.FC = () => {
               const created = new Date(s.createdAt);
               const now = new Date();
               return created.getMonth() === now.getMonth() && created.getFullYear() === now.getFullYear();
-            }).length} This Month
+            }).length} {t('formFields.thisMonthLabel')}
           </span>
         </Badge>
       </div>
@@ -434,10 +436,10 @@ const AdminStaff: React.FC = () => {
       {/* Staff List */}
       <Card className=" max-w-[350px] md:max-w-full">
         <CardHeader>
-          <CardTitle>Staff Members ({staff.length})</CardTitle>
-          <CardDescription>
-            Manage all staff accounts and their permissions
-          </CardDescription>
+                  <CardTitle>{t('formFields.staffMembersLabel')} ({staff.length})</CardTitle>
+        <CardDescription>
+          {t('formFields.manageStaffAccountsLabel')}
+        </CardDescription>
         </CardHeader>
         <CardContent>
           {staff.length > 0 ? (
@@ -447,11 +449,11 @@ const AdminStaff: React.FC = () => {
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px]">Staff Member</th>
-                        <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                        <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                        <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
-                        <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">Actions</th>
+                        <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px]">{t('formFields.staffMemberLabel')}</th>
+                        <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('formFields.roleLabel')}</th>
+                        <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('formFields.statusLabel')}</th>
+                        <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('formFields.joinedLabel')}</th>
+                        <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">{t('formFields.actions')}</th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
@@ -474,18 +476,18 @@ const AdminStaff: React.FC = () => {
                           </td>
                           <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
                             <Badge variant="secondary" className="text-xs">
-                              Staff
+                              {t('adminUsers.staff')}
                             </Badge>
                           </td>
                           <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
                             {member.isEmailVerified ? (
                               <Badge variant="default" className="text-xs">
                                 <UserCheck className="h-3 w-3 mr-1" />
-                                <span className="hidden sm:inline">Verified</span>
+                                <span className="hidden sm:inline">{t('formFields.verifiedLabel')}</span>
                               </Badge>
                             ) : (
                               <Badge variant="outline" className="text-xs">
-                                <span className="hidden sm:inline">Unverified</span>
+                                <span className="hidden sm:inline">{t('adminUsers.suspended')}</span>
                               </Badge>
                             )}
                           </td>
@@ -528,10 +530,10 @@ const AdminStaff: React.FC = () => {
           ) : (
             <div className="text-center py-8">
               <Users className="h-12 w-12 mx-auto text-gray-400 mb-3" />
-              <p className="text-gray-500">No staff members found</p>
+              <p className="text-gray-500">{t('adminStaff.noStaffFound')}</p>
               <Button onClick={() => setIsCreateDialogOpen(true)} className="mt-4">
                 <Plus className="h-4 w-4 mr-2" />
-                Add First Staff Member
+                {t('adminStaff.createFirstStaff')}
               </Button>
             </div>
           )}
@@ -542,47 +544,47 @@ const AdminStaff: React.FC = () => {
       <Dialog open={!!editingStaff} onOpenChange={(open) => !open && setEditingStaff(null)}>
         <DialogContent className="max-w-md sm:max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit Staff Account</DialogTitle>
+            <DialogTitle>{t('formFields.editStaff')}</DialogTitle>
             <DialogDescription>
-              Update staff account information.
+              {t('adminStaff.fillInStaffDetails')}
             </DialogDescription>
           </DialogHeader>
           
           <form onSubmit={handleEditSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-name">Full Name *</Label>
+              <Label htmlFor="edit-name">{t('formFields.staffName')} *</Label>
               <Input
                 id="edit-name"
                 value={editStaff.name}
                 onChange={(e) => setEditStaff(prev => ({...prev, name: e.target.value}))}
-                placeholder="Enter full name..."
+                placeholder={t('formFields.staffName')}
                 required
                 disabled={isSubmitting}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit-email">Email *</Label>
+              <Label htmlFor="edit-email">{t('formFields.staffEmail')} *</Label>
               <Input
                 id="edit-email"
                 type="email"
                 value={editStaff.email}
                 onChange={(e) => setEditStaff(prev => ({...prev, email: e.target.value}))}
-                placeholder="Enter email address..."
+                placeholder={t('formFields.staffEmail')}
                 required
                 disabled={isSubmitting}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit-password">New Password (leave empty to keep current)</Label>
+              <Label htmlFor="edit-password">{t('formFields.password')} (leave empty to keep current)</Label>
               <div className="relative">
                 <Input
                   id="edit-password"
                   type={showPassword ? "text" : "password"}
                   value={editStaff.password}
                   onChange={(e) => setEditStaff(prev => ({...prev, password: e.target.value}))}
-                  placeholder="Enter new password..."
+                  placeholder={t('formFields.password')}
                   disabled={isSubmitting}
                 />
                 <Button

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { votingAPI } from '../../services/api';
 import { useToast } from '../../hooks/use-toast';
+import { useLanguage } from '../../hooks/useLanguage';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -50,6 +51,7 @@ import type { VotingCampaign } from '../../types';
 const AdminVotingCampaigns: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useLanguage();
   
   const [campaigns, setCampaigns] = useState<VotingCampaign[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -59,10 +61,6 @@ const AdminVotingCampaigns: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   
   const limit = 10;
-
-  useEffect(() => {
-    fetchCampaigns();
-  }, [currentPage, statusFilter, searchTerm]);
 
   const fetchCampaigns = async () => {
     try {
@@ -81,8 +79,8 @@ const AdminVotingCampaigns: React.FC = () => {
     } catch (error) {
       console.error('Failed to fetch campaigns:', error);
       toast({
-        title: "Error",
-        description: "Failed to load voting campaigns",
+        title: t('common.error'),
+        description: t('voting.failedToLoadCampaigns'),
         variant: "destructive"
       });
     } finally {
@@ -90,30 +88,34 @@ const AdminVotingCampaigns: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    fetchCampaigns();
+  }, [currentPage, statusFilter, searchTerm]);
+
   const handleDeleteCampaign = async (campaignId: string) => {
     try {
       const response = await votingAPI.admin.deleteCampaign(campaignId);
       
       if (response.success) {
         toast({
-          title: "Success",
-          description: "Campaign deleted successfully"
+          title: t('common.success'),
+          description: t('adminVoting.campaignDeletedSuccessfully')
         });
         
         // Refresh campaigns list
         fetchCampaigns();
       } else {
         toast({
-          title: "Error",
-          description: response.message || "Failed to delete campaign",
+          title: t('common.error'),
+          description: response.message || t('adminVoting.failedToDeleteCampaign'),
           variant: "destructive"
         });
       }
     } catch (error: any) {
       console.error('Failed to delete campaign:', error);
       toast({
-        title: "Error",
-        description: error.response?.data?.message || "Failed to delete campaign",
+        title: t('common.error'),
+        description: error.response?.data?.message || t('adminVoting.failedToDeleteCampaign'),
         variant: "destructive"
       });
     }
@@ -139,22 +141,7 @@ const AdminVotingCampaigns: React.FC = () => {
   };
 
   const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'Active';
-      case 'upcoming':
-        return 'Upcoming';
-      case 'draft':
-        return 'Draft';
-      case 'completed':
-        return 'Completed';
-      case 'closed':
-        return 'Closed';
-      case 'cancelled':
-        return 'Cancelled';
-      default:
-        return status;
-    }
+    return t(`voting.status.${status}`) || status;
   };
 
   const formatDate = (dateString: string) => {
@@ -184,16 +171,16 @@ const AdminVotingCampaigns: React.FC = () => {
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
             <Vote className="h-8 w-8 text-primary" />
-            Voting Campaigns
+            {t('adminVoting.title')}
           </h1>
           <p className="text-muted-foreground mt-2">
-            Manage voting campaigns and track their performance
+            {t('adminVoting.manageVotingCampaigns')}
           </p>
         </div>
         
         <Button onClick={() => navigate('/admin/voting/campaigns/new')} className="flex items-center gap-2">
           <Plus className="h-4 w-4" />
-          Create Campaign
+          {t('adminVoting.createCampaign')}
         </Button>
       </div>
 
@@ -205,7 +192,7 @@ const AdminVotingCampaigns: React.FC = () => {
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search campaigns..."
+                  placeholder={t('adminVoting.searchCampaigns')}
                   value={searchTerm}
                   onChange={(e) => handleSearch(e.target.value)}
                   className="pl-10"
@@ -215,14 +202,14 @@ const AdminVotingCampaigns: React.FC = () => {
             
             <Select value={statusFilter} onValueChange={handleStatusFilter}>
               <SelectTrigger className="w-full sm:w-[200px]">
-                <SelectValue placeholder="Filter by status" />
+                <SelectValue placeholder={t('adminVoting.filterByStatus')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="draft">Draft</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
+                <SelectItem value="all">{t('adminVoting.allStatus')}</SelectItem>
+                <SelectItem value="draft">{t('adminVoting.draft')}</SelectItem>
+                <SelectItem value="active">{t('voting.status.active')}</SelectItem>
+                <SelectItem value="completed">{t('adminVoting.completed')}</SelectItem>
+                <SelectItem value="cancelled">{t('voting.status.cancelled')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -232,9 +219,9 @@ const AdminVotingCampaigns: React.FC = () => {
       {/* Campaigns Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Campaigns ({campaigns.length})</CardTitle>
+          <CardTitle>{t('adminVoting.campaigns')} ({campaigns.length})</CardTitle>
           <CardDescription>
-            Overview of all voting campaigns in the system
+            {t('adminVoting.overviewOfAllVoting')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -245,16 +232,16 @@ const AdminVotingCampaigns: React.FC = () => {
           ) : campaigns.length === 0 ? (
             <div className="text-center py-8">
               <Vote className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-2">No campaigns found</h3>
+              <h3 className="text-lg font-medium mb-2">{t('adminVoting.noCampaignsFound')}</h3>
               <p className="text-muted-foreground mb-4">
                 {searchTerm || statusFilter !== 'all'
-                  ? 'No campaigns match your search criteria.'
-                  : 'Get started by creating your first voting campaign.'}
+                  ? t('adminVoting.noCampaignsMatchCriteria')
+                  : t('adminVoting.getStartedCreatingFirst')}
               </p>
               {!searchTerm && statusFilter === 'all' && (
                 <Button onClick={() => navigate('/admin/voting/campaigns/new')}>
                   <Plus className="h-4 w-4 mr-2" />
-                  Create First Campaign
+                  {t('adminVoting.createFirstCampaign')}
                 </Button>
               )}
             </div>
@@ -263,28 +250,28 @@ const AdminVotingCampaigns: React.FC = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>{t('adminVoting.title')}</TableHead>
+                    <TableHead>{t('adminVoting.status')}</TableHead>
                     <TableHead>
                       <div className="flex items-center gap-1">
                         <Calendar className="h-4 w-4" />
-                        Duration
+                        {t('adminVoting.duration')}
                       </div>
                     </TableHead>
                     <TableHead>
                       <div className="flex items-center gap-1">
                         <Trophy className="h-4 w-4" />
-                        Entries
+                        {t('adminVoting.entries')}
                       </div>
                     </TableHead>
                     <TableHead>
                       <div className="flex items-center gap-1">
                         <Users className="h-4 w-4" />
-                        Votes
+                        {t('adminVoting.votes')}
                       </div>
                     </TableHead>
-                    <TableHead>Points/Vote</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>{t('adminVoting.pointsPerVote')}</TableHead>
+                    <TableHead className="text-right">{t('adminVoting.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -359,19 +346,18 @@ const AdminVotingCampaigns: React.FC = () => {
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Campaign</AlertDialogTitle>
+                                <AlertDialogTitle>{t('adminVoting.deleteCampaign')}</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Are you sure you want to delete "{campaign.title}"? 
-                                  This action cannot be undone and will remove all associated entries and votes.
+                                  {t('adminVoting.deleteCampaignDescription', { title: campaign.title })}
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
                                 <AlertDialogAction
                                   onClick={() => handleDeleteCampaign(campaign._id)}
                                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                 >
-                                  Delete
+                                  {t('common.delete')}
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
@@ -391,11 +377,11 @@ const AdminVotingCampaigns: React.FC = () => {
                     onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                     disabled={currentPage === 1}
                   >
-                    Previous
+                    {t('adminVoting.previous')}
                   </Button>
                   
                   <span className="text-sm text-muted-foreground">
-                    Page {currentPage} of {totalPages}
+                    {t('adminVoting.pageOf', { current: currentPage, total: totalPages })}
                   </span>
                   
                   <Button
@@ -403,7 +389,7 @@ const AdminVotingCampaigns: React.FC = () => {
                     onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                     disabled={currentPage === totalPages}
                   >
-                    Next
+                    {t('adminVoting.next')}
                   </Button>
                 </div>
               )}

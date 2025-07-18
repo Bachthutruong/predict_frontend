@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from '@/components/ui/badge';
 import { AuthModal } from '@/components/auth/AuthModal';
+import { useLanguage } from '../../hooks/useLanguage';
 
 const FeedbackPage: React.FC = () => {
   const [feedback, setFeedback] = useState('');
@@ -32,6 +33,7 @@ const FeedbackPage: React.FC = () => {
   const [isLoadingFeedbacks, setIsLoadingFeedbacks] = useState(true);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [showAuthModal, setShowAuthModal] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -44,10 +46,10 @@ const FeedbackPage: React.FC = () => {
       if (response.success && Array.isArray(response.data)) {
         setUserFeedbacks(response.data);
       } else {
-        toast({ title: "Error", description: "Could not fetch your feedback history.", variant: "destructive" });
+        toast({ title: t('common.error'), description: t('feedback.fetchHistoryError'), variant: "destructive" });
       }
     } catch (error) {
-      toast({ title: "Error", description: "Could not fetch your feedback history.", variant: "destructive" });
+      toast({ title: t('common.error'), description: t('feedback.fetchHistoryError'), variant: "destructive" });
     } finally {
       setIsLoadingFeedbacks(false);
     }
@@ -72,8 +74,8 @@ const FeedbackPage: React.FC = () => {
 
     if (feedback.trim().length < 10) {
       toast({
-        title: 'Feedback too short',
-        description: 'Please provide a bit more detail in your feedback.',
+        title: t('feedback.tooShort'),
+        description: t('feedback.provideMoreDetail'),
         variant: 'destructive',
       });
       return;
@@ -87,23 +89,23 @@ const FeedbackPage: React.FC = () => {
       if (response.success) {
         setFeedback('');
         toast({
-          title: 'Feedback Submitted!',
-          description: 'Thank you for your suggestion. The admin team will review it shortly.',
+          title: t('feedback.submitted'),
+          description: t('feedback.thankYou'),
         });
         // Refresh feedback list after submission
         fetchUserFeedbacks(); 
       } else {
         toast({
-          title: 'Error',
-          description: response.message || 'Failed to submit feedback',
+          title: t('common.error'),
+          description: response.message || t('feedback.submitError'),
           variant: 'destructive',
         });
       }
     } catch (error: any) {
       console.error('Feedback submission error:', error);
       toast({
-        title: 'Error',
-        description: error.response?.data?.message || 'Failed to submit feedback',
+        title: t('common.error'),
+        description: error.response?.data?.message || t('feedback.submitError'),
         variant: 'destructive',
       });
     } finally {
@@ -130,25 +132,25 @@ const FeedbackPage: React.FC = () => {
       <div>
         <h1 className="text-3xl font-bold flex items-center gap-2">
           <MessageSquare className="h-8 w-8 text-primary" />
-          Feedback & Suggestions
+          {t('feedback.title')}
         </h1>
         <p className="text-muted-foreground mt-2">
-          Share your ideas to help us improve PredictWin
+          {t('feedback.shareIdeas')}
         </p>
       </div>
 
       {/* Feedback Form */}
       <Card>
         <CardHeader>
-          <CardTitle>Submit Your Feedback</CardTitle>
+          <CardTitle>{t('feedback.submitFeedback')}</CardTitle>
           <CardDescription>
-            Tell us what you think! Your feedback helps us make PredictWin better for everyone.
+            {t('feedback.helpUsImprove')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <Textarea
-              placeholder="Describe your idea or suggestion..."
+              placeholder={t('feedback.describeIdea')}
               value={feedback}
               onChange={(e) => setFeedback(e.target.value)}
               rows={6}
@@ -158,7 +160,7 @@ const FeedbackPage: React.FC = () => {
             
             <div className="flex justify-between items-center">
               <p className="text-sm text-muted-foreground">
-                {feedback.length}/500 characters (minimum 10)
+                {feedback.length}/500 {t('feedback.characters')} ({t('feedback.minimum10')})
               </p>
               
               <Button 
@@ -169,12 +171,12 @@ const FeedbackPage: React.FC = () => {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Submitting...
+                    {t('feedback.submitting')}
                   </>
                 ) : (
                   <>
                     <Send className="mr-2 h-4 w-4" />
-                    Submit Idea
+                    {t('feedback.submitIdea')}
                   </>
                 )}
               </Button>
@@ -186,28 +188,28 @@ const FeedbackPage: React.FC = () => {
       {/* Approved Feedback Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Your Approved Feedback</CardTitle>
+          <CardTitle>{t('feedback.yourApprovedFeedback')}</CardTitle>
           <CardDescription>
-            Here are your suggestions that have been approved and rewarded with points.
+            {t('feedback.approvedSuggestions')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {!user ? (
              <div className="text-center py-8">
-                <p className="text-muted-foreground">Please log in to see your feedback history.</p>
-                <Button onClick={() => setShowAuthModal(true)} className="mt-4">Login</Button>
+                <p className="text-muted-foreground">{t('feedback.loginToSeeHistory')}</p>
+                <Button onClick={() => setShowAuthModal(true)} className="mt-4">{t('auth.login')}</Button>
             </div>
           ) : isLoadingFeedbacks ? (
-            <p>Loading feedback history...</p>
+            <p>{t('feedback.loadingHistory')}</p>
           ) : approvedFeedbacks.length > 0 ? (
             <div className="space-y-4">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Feedback</TableHead>
-                    <TableHead className="w-[150px] text-center">Status</TableHead>
-                    <TableHead className="w-[150px] text-center">Points Awarded</TableHead>
-                    <TableHead className="w-[180px] text-right">Date</TableHead>
+                    <TableHead>{t('feedback.feedback')}</TableHead>
+                    <TableHead className="w-[150px] text-center">{t('feedback.status')}</TableHead>
+                    <TableHead className="w-[150px] text-center">{t('feedback.pointsAwarded')}</TableHead>
+                    <TableHead className="w-[180px] text-right">{t('feedback.date')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -217,7 +219,7 @@ const FeedbackPage: React.FC = () => {
                       <TableCell className="text-center">
                         <Badge variant="default" className="bg-green-100 text-green-800">
                           <CheckCircle className="h-3 w-3 mr-1" />
-                          Approved
+                          {t('feedback.approved')}
                         </Badge>
                       </TableCell>
                       <TableCell className="font-medium text-center">{fb.awardedPoints || 0}</TableCell>
@@ -228,7 +230,7 @@ const FeedbackPage: React.FC = () => {
               </Table>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Rows per page:</span>
+                  <span className="text-sm text-muted-foreground">{t('feedback.rowsPerPage')}:</span>
                   <Select value={String(rowsPerPage)} onValueChange={value => setRowsPerPage(Number(value))}>
                     <SelectTrigger className="w-20">
                       <SelectValue />
@@ -242,7 +244,7 @@ const FeedbackPage: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-4">
                   <span className="text-sm text-muted-foreground">
-                    Page {currentPage} of {totalPages}
+                    {t('feedback.page')} {currentPage} {t('feedback.of')} {totalPages}
                   </span>
                   <div className="flex gap-2">
                     <Button
@@ -251,7 +253,7 @@ const FeedbackPage: React.FC = () => {
                       onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                       disabled={currentPage === 1}
                     >
-                      Previous
+                      {t('common.previous')}
                     </Button>
                     <Button
                       variant="outline"
@@ -259,14 +261,18 @@ const FeedbackPage: React.FC = () => {
                       onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                       disabled={currentPage === totalPages}
                     >
-                      Next
+                      {t('common.next')}
                     </Button>
                   </div>
                 </div>
               </div>
             </div>
           ) : (
-            <p className="text-center text-muted-foreground py-8">You have no approved feedback yet.</p>
+            <div className="text-center py-8">
+              <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500">{t('feedback.noApprovedFeedback')}</p>
+              <p className="text-sm text-gray-400">{t('feedback.submitFirstFeedback')}</p>
+            </div>
           )}
         </CardContent>
       </Card>
@@ -275,30 +281,30 @@ const FeedbackPage: React.FC = () => {
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">What we're looking for</CardTitle>
+            <CardTitle className="text-lg">{t('feedback.whatLookingFor')}</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>• New prediction categories or topics</li>
-              <li>• User interface improvements</li>
-              <li>• New features or game mechanics</li>
-              <li>• Bug reports or technical issues</li>
-              <li>• Any other suggestions to improve the platform</li>
+              <li>• {t('feedback.newCategories')}</li>
+              <li>• {t('feedback.userInterface')}</li>
+              <li>• {t('feedback.newFeatures')}</li>
+              <li>• {t('feedback.bugReports')}</li>
+              <li>• {t('feedback.anyOtherSuggestions')}</li>
             </ul>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">What happens next?</CardTitle>
+            <CardTitle className="text-lg">{t('feedback.whatHappensNext')}</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>• Our team reviews all feedback carefully</li>
-              <li>• We may reach out for clarification</li>
-              <li>• Good suggestions may earn you bonus points</li>
-              <li>• Implemented features will be announced</li>
-              <li>• Your feedback helps shape the future of PredictWin</li>
+              <li>• {t('feedback.teamReviews')}</li>
+              <li>• {t('feedback.mayReachOut')}</li>
+              <li>• {t('feedback.goodSuggestions')}</li>
+              <li>• {t('feedback.implementedFeatures')}</li>
+              <li>• {t('feedback.yourFeedback')}</li>
             </ul>
           </CardContent>
         </Card>
@@ -307,32 +313,32 @@ const FeedbackPage: React.FC = () => {
       {/* Guidelines */}
       <Card>
         <CardHeader>
-          <CardTitle>Feedback Guidelines</CardTitle>
+          <CardTitle>{t('feedback.feedbackGuidelines')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="prose prose-sm max-w-none">
             <p className="text-muted-foreground mb-4">
-              To help us process your feedback effectively, please:
+              {t('feedback.helpUsProcess')}
             </p>
             
             <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <h4 className="font-medium text-green-600 mb-2">✅ Do:</h4>
+                <h4 className="font-medium text-green-600 mb-2">{t('feedback.do')}</h4>
                 <ul className="space-y-1 text-sm text-muted-foreground">
-                  <li>Be specific and detailed</li>
-                  <li>Explain the problem or opportunity</li>
-                  <li>Suggest concrete solutions</li>
-                  <li>Be constructive and respectful</li>
+                  <li>{t('feedback.beSpecific')}</li>
+                  <li>{t('feedback.explainProblem')}</li>
+                  <li>{t('feedback.suggestSolutions')}</li>
+                  <li>{t('feedback.beConstructive')}</li>
                 </ul>
               </div>
               
               <div>
-                <h4 className="font-medium text-red-600 mb-2">❌ Don't:</h4>
+                <h4 className="font-medium text-red-600 mb-2">{t('feedback.dont')}</h4>
                 <ul className="space-y-1 text-sm text-muted-foreground">
-                  <li>Submit spam or irrelevant content</li>
-                  <li>Use offensive or inappropriate language</li>
-                  <li>Submit the same feedback multiple times</li>
-                  <li>Request personal account changes here</li>
+                  <li>{t('feedback.submitSpam')}</li>
+                  <li>{t('feedback.useOffensive')}</li>
+                  <li>{t('feedback.submitSameFeedback')}</li>
+                  <li>{t('feedback.requestAccountChanges')}</li>
                 </ul>
               </div>
             </div>

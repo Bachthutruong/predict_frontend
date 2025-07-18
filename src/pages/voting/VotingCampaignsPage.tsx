@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { votingAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../hooks/use-toast';
+import { useLanguage } from '../../hooks/useLanguage';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -23,6 +24,7 @@ const VotingCampaignsPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   
   const [campaigns, setCampaigns] = useState<VotingCampaign[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -59,8 +61,8 @@ const VotingCampaignsPage: React.FC = () => {
     } catch (error) {
       console.error('Failed to fetch campaigns:', error);
       toast({
-        title: "Error",
-        description: "Failed to load voting campaigns",
+        title: t('common.error'),
+        description: t('voting.failedToLoadCampaigns'),
         variant: "destructive"
       });
     } finally {
@@ -79,7 +81,7 @@ const VotingCampaignsPage: React.FC = () => {
   };
 
   const formatTimeRemaining = (remainingTime: number) => {
-    if (remainingTime <= 0) return 'Ended';
+    if (remainingTime <= 0) return t('voting.ended');
     
     const days = Math.floor(remainingTime / (1000 * 60 * 60 * 24));
     const hours = Math.floor((remainingTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -93,17 +95,17 @@ const VotingCampaignsPage: React.FC = () => {
   const getStatusInfo = (campaign: VotingCampaign) => {
     switch (campaign.status) {
       case 'active':
-        return { text: 'Active', variant: 'default' as const };
+        return { text: t('voting.status.active'), variant: 'default' as const };
       case 'upcoming':
-        return { text: 'Upcoming', variant: 'secondary' as const };
+        return { text: t('voting.status.upcoming'), variant: 'secondary' as const };
       case 'closed':
-        return { text: 'Closed', variant: 'outline' as const };
+        return { text: t('voting.status.closed'), variant: 'outline' as const };
       case 'completed':
-        return { text: 'Completed', variant: 'outline' as const };
+        return { text: t('voting.status.completed'), variant: 'outline' as const };
       case 'cancelled':
-        return { text: 'Cancelled', variant: 'destructive' as const };
+        return { text: t('voting.status.cancelled'), variant: 'destructive' as const };
       case 'draft':
-        return { text: 'Draft', variant: 'secondary' as const };
+        return { text: t('voting.status.draft'), variant: 'secondary' as const };
       default:
         return { text: campaign.status, variant: 'secondary' as const };
     }
@@ -120,11 +122,11 @@ const VotingCampaignsPage: React.FC = () => {
       <div className="text-center space-y-4">
         <div className="flex items-center justify-center gap-2">
           <Vote className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl sm:text-4xl font-bold">Active Voting Campaigns</h1>
+          <h1 className="text-3xl sm:text-4xl font-bold">{t('voting.activeCampaigns')}</h1>
         </div>
         <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-          Participate in active voting campaigns and earn points. 
-          {!user && ' Sign in to vote and earn rewards!'}
+          {t('voting.participateDescription')}
+          {!user && ` ${t('voting.signInToVote')}`}
         </p>
       </div>
 
@@ -134,7 +136,7 @@ const VotingCampaignsPage: React.FC = () => {
           <div className="relative max-w-md mx-auto">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search campaigns..."
+              placeholder={t('voting.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
               className="pl-10"
@@ -151,11 +153,11 @@ const VotingCampaignsPage: React.FC = () => {
       ) : campaigns.length === 0 ? (
         <div className="text-center py-12">
           <Vote className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-          <h3 className="text-xl font-medium mb-2">No active campaigns found</h3>
+          <h3 className="text-xl font-medium mb-2">{t('voting.noActiveCampaigns')}</h3>
           <p className="text-muted-foreground">
             {searchTerm 
-              ? 'No active campaigns match your search. Try different keywords.'
-              : 'There are no active voting campaigns at the moment. Check back later for new campaigns!'}
+              ? t('voting.noMatchingCampaigns')
+              : t('voting.noCampaignsAvailable')}
           </p>
         </div>
       ) : (
@@ -202,7 +204,7 @@ const VotingCampaignsPage: React.FC = () => {
                           <Trophy className="h-4 w-4 text-muted-foreground" />
                         </div>
                         <div className="text-sm font-medium">{campaign.entryCount || 0}</div>
-                        <div className="text-xs text-muted-foreground">Entries</div>
+                        <div className="text-xs text-muted-foreground">{t('voting.entries')}</div>
                       </div>
                       
                       <div className="space-y-1">
@@ -210,7 +212,7 @@ const VotingCampaignsPage: React.FC = () => {
                           <Users className="h-4 w-4 text-muted-foreground" />
                         </div>
                         <div className="text-sm font-medium">{campaign.totalVotes || 0}</div>
-                        <div className="text-xs text-muted-foreground">Votes</div>
+                        <div className="text-xs text-muted-foreground">{t('voting.votes')}</div>
                       </div>
                       
                       <div className="space-y-1">
@@ -218,7 +220,7 @@ const VotingCampaignsPage: React.FC = () => {
                           <Vote className="h-4 w-4 text-muted-foreground" />
                         </div>
                         <div className="text-sm font-medium">{campaign.pointsPerVote}</div>
-                        <div className="text-xs text-muted-foreground">Points</div>
+                        <div className="text-xs text-muted-foreground">{t('voting.points')}</div>
                       </div>
                     </div>
 
@@ -228,18 +230,18 @@ const VotingCampaignsPage: React.FC = () => {
                         <div className="flex items-center gap-2 text-sm">
                           <Clock className="h-4 w-4 text-primary" />
                           <span className="text-primary font-medium">
-                            {formatTimeRemaining(campaign.remainingTime)} remaining
+                            {formatTimeRemaining(campaign.remainingTime)} {t('voting.remaining')}
                           </span>
                         </div>
                       ) : campaign.status === 'closed' || campaign.status === 'completed' ? (
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Clock className="h-4 w-4" />
-                          <span>Ended {formatDate(campaign.endDate)}</span>
+                          <span>{t('voting.ended')} {formatDate(campaign.endDate)}</span>
                         </div>
                       ) : campaign.status === 'upcoming' ? (
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Calendar className="h-4 w-4" />
-                          <span>Starts {formatDate(campaign.startDate)}</span>
+                          <span>{t('voting.starts')} {formatDate(campaign.startDate)}</span>
                         </div>
                       ) : null}
                     </div>
@@ -249,8 +251,8 @@ const VotingCampaignsPage: React.FC = () => {
                       className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
                       variant="outline"
                     >
-                      {campaign.status === 'active' ? 'Vote Now' :
-                       (campaign.status === 'closed' || campaign.status === 'completed') ? 'View Results' : 'View Details'}
+                      {campaign.status === 'active' ? t('voting.voteNow') :
+                       (campaign.status === 'closed' || campaign.status === 'completed') ? t('voting.viewResults') : t('voting.viewDetails')}
                       <ChevronRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
                     </Button>
                   </CardContent>
@@ -267,11 +269,11 @@ const VotingCampaignsPage: React.FC = () => {
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
               >
-                Previous
+                {t('common.previous')}
               </Button>
               
               <span className="text-sm text-muted-foreground px-4">
-                Page {currentPage} of {totalPages}
+                {t('common.page')} {currentPage} {t('common.of')} {totalPages}
               </span>
               
               <Button
@@ -279,7 +281,7 @@ const VotingCampaignsPage: React.FC = () => {
                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                 disabled={currentPage === totalPages}
               >
-                Next
+                {t('common.next')}
               </Button>
             </div>
           )}
@@ -291,16 +293,16 @@ const VotingCampaignsPage: React.FC = () => {
         <Card className="bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20">
           <CardContent className="text-center py-8">
             <Vote className="h-12 w-12 mx-auto text-primary mb-4" />
-            <h3 className="text-xl font-semibold mb-2">Ready to vote?</h3>
+            <h3 className="text-xl font-semibold mb-2">{t('voting.readyToVote')}</h3>
             <p className="text-muted-foreground mb-4">
-              Sign in or create an account to participate in voting campaigns and earn points!
+              {t('voting.signInToParticipate')}
             </p>
             <div className="flex items-center justify-center gap-4">
               <Button onClick={() => navigate('/login')}>
-                Sign In
+                {t('auth.signIn')}
               </Button>
               <Button variant="outline" onClick={() => navigate('/register')}>
-                Create Account
+                {t('auth.createAccount')}
               </Button>
             </div>
           </CardContent>

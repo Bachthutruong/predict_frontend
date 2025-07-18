@@ -11,10 +11,12 @@ import { Calendar, CheckCircle, Loader2 } from 'lucide-react';
 import { useToast } from '../../hooks/use-toast';
 import type { Question } from '../../types';
 import { AuthModal } from '@/components/auth/AuthModal';
+import { useLanguage } from '../../hooks/useLanguage';
 
 const CheckInPage: React.FC = () => {
   const { user, refreshUser } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [question, setQuestion] = useState<Question | null>(null);
   const [answer, setAnswer] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -126,33 +128,33 @@ const CheckInPage: React.FC = () => {
         });
         
         toast({
-          title: "Correct Answer! 🎉",
-          description: `Great job! You earned ${response.data?.pointsEarned} points!`,
+          title: t('checkIn.correctAnswer'),
+          description: t('checkIn.greatJob', { points: response.data?.pointsEarned }),
           variant: "default"
         });
       } else {
         // Don't set hasCheckedInToday for incorrect answers
         setResult({
           success: false,
-          message: response.message || 'Failed to submit answer'
+          message: response.message || t('checkIn.failedToSubmit')
         });
         
         toast({
-          title: "Incorrect Answer",
-          description: response.message || 'Failed to submit answer',
+          title: t('checkIn.incorrectAnswer'),
+          description: response.message || t('checkIn.failedToSubmit'),
           variant: "destructive"
         });
       }
     } catch (error: any) {
       console.error('Check-in error:', error);
-      const errorMessage = error.response?.data?.message || 'An error occurred. Please try again.';
+      const errorMessage = error.response?.data?.message || t('checkIn.errorOccurred');
 
       
       if (errorMessage.includes('Already checked in')) {
         setHasCheckedInToday(true);
         setResult({
           success: false,
-          message: "You've already checked in today!"
+          message: t('checkIn.alreadyCheckedIn')
         });
       } else if (errorMessage.includes('Incorrect answer')) {
         // Handle incorrect answer - don't set hasCheckedInToday
@@ -163,8 +165,8 @@ const CheckInPage: React.FC = () => {
         });
         
         toast({
-          title: "Incorrect Answer ❌",
-          description: "Incorrect answer. Please try again!",
+          title: t('checkIn.incorrectAnswer'),
+          description: t('checkIn.tryAgain'),
           variant: "destructive"
         });
         
@@ -182,7 +184,7 @@ const CheckInPage: React.FC = () => {
         });
         
         toast({
-          title: "Error",
+          title: t('common.error'),
           description: errorMessage,
           variant: "destructive"
         });
@@ -198,9 +200,9 @@ const CheckInPage: React.FC = () => {
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
             <Calendar className="h-8 w-8 text-primary" />
-            Daily Check-in
+            {t('checkIn.title')}
           </h1>
-          <p className="text-muted-foreground mt-2">Loading today's question...</p>
+          <p className="text-muted-foreground mt-2">{t('checkIn.loadingQuestion')}</p>
         </div>
         
         <Card>
@@ -223,37 +225,32 @@ const CheckInPage: React.FC = () => {
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
             <Calendar className="h-8 w-8 text-primary" />
-            Daily Check-in
+            {t('checkIn.title')}
           </h1>
-          <p className="text-muted-foreground mt-2">You've completed today's check-in!</p>
+          <p className="text-muted-foreground mt-2">{t('checkIn.completedToday')}</p>
         </div>
 
         <Card>
           <CardContent className="text-center py-8">
             <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold mb-2">Check-in Complete!</h2>
+            <h2 className="text-2xl font-bold mb-2">{t('checkIn.complete')}</h2>
             <p className="text-muted-foreground mb-4">
-              You've already checked in today. Come back tomorrow to continue your streak!
+              {t('checkIn.comeBackTomorrow')}
             </p>
             <Badge variant="outline" className="text-green-600">
-              Streak: {user?.consecutiveCheckIns || 0} days
+              {t('checkIn.streak')}: {user?.consecutiveCheckIns || 0} {t('checkIn.days')}
             </Badge>
             
             {result && result.pointsEarned !== undefined && (
               <div className="mt-4">
-                <p className="text-sm text-muted-foreground">Points earned today</p>
+                <p className="text-sm text-muted-foreground">{t('checkIn.pointsEarnedToday')}</p>
                 <p className={`text-2xl font-bold ${result.pointsEarned > 0 ? 'text-primary' : 'text-gray-400'}`}>
                   +{result.pointsEarned}
                 </p>
                 {result.isCorrect !== undefined && (
                   <Badge variant={result.isCorrect ? "default" : "destructive"} className="mt-2">
-                    {result.isCorrect ? "✓ Correct Answer!" : "✗ Incorrect Answer"}
+                    {result.isCorrect ? t('checkIn.correctAnswer') : t('checkIn.incorrectAnswer')}
                   </Badge>
-                )}
-                {result.correctAnswer && !result.isCorrect && (
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Correct answer: {result.correctAnswer}
-                  </p>
                 )}
               </div>
             )}
@@ -270,10 +267,10 @@ const CheckInPage: React.FC = () => {
       <div>
         <h1 className="text-3xl font-bold flex items-center gap-2">
           <Calendar className="h-8 w-8 text-primary" />
-          Daily Check-in
+          {t('checkIn.title')}
         </h1>
         <p className="text-muted-foreground mt-2">
-          Answer today's question to earn points and maintain your streak!
+          {t('checkIn.answerQuestion')}
         </p>
       </div>
 
@@ -283,19 +280,19 @@ const CheckInPage: React.FC = () => {
           {user ? (
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-semibold">Current Streak</h3>
-                <p className="text-2xl font-bold text-primary">{user.consecutiveCheckIns || 0} days</p>
+                <h3 className="text-lg font-semibold">{t('checkIn.currentStreak')}</h3>
+                <p className="text-2xl font-bold text-primary">{user.consecutiveCheckIns || 0} {t('checkIn.days')}</p>
               </div>
               <div className="text-right">
-                <p className="text-sm text-muted-foreground">Keep it up!</p>
-                <p className="text-sm text-muted-foreground">Next milestone at 7 days</p>
+                <p className="text-sm text-muted-foreground">{t('checkIn.keepItUp')}</p>
+                <p className="text-sm text-muted-foreground">{t('checkIn.nextMilestone')}</p>
               </div>
             </div>
           ) : (
             <div className="text-center">
-              <h3 className="font-semibold">Want to track your streak?</h3>
-              <p className="text-sm text-muted-foreground mt-1 mb-3">Log in to save your progress and earn bonus points.</p>
-              <Button onClick={() => setShowAuthModal(true)}>Login or Sign Up</Button>
+              <h3 className="font-semibold">{t('checkIn.wantToTrack')}</h3>
+              <p className="text-sm text-muted-foreground mt-1 mb-3">{t('checkIn.loginToSave')}</p>
+              <Button onClick={() => setShowAuthModal(true)}>{t('checkIn.loginOrSignUp')}</Button>
             </div>
           )}
         </CardContent>
@@ -311,15 +308,12 @@ const CheckInPage: React.FC = () => {
       )}
 
       {/* Question */}
-      {question ? (
+      {question && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              Today's Question
-            </CardTitle>
+            <CardTitle>{t('checkIn.todaysQuestion')}</CardTitle>
             <CardDescription>
-              Answer correctly to earn {question.points} points
+              {t('checkIn.answerCorrectly')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -341,48 +335,44 @@ const CheckInPage: React.FC = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="answer">Your Answer</Label>
+                <Label htmlFor="answer">{t('checkIn.yourAnswer')}</Label>
                 <Input
                   id="answer"
                   type="text"
-                  placeholder="Enter your answer..."
                   value={answer}
                   onChange={(e) => setAnswer(e.target.value)}
-                  required
+                  placeholder={t('checkIn.enterAnswer')}
                   disabled={isSubmitting}
+                  className="mt-1"
                 />
               </div>
 
-              <div className="flex justify-between items-center">
-                <div className="text-sm text-muted-foreground">
-                  💡 <strong>Tip:</strong> Take your time and think carefully!
-                </div>
-                <Button 
-                  type="submit" 
-                  disabled={isSubmitting || !answer.trim()}
-                  className="min-w-[120px]"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Submitting...
-                    </>
-                  ) : (
-                    'Submit Answer'
-                  )}
-                </Button>
-              </div>
+              <Button 
+                type="submit" 
+                disabled={isSubmitting || !answer.trim()}
+                className="w-full"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {t('checkIn.submitting')}
+                  </>
+                ) : (
+                  t('checkIn.submitAnswer')
+                )}
+              </Button>
             </form>
           </CardContent>
         </Card>
-      ) : (
+      )}
+
+      {/* No question available */}
+      {!question && !isLoading && (
         <Card>
-          <CardContent className="text-center py-10">
-            <Calendar className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-            <h2 className="text-xl font-bold mb-2">No Question Available</h2>
-            <p className="text-muted-foreground">
-              There's no question available for today. Please check back later!
-            </p>
+          <CardContent className="text-center py-8">
+            <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">{t('checkIn.noQuestion')}</h3>
+            <p className="text-muted-foreground">{t('checkIn.tryAgainLater')}</p>
           </CardContent>
         </Card>
       )}

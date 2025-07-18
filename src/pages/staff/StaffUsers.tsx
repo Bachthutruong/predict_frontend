@@ -1,25 +1,45 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
+import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Badge } from '../../components/ui/badge';
-import { Button } from '../../components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../../components/ui/dialog';
 import { 
   Users, 
   Search, 
+  RefreshCw, 
+  Eye, 
   UserCheck,
+  UserX,
   Calendar,
-  TrendingUp,
-  RefreshCw,
+  Coins,
+  // Activity,
   Shield
 } from 'lucide-react';
+import { useToast } from '../../hooks/use-toast';
+import { useLanguage } from '../../hooks/useLanguage';
 import apiService from '../../services/api';
 import type { User } from '../../types';
 
+interface UserWithStats extends User {
+  recentActivity: string;
+  lastLoginAt?: string;
+  status?: string;
+  avatar?: string;
+}
+
 const StaffUsers: React.FC = () => {
-  const [users, setUsers] = useState<User[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const { toast } = useToast();
+  const { t } = useLanguage();
+  const [users, setUsers] = useState<UserWithStats[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<UserWithStats[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [selectedUser, setSelectedUser] = useState<UserWithStats | null>(null);
+  const [showUserModal, setShowUserModal] = useState(false);
   
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -30,343 +50,366 @@ const StaffUsers: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Filter users based on search query
-    if (searchQuery.trim() === '') {
-      setFilteredUsers(users);
-    } else {
-      const filtered = users.filter(user => 
-        user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setFilteredUsers(filtered);
-    }
-  }, [users, searchQuery]);
-
-  // Reset to first page when search changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery]);
+    filterUsers();
+  }, [users, searchTerm, statusFilter]);
 
   const loadUsers = async () => {
     setIsLoading(true);
     try {
       const response = await apiService.get('/staff/users');
-      // Handle API response structure and filter out admins and staff
-      const usersData = response.data?.data?.users || response.data?.users || response.data?.data || response.data || [];
-      const regularUsers = Array.isArray(usersData) ? usersData.filter((user: User) => user.role === 'user') : [];
-      setUsers(regularUsers);
+      const usersData = response.data?.data || response.data || [];
+      const processedUsers = Array.isArray(usersData) ? usersData.map((user: User) => ({
+        ...user,
+        recentActivity: getRecentActivityText(user),
+      })) : [];
+      setUsers(processedUsers);
     } catch (error) {
       console.error('Failed to load users:', error);
-      setUsers([]); // Set empty array on error
+      setUsers([]);
+      toast({
+        title: t('common.error'),
+        description: t('staff.failedToLoadUsers'),
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleUserStatusUpdate = async (userId: string, isEmailVerified: boolean) => {
-    try {
-      await apiService.patch(`/staff/users/${userId}/status`, { isEmailVerified });
-      loadUsers();
-    } catch (error) {
-      console.error('Failed to update user status:', error);
-    }
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await loadUsers();
+    setRefreshing(false);
+    toast({
+      title: t('staff.usersUpdated'),
+      description: t('staff.userListRefreshed'),
+      variant: "default"
+    });
   };
 
-  if (isLoading) {
-    return (
-      <div className="max-w-6xl mx-auto p-6">
-        <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-gray-200 rounded w-1/3"></div>
-          <div className="grid gap-4 md:grid-cols-4">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-24 bg-gray-200 rounded"></div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const getRecentActivityText = (user: User): string => {
+    if ((user as any).lastLoginAt) {
+      return `${t('staff.lastLogin')} ${new Date((user as any).lastLoginAt).toLocaleDateString()}`;
+    }
+    return t('staff.noRecentActivity');
+  };
 
-  const verifiedUsers = users.filter(user => user.isEmailVerified);
-  const totalPoints = users.reduce((sum, user) => sum + user.points, 0);
-  const averagePoints = users.length > 0 ? Math.round(totalPoints / users.length) : 0;
+  const filterUsers = () => {
+    let filtered = users;
+
+    // Search filter
+    if (searchTerm) {
+      filtered = filtered.filter(user => 
+        user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Status filter
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(user => user.status === statusFilter);
+    }
+
+    setFilteredUsers(filtered);
+    setCurrentPage(1);
+  };
 
   const getInitials = (name: string) => {
     return name.split(' ').map(part => part[0]).join('').toUpperCase().slice(0, 2);
   };
 
-  // Pagination calculations
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
-  const paginatedUsers = filteredUsers.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  // Pagination component
-  const PaginationControls: React.FC<{
-    currentPage: number;
-    totalPages: number;
-    onPageChange: (page: number) => void;
-  }> = ({ currentPage, totalPages, onPageChange }) => {
-    if (totalPages <= 1) return null;
-
-    const pages = [];
-    const maxVisiblePages = 5;
-    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-
-    if (endPage - startPage < maxVisiblePages - 1) {
-      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+  const getStatusVariant = (status: string) => {
+    switch (status) {
+      case 'active': return 'default';
+      case 'suspended': return 'secondary';
+      case 'banned': return 'destructive';
+      default: return 'outline';
     }
-
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
-    }
-
-    return (
-      <div className="flex items-center justify-center gap-2 mt-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onPageChange(currentPage - 1)}
-          disabled={currentPage <= 1}
-        >
-          Previous
-        </Button>
-        
-        {startPage > 1 && (
-          <>
-            <Button variant="outline" size="sm" onClick={() => onPageChange(1)}>1</Button>
-            {startPage > 2 && <span className="px-2">...</span>}
-          </>
-        )}
-        
-        {pages.map((page) => (
-          <Button
-            key={page}
-            variant={currentPage === page ? "default" : "outline"}
-            size="sm"
-            onClick={() => onPageChange(page)}
-          >
-            {page}
-          </Button>
-        ))}
-        
-        {endPage < totalPages && (
-          <>
-            {endPage < totalPages - 1 && <span className="px-2">...</span>}
-            <Button variant="outline" size="sm" onClick={() => onPageChange(totalPages)}>
-              {totalPages}
-            </Button>
-          </>
-        )}
-        
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onPageChange(currentPage + 1)}
-          disabled={currentPage >= totalPages}
-        >
-          Next
-        </Button>
-      </div>
-    );
   };
 
+  const getRoleVariant = (role: string) => {
+    switch (role) {
+      case 'admin': return 'destructive';
+      case 'staff': return 'default';
+      case 'user': return 'secondary';
+      default: return 'outline';
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="h-8 bg-gray-200 rounded w-1/3 animate-pulse"></div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-24 bg-gray-200 rounded animate-pulse"></div>
+          ))}
+        </div>
+        <div className="h-64 bg-gray-200 rounded animate-pulse"></div>
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <Shield className="h-8 w-8 text-blue-600" />
-            Staff: User Management
+          <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
+            <Users className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
+            {t('staff.userManagement')}
           </h1>
           <p className="text-gray-600 mt-2">
-            Monitor and manage registered users
+            {t('staff.viewUserProfiles')}
           </p>
         </div>
-        <Button onClick={loadUsers} variant="outline" size="sm">
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Refresh
+        <Button onClick={handleRefresh} variant="outline" size="sm" disabled={refreshing}>
+          <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+          {t('common.refresh')}
         </Button>
       </div>
 
       {/* Stats Cards */}
-      <div className="flex flex-wrap gap-3">
-        <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-white border-gray-200">
-          <Users className="h-3 w-3 text-gray-500" />
-          <span className="text-sm font-medium">{users.length} Total Users</span>
-        </Badge>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">{t('staff.totalUsers')}</CardTitle>
+            <Users className="h-4 w-4 text-gray-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{users.length}</div>
+            <p className="text-xs text-gray-500">{t('staff.allUsers')}</p>
+          </CardContent>
+        </Card>
 
-        <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-green-50 border-green-200 text-green-700">
-          <UserCheck className="h-3 w-3" />
-          <span className="text-sm font-medium">{verifiedUsers.length} Verified</span>
-          <span className="text-xs text-green-500">{users.length > 0 ? Math.round((verifiedUsers.length / users.length) * 100) : 0}%</span>
-        </Badge>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">{t('staff.activeUsers')}</CardTitle>
+            <UserCheck className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">
+              {users.filter(u => u.status === 'active').length}
+            </div>
+            <p className="text-xs text-gray-500">{t('staff.activeStatus')}</p>
+          </CardContent>
+        </Card>
 
-        <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-blue-50 border-blue-200 text-blue-700">
-          <TrendingUp className="h-3 w-3" />
-          <span className="text-sm font-medium">{totalPoints.toLocaleString()} Total Points</span>
-          <span className="text-xs text-blue-500">{averagePoints} avg</span>
-        </Badge>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">{t('staff.verifiedUsers')}</CardTitle>
+            <Shield className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">
+              {users.filter(u => u.isEmailVerified).length}
+            </div>
+            <p className="text-xs text-gray-500">{t('staff.emailVerified')}</p>
+          </CardContent>
+        </Card>
 
-        <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-purple-50 border-purple-200 text-purple-700">
-          <Calendar className="h-3 w-3" />
-          <span className="text-sm font-medium">
-            {users.filter(user => {
-              const created = new Date(user.createdAt);
-              const now = new Date();
-              return created.getMonth() === now.getMonth() && created.getFullYear() === now.getFullYear();
-            }).length} This Month
-          </span>
-        </Badge>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">{t('staff.suspendedUsers')}</CardTitle>
+            <UserX className="h-4 w-4 text-orange-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-600">
+              {users.filter(u => u.status === 'suspended' || u.status === 'banned').length}
+            </div>
+            <p className="text-xs text-gray-500">{t('staff.suspendedOrBanned')}</p>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Search */}
+      {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle>Search Users</CardTitle>
-          <CardDescription>
-            Find users by name or email address
-          </CardDescription>
+          <CardTitle>{t('staff.filters')}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Search by name or email..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  placeholder={t('staff.searchUsers')}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">{t('staff.allStatuses')}</option>
+              <option value="active">{t('staff.active')}</option>
+              <option value="suspended">{t('staff.suspended')}</option>
+              <option value="banned">{t('staff.banned')}</option>
+            </select>
           </div>
         </CardContent>
       </Card>
 
       {/* Users List */}
-      <Card className=" max-w-[350px] md:max-w-full">
+      <Card>
         <CardHeader>
-          <CardTitle>Users ({filteredUsers.length})</CardTitle>
+          <CardTitle>{t('staff.usersList')}</CardTitle>
           <CardDescription>
-            {searchQuery ? `Search results for "${searchQuery}"` : 'All registered users'}
+            {t('staff.showingResults', { count: filteredUsers.length, total: users.length })}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {filteredUsers.length > 0 ? (
-            <>
-              <div className="w-full overflow-x-auto -mx-4 sm:mx-0">
-                <div className="min-w-full inline-block align-middle">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[180px]">User</th>
-                        <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                        <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Points</th>
-                        <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">Activity</th>
-                        <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
-                        <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {paginatedUsers.map((user) => (
-                        <tr key={user.id} className="hover:bg-gray-50">
-                          <td className="px-2 sm:px-4 py-3">
-                            <div className="flex items-center gap-3">
-                              <div className="relative">
-                                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-medium text-xs sm:text-sm">
-                                  {getInitials(user.name)}
-                                </div>
-                                {user.isEmailVerified && (
-                                  <div className="absolute -bottom-1 -right-1 bg-green-500 text-white rounded-full p-1">
-                                    <UserCheck className="h-3 w-3" />
-                                  </div>
-                                )}
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <p className="font-medium truncate text-xs sm:text-sm">{user.name}</p>
-                                <p className="text-xs text-gray-500 truncate hidden sm:block">{user.email}</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
-                            {user.isEmailVerified ? (
-                              <Badge variant="default" className="text-xs">
-                                <UserCheck className="h-3 w-3 mr-1" />
-                                <span className="hidden sm:inline">Verified</span>
-                              </Badge>
-                            ) : (
-                              <Badge variant="secondary" className="text-xs">
-                                <span className="hidden sm:inline">Unverified</span>
-                              </Badge>
-                            )}
-                          </td>
-                          <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
-                            <div className="text-center">
-                              <Badge variant="outline" className="font-mono text-xs">
-                                {user.points}
-                              </Badge>
-                            </div>
-                          </td>
-                          <td className="px-2 sm:px-4 py-3">
-                            <div className="space-y-1 text-xs">
-                              <div>{user.consecutiveCheckIns || 0} day</div>
-                              {user.lastCheckInDate && (
-                                <div className="text-gray-500 hidden sm:block">
-                                  Last: {new Date(user.lastCheckInDate).toLocaleDateString()}
-                                </div>
-                              )}
-                              {user.referralCode && (
-                                <div className="text-gray-500 hidden sm:block">Ref: {user.referralCode}</div>
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
-                            <span className="text-xs sm:text-sm">{new Date(user.createdAt).toLocaleDateString()}</span>
-                          </td>
-                          <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
-                            <Button
-                              size="sm"
-                              variant={user.isEmailVerified ? "destructive" : "default"}
-                              onClick={() => handleUserStatusUpdate(user.id, !user.isEmailVerified)}
-                              className="text-xs p-2"
-                            >
-                              <span className="hidden sm:inline">
-                                {user.isEmailVerified ? 'Unverify' : 'Verify'}
-                              </span>
-                              <span className="sm:hidden">
-                                {user.isEmailVerified ? 'Un' : 'V'}
-                              </span>
-                            </Button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+          <div className="space-y-4">
+            {filteredUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((user) => (
+              <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center gap-4">
+                  <Avatar>
+                    <AvatarImage src={user.avatar} />
+                    <AvatarFallback>{getInitials(user.name || '')}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h4 className="font-medium">{user.name}</h4>
+                    <p className="text-sm text-gray-500">{user.email}</p>
+                    <p className="text-xs text-gray-400">{user.recentActivity}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant={getRoleVariant(user.role)}>
+                    {t(`staff.${user.role}`)}
+                  </Badge>
+                  <Badge variant={getStatusVariant(user.status || 'active')}>
+                    {t(`staff.${user.status || 'active'}`)}
+                  </Badge>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedUser(user);
+                      setShowUserModal(true);
+                    }}
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
-              <PaginationControls
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-              />
-            </>
-          ) : (
-            <div className="text-center py-12">
-              <Users className="h-12 w-12 mx-auto text-gray-400 mb-3" />
-              <h3 className="text-lg font-medium mb-2">
-                {searchQuery ? 'No users found' : 'No users yet'}
-              </h3>
-              <p className="text-gray-500">
-                {searchQuery 
-                  ? 'Try adjusting your search query'
-                  : 'Users will appear here once they register'
-                }
-              </p>
+            ))}
+          </div>
+
+          {/* Pagination */}
+          {filteredUsers.length > itemsPerPage && (
+            <div className="flex justify-center mt-6">
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                >
+                  {t('common.previous')}
+                </Button>
+                <span className="flex items-center px-3 text-sm">
+                  {t('staff.page')} {currentPage} {t('staff.of')} {Math.ceil(filteredUsers.length / itemsPerPage)}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.min(Math.ceil(filteredUsers.length / itemsPerPage), prev + 1))}
+                  disabled={currentPage === Math.ceil(filteredUsers.length / itemsPerPage)}
+                >
+                  {t('common.next')}
+                </Button>
+              </div>
             </div>
           )}
         </CardContent>
       </Card>
+
+      {/* User Details Modal */}
+      <Dialog open={showUserModal} onOpenChange={setShowUserModal}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{t('staff.userDetails')}</DialogTitle>
+            <DialogDescription>
+              {t('staff.userDetailsDescription')}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedUser && (
+            <div className="space-y-6">
+              {/* User Info */}
+              <div className="flex items-center gap-4">
+                <Avatar className="h-16 w-16">
+                  <AvatarImage src={selectedUser.avatar} />
+                  <AvatarFallback>{getInitials(selectedUser.name || '')}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <h3 className="text-xl font-semibold">{selectedUser.name}</h3>
+                  <p className="text-gray-500">{selectedUser.email}</p>
+                  <div className="flex gap-2 mt-2">
+                    <Badge variant={getRoleVariant(selectedUser.role)}>
+                      {t(`staff.${selectedUser.role}`)}
+                    </Badge>
+                    <Badge variant={getStatusVariant(selectedUser.status || 'active')}>
+                      {t(`staff.${selectedUser.status || 'active'}`)}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+
+              {/* User Stats */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 border rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Coins className="h-5 w-5 text-yellow-500" />
+                    <span className="font-medium">{t('staff.totalPoints')}</span>
+                  </div>
+                  <p className="text-2xl font-bold">{selectedUser.points || 0}</p>
+                </div>
+                <div className="p-4 border rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-5 w-5 text-blue-500" />
+                    <span className="font-medium">{t('staff.memberSince')}</span>
+                  </div>
+                  <p className="text-sm">{new Date(selectedUser.createdAt).toLocaleDateString()}</p>
+                </div>
+              </div>
+
+              {/* Additional Info */}
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-medium mb-2">{t('staff.additionalInfo')}</h4>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-500">{t('staff.emailVerified')}:</span>
+                      <span className="ml-2">
+                        {selectedUser.isEmailVerified ? t('staff.yes') : t('staff.no')}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">{t('staff.consecutiveCheckIns')}:</span>
+                      <span className="ml-2">{selectedUser.consecutiveCheckIns || 0}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">{t('staff.totalReferrals')}:</span>
+                      <span className="ml-2">{selectedUser.totalSuccessfulReferrals || 0}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">{t('staff.lastCheckIn')}:</span>
+                      <span className="ml-2">
+                        {selectedUser.lastCheckInDate ? new Date(selectedUser.lastCheckInDate).toLocaleDateString() : t('staff.never')}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

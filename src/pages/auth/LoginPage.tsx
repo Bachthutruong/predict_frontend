@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../hooks/use-toast';
+import { useLanguage } from '../../hooks/useLanguage';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
@@ -20,6 +21,7 @@ const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   // Check for registration success message
   useEffect(() => {
@@ -40,10 +42,10 @@ const LoginPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
-      setError('Please fill in all fields');
+      setError(t('auth.emailRequired'));
       toast({
-        title: "Missing Information",
-        description: "Please fill in all fields",
+        title: t('common.error'),
+        description: t('auth.emailRequired'),
         variant: "destructive"
       });
       return;
@@ -56,24 +58,24 @@ const LoginPage: React.FC = () => {
       const result = await login({ email, password });
       if (result.success) {
         toast({
-          title: "Welcome back!",
-          description: "You have successfully logged in",
+          title: t('messages.welcomeBack'),
+          description: t('messages.loginSuccess'),
           variant: "default"
         });
         navigate('/dashboard');
       } else {
-        setError(result.message || 'Login failed');
+        setError(result.message || t('auth.invalidCredentials'));
         toast({
-          title: "Login Failed",
-          description: result.message || 'Please check your credentials and try again',
+          title: t('auth.login'),
+          description: result.message || t('auth.invalidCredentials'),
           variant: "destructive"
         });
       }
     } catch (error) {
-      setError('An error occurred during login');
+      setError(t('errors.unknownError'));
       toast({
-        title: "Error",
-        description: "An error occurred during login. Please try again.",
+        title: t('common.error'),
+        description: t('errors.unknownError'),
         variant: "destructive"
       });
     } finally {
@@ -86,10 +88,10 @@ const LoginPage: React.FC = () => {
       <CardHeader className="text-center">
         <CardTitle className="text-2xl flex items-center justify-center gap-2">
           <LogIn className="h-6 w-6" />
-          Sign In
+          {t('auth.signIn')}
         </CardTitle>
         <CardDescription>
-          Enter your credentials to access your account
+          {t('auth.login')}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -112,12 +114,12 @@ const LoginPage: React.FC = () => {
           
           <div className="space-y-2">
             <label htmlFor="email" className="text-sm font-medium">
-              Email
+              {t('auth.email')}
             </label>
             <Input
               id="email"
               type="email"
-              placeholder="Enter your email"
+              placeholder={t('auth.email')}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -126,12 +128,12 @@ const LoginPage: React.FC = () => {
 
           <div className="space-y-2">
             <label htmlFor="password" className="text-sm font-medium">
-              Password
+              {t('auth.password')}
             </label>
             <Input
               id="password"
               type="password"
-              placeholder="Enter your password"
+              placeholder={t('auth.password')}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -142,19 +144,19 @@ const LoginPage: React.FC = () => {
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Signing in...
+                {t('common.loading')}
               </>
             ) : (
-              'Sign In'
+              t('auth.signIn')
             )}
           </Button>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-sm text-muted-foreground">
-            Don't have an account?{' '}
+            {t('auth.dontHaveAccount')}{' '}
             <Link to="/register" className="text-primary hover:underline font-medium">
-              Sign up
+              {t('auth.signUp')}
             </Link>
           </p>
         </div>

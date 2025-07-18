@@ -40,10 +40,12 @@ import {
 import { useToast } from '../../hooks/use-toast';
 import type { PointTransaction, Referral } from '../../types';
 import apiService from '../../services/api';
+import { useLanguage } from '../../hooks/useLanguage';
 
 const ProfilePage: React.FC = () => {
   const { user, refreshUser } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [transactions, setTransactions] = useState<PointTransaction[]>([]);
   const [referrals, setReferrals] = useState<Referral[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -94,8 +96,8 @@ const ProfilePage: React.FC = () => {
       setTransactions([]);
       setReferrals([]);
       toast({
-        title: "Error",
-        description: "Failed to load profile data",
+        title: t('common.error'),
+        description: t('profile.loadDataError'),
         variant: "destructive"
       });
     } finally {
@@ -111,8 +113,8 @@ const ProfilePage: React.FC = () => {
       setTimeout(() => setCopiedReferralCode(false), 2000);
       
       toast({
-        title: "Copied!",
-        description: "Referral link copied to clipboard"
+        title: t('profile.copied'),
+        description: t('profile.referralLinkCopied')
       });
     }
   };
@@ -122,8 +124,8 @@ const ProfilePage: React.FC = () => {
       const referralUrl = `${window.location.origin}/register?ref=${user.referralCode}`;
       try {
         await navigator.share({
-          title: 'Join PredictWin!',
-          text: 'I found this awesome prediction game. Join me and let\'s win together!',
+          title: t('profile.joinPredictWin'),
+          text: t('profile.shareMessage'),
           url: referralUrl,
         });
       } catch (error) {
@@ -137,7 +139,7 @@ const ProfilePage: React.FC = () => {
   // Handler to set referral code
   const handleSetReferralCode = async () => {
     if (!referralCodeInput.trim() || referralCodeInput.trim().length < 4) {
-      toast({ title: 'Error', description: 'Referral code must be at least 4 characters.', variant: 'destructive' });
+      toast({ title: t('common.error'), description: t('profile.referralCodeMinLength'), variant: 'destructive' });
       return;
     }
     setIsSettingReferral(true);
@@ -149,14 +151,14 @@ const ProfilePage: React.FC = () => {
       if (response.data?.success) {
         await refreshUser(); // Cập nhật lại user context
         setReferralCodeInput(''); // Clear input after success
-        toast({ title: 'Success', description: 'Referral code set successfully.' });
+        toast({ title: t('common.success'), description: t('profile.referralCodeSetSuccess') });
         console.log('User context after refresh:', user);
       } else {
-        toast({ title: 'Error', description: response.data?.message || 'Failed to set referral code', variant: 'destructive' });
+        toast({ title: t('common.error'), description: response.data?.message || t('profile.setReferralCodeError'), variant: 'destructive' });
       }
     } catch (error: any) {
       console.error('Set referral code error:', error);
-      toast({ title: 'Error', description: error.response?.data?.message || 'Failed to set referral code', variant: 'destructive' });
+      toast({ title: t('common.error'), description: error.response?.data?.message || t('profile.setReferralCodeError'), variant: 'destructive' });
     } finally {
       setIsSettingReferral(false);
     }
@@ -183,8 +185,8 @@ const ProfilePage: React.FC = () => {
     return (
       <div className="max-w-7xl mx-auto p-3 sm:p-6 space-y-4 sm:space-y-8">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Profile</h1>
-          <p className="text-sm sm:text-base text-muted-foreground mt-2">Loading profile...</p>
+          <h1 className="text-2xl sm:text-3xl font-bold">{t('profile.title')}</h1>
+          <p className="text-sm sm:text-base text-muted-foreground mt-2">{t('profile.loadingProfile')}</p>
         </div>
       </div>
     );
@@ -196,10 +198,10 @@ const ProfilePage: React.FC = () => {
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
           <User className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
-          Profile
+          {t('profile.title')}
         </h1>
         <p className="text-sm sm:text-base text-muted-foreground mt-2">
-          Manage your account, view your progress, and track your referrals
+          {t('profile.manageAccount')}
         </p>
       </div>
 
@@ -227,12 +229,12 @@ const ProfilePage: React.FC = () => {
                 <Coins className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                 <span className="text-xl sm:text-2xl font-bold text-primary">{user.points}</span>
               </div>
-              <p className="text-xs sm:text-sm text-muted-foreground">Total Points</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">{t('profile.totalPoints')}</p>
               
               <div className="flex items-center justify-center sm:justify-end gap-2 mt-4">
                 <Activity className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
                 <span className="text-xs sm:text-sm text-green-600 font-medium">
-                  {user.consecutiveCheckIns || 0} day streak
+                  {user.consecutiveCheckIns || 0} {t('profile.dayStreak')}
                 </span>
               </div>
             </div>
@@ -244,39 +246,39 @@ const ProfilePage: React.FC = () => {
       <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Total Referrals</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">{t('profile.totalReferrals')}</CardTitle>
             <Users className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg sm:text-2xl font-bold">{Array.isArray(referrals) ? referrals.length : 0}</div>
             <p className="text-xs text-muted-foreground">
-              {completedReferrals} completed, {pendingReferrals} pending
+              {completedReferrals} {t('profile.completed')}, {pendingReferrals} {t('profile.pending')}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Recent Transactions</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">{t('profile.recentTransactions')}</CardTitle>
             <History className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-lg sm:text-2xl font-bold">{Array.isArray(transactions) ? transactions.length : 0}</div>
             <p className="text-xs text-muted-foreground">
-              Point transactions this month
+              {t('profile.pointTransactionsThisMonth')}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Account Status</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">{t('profile.accountStatus')}</CardTitle>
             <Trophy className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-lg sm:text-2xl font-bold text-green-600">Active</div>
+            <div className="text-lg sm:text-2xl font-bold text-green-600">{t('profile.active')}</div>
             <p className="text-xs text-muted-foreground">
-              Member since {new Date(user.createdAt).toLocaleDateString()}
+              {t('profile.memberSince')} {new Date(user.createdAt).toLocaleDateString()}
             </p>
           </CardContent>
         </Card>
@@ -285,9 +287,9 @@ const ProfilePage: React.FC = () => {
       {/* Tabs */}
       <Tabs defaultValue="transactions" className="space-y-4 sm:space-y-6">
         <TabsList className="grid w-full grid-cols-3 h-10 sm:h-12">
-          <TabsTrigger value="transactions" className="text-xs sm:text-sm">Point History</TabsTrigger>
-          <TabsTrigger value="referrals" className="text-xs sm:text-sm">Referrals</TabsTrigger>
-          <TabsTrigger value="edit" className="text-xs sm:text-sm">Edit Profile</TabsTrigger>
+          <TabsTrigger value="transactions" className="text-xs sm:text-sm">{t('profile.pointHistory')}</TabsTrigger>
+          <TabsTrigger value="referrals" className="text-xs sm:text-sm">{t('profile.referrals')}</TabsTrigger>
+          <TabsTrigger value="edit" className="text-xs sm:text-sm">{t('profile.editProfile')}</TabsTrigger>
         </TabsList>
 
         {/* Transaction History Tab */}
@@ -296,16 +298,16 @@ const ProfilePage: React.FC = () => {
             <CardHeader>
               <div className="flex items-center gap-2">
                 <History className="h-5 w-5" />
-                <CardTitle>Transaction History</CardTitle>
+                <CardTitle>{t('profile.transactionHistory')}</CardTitle>
               </div>
               <CardDescription>
-                Your recent point transactions and earnings
+                {t('profile.recentPointTransactions')}
               </CardDescription>
             </CardHeader>
             <CardContent>
               {isLoading ? (
                 <div className="text-center py-8">
-                  <p>Loading transactions...</p>
+                  <p>{t('profile.loadingTransactions')}</p>
                 </div>
               ) : (
                 transactions.length > 0 ? (
@@ -313,10 +315,10 @@ const ProfilePage: React.FC = () => {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Reason</TableHead>
-                          <TableHead>Notes</TableHead>
-                          <TableHead className="text-right">Amount</TableHead>
-                          <TableHead className="text-right">Date</TableHead>
+                          <TableHead>{t('profile.reason')}</TableHead>
+                          <TableHead>{t('profile.notes')}</TableHead>
+                          <TableHead className="text-right">{t('profile.amount')}</TableHead>
+                          <TableHead className="text-right">{t('profile.date')}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -343,7 +345,7 @@ const ProfilePage: React.FC = () => {
                     {totalPages > 1 && (
                       <div className="flex items-center justify-between pt-4">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm text-muted-foreground">Rows per page:</span>
+                          <span className="text-sm text-muted-foreground">{t('profile.rowsPerPage')}:</span>
                           <Select value={String(rowsPerPage)} onValueChange={value => { setRowsPerPage(Number(value)); setCurrentPage(1); }}>
                             <SelectTrigger className="w-20">
                               <SelectValue />
@@ -357,7 +359,7 @@ const ProfilePage: React.FC = () => {
                         </div>
                         <div className="flex items-center gap-4">
                           <span className="text-sm text-muted-foreground">
-                            Page {currentPage} of {totalPages}
+                            {t('profile.page')} {currentPage} {t('profile.of')} {totalPages}
                           </span>
                           <div className="flex gap-2">
                             <Button
@@ -366,7 +368,7 @@ const ProfilePage: React.FC = () => {
                               onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                               disabled={currentPage === 1}
                             >
-                              Previous
+                              {t('common.previous')}
                             </Button>
                             <Button
                               variant="outline"
@@ -374,7 +376,7 @@ const ProfilePage: React.FC = () => {
                               onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                               disabled={currentPage === totalPages}
                             >
-                              Next
+                              {t('common.next')}
                             </Button>
                           </div>
                         </div>
@@ -384,8 +386,8 @@ const ProfilePage: React.FC = () => {
                 ) : (
                   <div className="text-center py-8">
                     <History className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-                    <p className="text-muted-foreground">No transactions yet</p>
-                    <p className="text-sm text-muted-foreground">Start by checking in daily or making predictions!</p>
+                    <p className="text-muted-foreground">{t('profile.noTransactionsYet')}</p>
+                    <p className="text-sm text-muted-foreground">{t('profile.startByCheckingIn')}</p>
                   </div>
                 )
               )}
@@ -401,15 +403,15 @@ const ProfilePage: React.FC = () => {
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <Gift className="h-5 w-5" />
-                  <CardTitle>Your Referral Code</CardTitle>
+                  <CardTitle>{t('profile.yourReferralCode')}</CardTitle>
                 </div>
                 <CardDescription>
-                  Share your code and earn bonus points when friends join!
+                  {t('profile.shareCodeEarnBonus')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 sm:space-y-6">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Referral Code</label>
+                  <label className="text-sm font-medium">{t('profile.referralCode')}</label>
                   <div className="flex items-center gap-2">
                     {user?.referralCode ? (
                       <Input 
@@ -422,7 +424,7 @@ const ProfilePage: React.FC = () => {
                         <Input
                           value={referralCodeInput}
                           onChange={e => setReferralCodeInput(e.target.value)}
-                          placeholder="Enter your referral code"
+                          placeholder={t('profile.enterReferralCode')}
                           maxLength={16}
                           className="font-mono text-sm"
                           disabled={isSettingReferral}
@@ -433,7 +435,7 @@ const ProfilePage: React.FC = () => {
                           onClick={handleSetReferralCode}
                           disabled={isSettingReferral || !referralCodeInput.trim() || referralCodeInput.trim().length < 4}
                         >
-                          {isSettingReferral ? 'Saving...' : 'Set Code'}
+                          {isSettingReferral ? t('profile.saving') : t('profile.setCode')}
                         </Button>
                       </>
                     )}
@@ -454,7 +456,7 @@ const ProfilePage: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Referral Link</label>
+                  <label className="text-sm font-medium">{t('profile.referralLink')}</label>
                   <div className="flex items-center gap-2">
                     <Input 
                       value={
@@ -466,7 +468,7 @@ const ProfilePage: React.FC = () => {
                       }
                       readOnly 
                       className="text-xs"
-                      placeholder="Set your referral code first"
+                      placeholder={t('profile.setReferralCodeFirst')}
                     />
                     <Button
                       variant="outline"
@@ -490,12 +492,12 @@ const ProfilePage: React.FC = () => {
                 </div>
 
                 <div className="bg-muted p-3 sm:p-4 rounded-lg">
-                  <h3 className="text-sm sm:text-base font-medium mb-2">How it works:</h3>
+                  <h3 className="text-sm sm:text-base font-medium mb-2">{t('profile.howItWorks')}:</h3>
                   <ul className="text-xs sm:text-sm text-muted-foreground space-y-1">
-                    <li>• Share your referral code with friends</li>
-                    <li>• They sign up and check in for 3 consecutive days</li>
-                    <li>• You both earn bonus points!</li>
-                    <li>• Get milestone bonuses every 10 successful referrals</li>
+                    <li>• {t('profile.shareReferralCode')}</li>
+                    <li>• {t('profile.theySignUpCheckIn')}</li>
+                    <li>• {t('profile.youBothEarnBonus')}</li>
+                    <li>• {t('profile.getMilestoneBonuses')}</li>
                   </ul>
                 </div>
               </CardContent>
@@ -507,7 +509,7 @@ const ProfilePage: React.FC = () => {
                 <CardHeader>
                   <div className="flex items-center gap-2">
                     <Trophy className="h-5 w-5" />
-                    <CardTitle>Milestone Progress</CardTitle>
+                    <CardTitle>{t('profile.milestoneProgress')}</CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -520,7 +522,7 @@ const ProfilePage: React.FC = () => {
                       return (
                         <>
                           <div className="flex items-center justify-between">
-                            <span className="text-xs sm:text-sm font-medium">Progress to {nextMilestone} referrals</span>
+                            <span className="text-xs sm:text-sm font-medium">{t('profile.progressToReferrals', { count: nextMilestone })}</span>
                             <span className="text-xs sm:text-sm text-muted-foreground">{completedReferrals}/{nextMilestone}</span>
                           </div>
                           <div className="w-full bg-secondary rounded-full h-2">
@@ -532,11 +534,11 @@ const ProfilePage: React.FC = () => {
                           <div className="text-center">
                             {pointsToNextMilestone > 0 ? (
                               <p className="text-xs sm:text-sm text-muted-foreground">
-                                {pointsToNextMilestone} more successful referral{pointsToNextMilestone > 1 ? 's' : ''} to earn <strong>500 bonus points!</strong>
+                                {t('profile.moreSuccessfulReferrals', { count: pointsToNextMilestone, points: 500 })}
                               </p>
                             ) : (
                               <p className="text-xs sm:text-sm text-green-600">
-                                🎉 Milestone reached! You've earned bonus points!
+                                🎉 {t('profile.milestoneReached')}
                               </p>
                             )}
                           </div>
@@ -553,10 +555,10 @@ const ProfilePage: React.FC = () => {
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <Users className="h-5 w-5" />
-                  <CardTitle>Your Referrals ({Array.isArray(referrals) ? referrals.length : 0})</CardTitle>
+                  <CardTitle>{t('profile.yourReferrals')} ({Array.isArray(referrals) ? referrals.length : 0})</CardTitle>
                 </div>
                 <CardDescription>
-                  Track your invited friends and their progress
+                  {t('profile.trackInvitedFriends')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -575,19 +577,19 @@ const ProfilePage: React.FC = () => {
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm sm:text-base font-medium truncate">{referral.referredUser?.name || 'User'}</p>
+                            <p className="text-sm sm:text-base font-medium truncate">{referral.referredUser?.name || t('profile.user')}</p>
                             <p className="text-xs sm:text-sm text-muted-foreground">
-                              Joined {new Date(referral.createdAt).toLocaleDateString()}
+                              {t('profile.joined')} {new Date(referral.createdAt).toLocaleDateString()}
                             </p>
                           </div>
                         </div>
                         <div className="text-right shrink-0">
                           <Badge variant={referral.status === 'completed' ? 'default' : 'secondary'} className="text-xs">
-                            {referral.status}
+                            {t(`profile.${referral.status}`)}
                           </Badge>
                           {referral.status === 'pending' && (
                             <p className="text-xs text-muted-foreground mt-1">
-                              {(referral.referredUser?.consecutiveCheckIns || 0)}/3 check-ins
+                              {(referral.referredUser?.consecutiveCheckIns || 0)}/3 {t('profile.checkIns')}
                             </p>
                           )}
                         </div>
@@ -597,8 +599,8 @@ const ProfilePage: React.FC = () => {
                 ) : (
                   <div className="text-center py-8">
                     <Users className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-                    <p className="text-muted-foreground">No referrals yet</p>
-                    <p className="text-sm text-muted-foreground">Share your code to start earning bonus points!</p>
+                    <p className="text-muted-foreground">{t('profile.noReferralsYet')}</p>
+                    <p className="text-sm text-muted-foreground">{t('profile.shareCodeToStart')}</p>
                   </div>
                 )}
               </CardContent>
@@ -611,7 +613,7 @@ const ProfilePage: React.FC = () => {
           <div className="space-y-6">
             <div className="flex items-center gap-2 mb-4">
               <Settings className="h-5 w-5" />
-              <h2 className="text-xl font-semibold">Edit Profile</h2>
+              <h2 className="text-xl font-semibold">{t('profile.editProfile')}</h2>
             </div>
             <ProfileEditForm />
           </div>

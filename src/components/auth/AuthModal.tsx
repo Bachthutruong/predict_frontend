@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../hooks/use-toast';
+import { useLanguage } from '../../hooks/useLanguage';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../ui/dialog';
@@ -21,22 +22,23 @@ const LoginForm = ({ onSuccess }: { onSuccess?: () => void; }) => {
   const [error, setError] = useState('');
   const { login } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     if (!email || !password) {
-      setError('Please fill in all fields.');
+      setError(t('auth.pleaseFillInAllFields'));
       return;
     }
     setIsLoading(true);
     const result = await login({ email, password });
     setIsLoading(false);
     if (result.success) {
-      toast({ title: 'Login Successful', description: 'Welcome back!' });
+      toast({ title: t('auth.loginSuccessful'), description: t('auth.welcomeBack') });
       onSuccess?.();
     } else {
-      setError(result.message || 'Login failed.');
+      setError(result.message || t('auth.loginFailed'));
     }
   };
 
@@ -49,21 +51,21 @@ const LoginForm = ({ onSuccess }: { onSuccess?: () => void; }) => {
       )}
       <Input
         type="email"
-        placeholder="Email"
+        placeholder={t('auth.email')}
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         required
       />
       <Input
         type="password"
-        placeholder="Password"
+        placeholder={t('auth.password')}
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         required
       />
       <Button type="submit" className="w-full" disabled={isLoading}>
         {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        Login
+        {t('auth.login')}
       </Button>
     </form>
   );
@@ -77,12 +79,13 @@ const RegisterForm = ({ onRegisterSuccess }: { onRegisterSuccess: () => void; })
   const [error, setError] = useState('');
   const { register } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     if (!name || !email || !password) {
-      setError('Please fill in all fields.');
+      setError(t('auth.pleaseFillInAllFields'));
       return;
     }
     setIsLoading(true);
@@ -90,12 +93,12 @@ const RegisterForm = ({ onRegisterSuccess }: { onRegisterSuccess: () => void; })
     setIsLoading(false);
     if (result.success) {
       toast({
-        title: 'Registration Successful',
-        description: 'Please check your email to verify your account.',
+        title: t('auth.registrationSuccessful'),
+        description: t('auth.accountCreated'),
       });
       onRegisterSuccess();
     } else {
-      setError(result.message || 'Registration failed.');
+      setError(result.message || t('auth.registrationFailed'));
     }
   };
 
@@ -107,28 +110,28 @@ const RegisterForm = ({ onRegisterSuccess }: { onRegisterSuccess: () => void; })
         </Alert>
       )}
       <Input
-        placeholder="Name"
+        placeholder={t('auth.name')}
         value={name}
         onChange={(e) => setName(e.target.value)}
         required
       />
       <Input
         type="email"
-        placeholder="Email"
+        placeholder={t('auth.email')}
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         required
       />
       <Input
         type="password"
-        placeholder="Password"
+        placeholder={t('auth.password')}
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         required
       />
       <Button type="submit" className="w-full" disabled={isLoading}>
         {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        Register
+        {t('auth.register')}
       </Button>
     </form>
   );
@@ -136,6 +139,7 @@ const RegisterForm = ({ onRegisterSuccess }: { onRegisterSuccess: () => void; })
 
 export const AuthModal: React.FC<AuthModalProps> = ({ open, onOpenChange, onSuccess }) => {
   const [selectedTab, setSelectedTab] = useState('login');
+  const { t } = useLanguage();
 
   const handleSuccess = () => {
     onOpenChange(false);
@@ -152,16 +156,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({ open, onOpenChange, onSucc
         <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
           <DialogHeader>
             <DialogTitle>
-              {selectedTab === 'login' ? 'Login' : 'Create an Account'}
+              {selectedTab === 'login' ? t('auth.login') : t('auth.createAccount')}
             </DialogTitle>
             <DialogDescription>
               {selectedTab === 'login' 
-                ? 'Access your account to make predictions.'
-                : 'Join to start making predictions and earning points.'}
+                ? t('auth.accessAccountToMakePredictions')
+                : t('auth.joinToStartMakingPredictions')}
             </DialogDescription>
             <TabsList className="grid w-full grid-cols-2 mt-4">
-              <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="register">Register</TabsTrigger>
+              <TabsTrigger value="login">{t('auth.login')}</TabsTrigger>
+              <TabsTrigger value="register">{t('auth.register')}</TabsTrigger>
             </TabsList>
           </DialogHeader>
           <TabsContent value="login" className="pt-4">

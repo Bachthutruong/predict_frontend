@@ -6,6 +6,7 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { UserPlus, Loader2 } from 'lucide-react';
+import { useLanguage } from '../../hooks/useLanguage';
 
 const RegisterPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -20,6 +21,7 @@ const RegisterPage: React.FC = () => {
   const { register } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   // Auto-fill referral code from URL parameter
   useEffect(() => {
@@ -33,30 +35,30 @@ const RegisterPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !email || !password) {
-      setError('Please fill in all required fields');
+      setError(t('auth.fillAllFields'));
       toast({
-        title: "Missing Information",
-        description: "Please fill in all required fields",
+        title: t('auth.missingInformation'),
+        description: t('auth.fillAllFields'),
         variant: "destructive"
       });
       return;
     }
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError(t('auth.passwordMismatch'));
       toast({
-        title: "Password Mismatch",
-        description: "Passwords do not match. Please try again.",
+        title: t('auth.passwordMismatch'),
+        description: t('auth.passwordMismatch'),
         variant: "destructive"
       });
       return;
     }
 
     if (password.length < 6) {
-      setError('Password must be at least 6 characters long');
+      setError(t('auth.passwordMinLength'));
       toast({
-        title: "Password Too Short",
-        description: "Password must be at least 6 characters long",
+        title: t('auth.passwordTooShort'),
+        description: t('auth.passwordMinLength'),
         variant: "destructive"
       });
       return;
@@ -75,8 +77,8 @@ const RegisterPage: React.FC = () => {
       
       if (result.success) {
         toast({
-          title: "Registration Successful!",
-          description: result.message || "Account created successfully! Please check your email to verify your account.",
+          title: t('auth.registrationSuccessful'),
+          description: result.message || t('auth.accountCreated'),
           variant: "default"
         });
         
@@ -87,18 +89,18 @@ const RegisterPage: React.FC = () => {
           } 
         });
       } else {
-        setError(result.message || 'Registration failed');
+        setError(result.message || t('auth.registrationFailed'));
         toast({
-          title: "Registration Failed",
-          description: result.message || 'Failed to create account. Please try again.',
+          title: t('auth.registrationFailed'),
+          description: result.message || t('auth.failedToCreateAccount'),
           variant: "destructive"
         });
       }
     } catch (error) {
-      setError('An error occurred during registration');
+      setError(t('auth.registrationError'));
       toast({
-        title: "Error",
-        description: "An error occurred during registration. Please try again.",
+        title: t('common.error'),
+        description: t('auth.registrationError'),
         variant: "destructive"
       });
     } finally {
@@ -111,10 +113,10 @@ const RegisterPage: React.FC = () => {
       <CardHeader className="text-center">
         <CardTitle className="text-2xl flex items-center justify-center gap-2">
           <UserPlus className="h-6 w-6" />
-          Sign Up
+          {t('auth.signUp')}
         </CardTitle>
         <CardDescription>
-          Create your account to start making predictions
+          {t('auth.createAccountToStart')}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -127,12 +129,12 @@ const RegisterPage: React.FC = () => {
           
           <div className="space-y-2">
             <label htmlFor="name" className="text-sm font-medium">
-              Full Name *
+              {t('auth.fullName')} *
             </label>
             <Input
               id="name"
               type="text"
-              placeholder="Enter your full name"
+              placeholder={t('auth.enterFullName')}
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
@@ -141,12 +143,12 @@ const RegisterPage: React.FC = () => {
 
           <div className="space-y-2">
             <label htmlFor="email" className="text-sm font-medium">
-              Email *
+              {t('auth.email')} *
             </label>
             <Input
               id="email"
               type="email"
-              placeholder="Enter your email"
+              placeholder={t('auth.enterEmail')}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -155,12 +157,12 @@ const RegisterPage: React.FC = () => {
 
           <div className="space-y-2">
             <label htmlFor="password" className="text-sm font-medium">
-              Password *
+              {t('auth.password')} *
             </label>
             <Input
               id="password"
               type="password"
-              placeholder="Enter your password (min 6 characters)"
+              placeholder={t('auth.enterPassword')}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -169,12 +171,12 @@ const RegisterPage: React.FC = () => {
 
           <div className="space-y-2">
             <label htmlFor="confirmPassword" className="text-sm font-medium">
-              Confirm Password *
+              {t('auth.confirmPassword')} *
             </label>
             <Input
               id="confirmPassword"
               type="password"
-              placeholder="Confirm your password"
+              placeholder={t('auth.confirmPassword')}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
@@ -183,12 +185,12 @@ const RegisterPage: React.FC = () => {
 
           <div className="space-y-2">
             <label htmlFor="referralCode" className="text-sm font-medium">
-              Referral Code (Optional)
+              {t('auth.referralCode')} ({t('auth.optional')})
             </label>
             <Input
               id="referralCode"
               type="text"
-              placeholder="Enter referral code if you have one"
+              placeholder={t('auth.enterReferralCode')}
               value={referralCode}
               onChange={(e) => setReferralCode(e.target.value)}
             />
@@ -198,19 +200,19 @@ const RegisterPage: React.FC = () => {
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating account...
+                {t('auth.creatingAccount')}
               </>
             ) : (
-              'Create Account'
+              t('auth.createAccount')
             )}
           </Button>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-sm text-muted-foreground">
-            Already have an account?{' '}
+            {t('auth.alreadyHaveAccount')}{' '}
             <Link to="/login" className="text-primary hover:underline font-medium">
-              Sign in
+              {t('auth.signIn')}
             </Link>
           </p>
         </div>

@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import type { ReactNode } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../hooks/useLanguage';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
+import { LanguageSwitcher } from '../ui/language-switcher';
 import { 
   Trophy, 
   Home, 
@@ -32,47 +34,48 @@ interface MainLayoutProps {
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const { t } = useLanguage();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
 
-  const guestNavigation = [
-    { name: 'Predictions', href: '/predictions', icon: Target },
-    { name: 'Voting', href: '/voting', icon: Vote },
-    { name: 'Surveys', href: '/surveys', icon: ListChecks },
-    { name: 'Feedback', href: '/feedback', icon: MessageSquare },
-  ];
+  const guestNavigation = useMemo(() => [
+    { name: t('navigation.predictions'), href: '/predictions', icon: Target },
+    { name: t('navigation.voting'), href: '/voting', icon: Vote },
+    { name: t('navigation.surveys'), href: '/surveys', icon: ListChecks },
+    { name: t('navigation.feedback'), href: '/feedback', icon: MessageSquare },
+  ], [t]);
 
-  const userNavigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: Home },
-    { name: 'Predictions', href: '/predictions', icon: Target },
-    { name: 'Voting', href: '/voting', icon: Vote },
-    { name: 'Check In', href: '/check-in', icon: Calendar },
-    { name: 'Surveys', href: '/surveys', icon: ListChecks },
-    { name: 'Profile', href: '/profile', icon: User },
-    { name: 'Referrals', href: '/referrals', icon: Gift },
-    { name: 'Feedback', href: '/feedback', icon: MessageSquare },
-  ];
+  const userNavigation = useMemo(() => [
+    { name: t('navigation.dashboard'), href: '/dashboard', icon: Home },
+    { name: t('navigation.predictions'), href: '/predictions', icon: Target },
+    { name: t('navigation.voting'), href: '/voting', icon: Vote },
+    { name: t('navigation.checkIn'), href: '/check-in', icon: Calendar },
+    { name: t('navigation.surveys'), href: '/surveys', icon: ListChecks },
+    { name: t('navigation.profile'), href: '/profile', icon: User },
+    { name: t('navigation.referrals'), href: '/referrals', icon: Gift },
+    { name: t('navigation.feedback'), href: '/feedback', icon: MessageSquare },
+  ], [t]);
 
-  const navigation = user ? userNavigation : guestNavigation;
+  const navigation = useMemo(() => user ? userNavigation : guestNavigation, [user, userNavigation, guestNavigation]);
 
-  const adminNavigation = [
-    { name: 'Admin Predictions', href: '/admin/predictions', icon: Trophy },
-    { name: 'Voting Management', href: '/admin/voting/campaigns', icon: Vote },
-    { name: 'Order Management', href: '/admin/orders', icon: Package },
-    { name: 'Survey Management', href: '/admin/surveys', icon: ListChecks },
-    { name: 'Questions Management', href: '/admin/questions', icon: HelpCircle },
-    { name: 'Staff Management', href: '/admin/staff', icon: Shield },
-    { name: 'User Management', href: '/admin/users', icon: User },
-    { name: 'Grant Points', href: '/admin/grant-points', icon: Coins },
-    { name: 'Admin Feedback', href: '/admin/feedback', icon: MessageSquare },
-  ];
+  const adminNavigation = useMemo(() => [
+    { name: t('admin.managePredictions'), href: '/admin/predictions', icon: Trophy },
+    { name: t('admin.manageVoting'), href: '/admin/voting/campaigns', icon: Vote },
+    { name: t('navigation.orders'), href: '/admin/orders', icon: Package },
+    { name: t('admin.manageSurveys'), href: '/admin/surveys', icon: ListChecks },
+    { name: t('navigation.questions'), href: '/admin/questions', icon: HelpCircle },
+    { name: t('admin.manageStaff'), href: '/admin/staff', icon: Shield },
+    { name: t('admin.manageUsers'), href: '/admin/users', icon: User },
+    { name: t('admin.grantPoints'), href: '/admin/grant-points', icon: Coins },
+    { name: t('navigation.feedback'), href: '/admin/feedback', icon: MessageSquare },
+  ], [t]);
 
-  const staffNavigation = [
-    { name: 'Staff Dashboard', href: '/staff', icon: Settings },
-    { name: 'View Predictions', href: '/staff/predictions', icon: Trophy },
-    { name: 'Manage Users', href: '/staff/users', icon: Users },
-    { name: 'Manage Questions', href: '/staff/questions', icon: HelpCircle },
-  ];
+  const staffNavigation = useMemo(() => [
+    { name: t('staff.title'), href: '/staff', icon: Settings },
+    { name: t('staff.managePredictions'), href: '/staff/predictions', icon: Trophy },
+    { name: t('staff.manageUsers'), href: '/staff/users', icon: Users },
+    { name: t('staff.manageQuestions'), href: '/staff/questions', icon: HelpCircle },
+  ], [t]);
 
   const isActive = (href: string) => location.pathname === href;
   const isAdminOrStaff = user?.role === 'admin' || user?.role === 'staff';
@@ -105,7 +108,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   const Icon = item.icon;
                   return (
                     <Link
-                      key={item.name}
+                      key={item.href}
                       to={item.href}
                       className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
                         isActive(item.href)
@@ -123,6 +126,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             
             {/* Right side - User info and actions */}
             <div className="flex items-center space-x-2 sm:space-x-4">
+              {/* Language Switcher */}
+              <LanguageSwitcher />
+              
               {user ? (
                 <>
                   {/* Points Display */}
@@ -176,6 +182,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                     size="sm"
                     onClick={logout}
                     className="hidden md:flex text-gray-500 hover:text-gray-700"
+                    title={t('auth.logout')}
                   >
                     <LogOut className="h-4 w-4" />
                   </Button>
@@ -183,10 +190,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               ) : (
                 <div className="flex items-center space-x-2">
                   <Button asChild variant="ghost">
-                    <Link to="/login">Login</Link>
+                    <Link to="/login">{t('auth.login')}</Link>
                   </Button>
                   <Button asChild>
-                    <Link to="/register">Sign Up</Link>
+                    <Link to="/register">{t('auth.signUp')}</Link>
                   </Button>
                 </div>
               )}
@@ -202,7 +209,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 const Icon = item.icon;
                 return (
                   <Link
-                    key={item.name}
+                    key={item.href}
                     to={item.href}
                     onClick={closeAllMenus}
                     className={`flex items-center px-3 py-2 rounded-md text-base font-medium ${
@@ -234,7 +241,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                     className="flex items-center w-full px-3 py-2 text-base font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md"
                   >
                     <LogOut className="h-5 w-5 mr-3" />
-                    Logout
+                    {t('auth.logout')}
                   </button>
                 </>
               )}
@@ -256,7 +263,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   const Icon = item.icon;
                   return (
                     <Link
-                      key={item.name}
+                      key={item.href}
                       to={item.href}
                       className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                         isActive(item.href)
@@ -274,7 +281,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   const Icon = item.icon;
                   return (
                     <Link
-                      key={item.name}
+                      key={item.href}
                       to={item.href}
                       className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                         isActive(item.href)
@@ -323,7 +330,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   const Icon = item.icon;
                   return (
                     <Link
-                      key={item.name}
+                      key={item.href}
                       to={item.href}
                       onClick={closeAllMenus}
                       className={`flex items-center px-3 py-3 text-base font-medium rounded-md transition-colors ${
@@ -342,7 +349,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   const Icon = item.icon;
                   return (
                     <Link
-                      key={item.name}
+                      key={item.href}
                       to={item.href}
                       onClick={closeAllMenus}
                       className={`flex items-center px-3 py-3 text-base font-medium rounded-md transition-colors ${

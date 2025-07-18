@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { votingAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../hooks/use-toast';
+import { useLanguage } from '../../hooks/useLanguage';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
@@ -44,6 +45,7 @@ const VotingDetailPage: React.FC = () => {
   const { id } = useParams();
   const { user, refreshUser } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   
   const [campaignData, setCampaignData] = useState<VotingCampaignDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -67,8 +69,8 @@ const VotingDetailPage: React.FC = () => {
         setCampaignData(response.data);
       } else {
         toast({
-          title: "Error",
-          description: "Failed to load campaign details",
+          title: t('common.error'),
+          description: t('voting.failedToLoadCampaignDetails'),
           variant: "destructive"
         });
         navigate('/voting');
@@ -76,8 +78,8 @@ const VotingDetailPage: React.FC = () => {
     } catch (error) {
       console.error('Failed to load campaign:', error);
       toast({
-        title: "Error",
-        description: "Failed to load campaign details",
+        title: t('common.error'),
+        description: t('voting.failedToLoadCampaignDetails'),
         variant: "destructive"
       });
       navigate('/voting');
@@ -99,8 +101,8 @@ const VotingDetailPage: React.FC = () => {
       
       if (response.success) {
         toast({
-          title: "Vote Submitted!",
-          description: `You earned ${response.data?.pointsEarned || 0} points for voting`,
+          title: t('voting.voteSubmitted'),
+          description: t('voting.earnedPoints', { points: response.data?.pointsEarned || 0 }),
         });
         
         // Refresh user data to update points
@@ -110,16 +112,16 @@ const VotingDetailPage: React.FC = () => {
         loadCampaignDetail();
       } else {
         toast({
-          title: "Vote Failed",
-          description: response.message || "Failed to submit vote",
+          title: t('voting.voteFailed'),
+          description: response.message || t('voting.failedToSubmitVote'),
           variant: "destructive"
         });
       }
     } catch (error: any) {
       console.error('Failed to vote:', error);
       toast({
-        title: "Vote Failed",
-        description: error.response?.data?.message || "Failed to submit vote",
+        title: t('voting.voteFailed'),
+        description: error.response?.data?.message || t('voting.failedToSubmitVote'),
         variant: "destructive"
       });
     } finally {
@@ -136,8 +138,8 @@ const VotingDetailPage: React.FC = () => {
       
       if (response.success) {
         toast({
-          title: "Vote Removed",
-          description: "Your vote has been removed",
+          title: t('voting.voteRemoved'),
+          description: t('voting.voteRemovedDescription'),
         });
         
         // Refresh user data to update points
@@ -147,16 +149,16 @@ const VotingDetailPage: React.FC = () => {
         loadCampaignDetail();
       } else {
         toast({
-          title: "Failed to Remove Vote",
-          description: response.message || "Failed to remove vote",
+          title: t('voting.failedToRemoveVote'),
+          description: response.message || t('voting.failedToRemoveVoteDescription'),
           variant: "destructive"
         });
       }
     } catch (error: any) {
       console.error('Failed to remove vote:', error);
       toast({
-        title: "Failed to Remove Vote",
-        description: error.response?.data?.message || "Failed to remove vote",
+        title: t('voting.failedToRemoveVote'),
+        description: error.response?.data?.message || t('voting.failedToRemoveVoteDescription'),
         variant: "destructive"
       });
     } finally {
@@ -184,7 +186,7 @@ const VotingDetailPage: React.FC = () => {
 //   };
 
   const formatTimeRemaining = (remainingTime: number) => {
-    if (remainingTime <= 0) return 'Ended';
+    if (remainingTime <= 0) return t('voting.ended');
     
     const days = Math.floor(remainingTime / (1000 * 60 * 60 * 24));
     const hours = Math.floor((remainingTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -198,17 +200,17 @@ const VotingDetailPage: React.FC = () => {
   const getStatusInfo = (campaign: any) => {
     switch (campaign.status) {
       case 'active':
-        return { text: 'Active', variant: 'default' as const, icon: Vote };
+        return { text: t('voting.status.active'), variant: 'default' as const, icon: Vote };
       case 'upcoming':
-        return { text: 'Upcoming', variant: 'secondary' as const, icon: Calendar };
+        return { text: t('voting.status.upcoming'), variant: 'secondary' as const, icon: Calendar };
       case 'closed':
-        return { text: 'Closed', variant: 'outline' as const, icon: Clock };
+        return { text: t('voting.status.closed'), variant: 'outline' as const, icon: Clock };
       case 'completed':
-        return { text: 'Completed', variant: 'outline' as const, icon: Trophy };
+        return { text: t('voting.status.completed'), variant: 'outline' as const, icon: Trophy };
       case 'cancelled':
-        return { text: 'Cancelled', variant: 'destructive' as const, icon: Calendar };
+        return { text: t('voting.status.cancelled'), variant: 'destructive' as const, icon: Calendar };
       case 'draft':
-        return { text: 'Draft', variant: 'secondary' as const, icon: Calendar };
+        return { text: t('voting.status.draft'), variant: 'secondary' as const, icon: Calendar };
       default:
         return { text: campaign.status, variant: 'secondary' as const, icon: Calendar };
     }
@@ -246,9 +248,9 @@ const VotingDetailPage: React.FC = () => {
     return (
       <div className="container mx-auto p-6">
         <div className="text-center py-12">
-          <h3 className="text-lg font-medium mb-2">Campaign not found</h3>
+          <h3 className="text-lg font-medium mb-2">{t('voting.campaignNotFound')}</h3>
           <Button onClick={() => navigate('/voting')}>
-            Back to Campaigns
+            {t('voting.backToCampaigns')}
           </Button>
         </div>
       </div>
@@ -269,7 +271,7 @@ const VotingDetailPage: React.FC = () => {
           className="flex items-center gap-2"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back
+          {t('common.back')}
         </Button>
         
         <div className="flex-1">
@@ -299,7 +301,7 @@ const VotingDetailPage: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Entries</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('voting.totalEntries')}</CardTitle>
             <Trophy className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -309,7 +311,7 @@ const VotingDetailPage: React.FC = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Votes</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('voting.totalVotes')}</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -321,7 +323,7 @@ const VotingDetailPage: React.FC = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Points/Vote</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('voting.pointsPerVote')}</CardTitle>
             <Vote className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -331,14 +333,14 @@ const VotingDetailPage: React.FC = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Time</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('voting.time')}</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {campaign.isVotingOpen && campaign.remainingTime ? 
                 formatTimeRemaining(campaign.remainingTime) : 
-                campaign.isVotingCompleted ? 'Ended' : 'Starts Soon'}
+                campaign.isVotingCompleted ? t('voting.ended') : t('voting.startsSoon')}
             </div>
           </CardContent>
         </Card>
@@ -354,9 +356,9 @@ const VotingDetailPage: React.FC = () => {
                   <Vote className="h-4 w-4 text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-medium">Your Voting Status</h3>
+                  <h3 className="font-medium">{t('voting.yourVotingStatus')}</h3>
                   <p className="text-sm text-muted-foreground">
-                    You have {getUserVotesRemaining()} vote{getUserVotesRemaining() !== 1 ? 's' : ''} remaining
+                    {t('voting.votesRemaining', { count: getUserVotesRemaining() })}
                   </p>
                 </div>
               </div>
@@ -373,12 +375,12 @@ const VotingDetailPage: React.FC = () => {
         <Card className="bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20">
           <CardContent className="text-center py-6">
             <Vote className="h-8 w-8 mx-auto text-primary mb-3" />
-            <h3 className="text-lg font-semibold mb-2">Want to vote?</h3>
+            <h3 className="text-lg font-semibold mb-2">{t('voting.wantToVote')}</h3>
             <p className="text-muted-foreground mb-4">
-              Sign in to vote for your favorite entries and earn {campaign.pointsPerVote} points per vote!
+              {t('voting.signInToVoteAndEarn', { points: campaign.pointsPerVote })}
             </p>
             <Button onClick={() => setShowAuthModal(true)}>
-              Sign In to Vote
+              {t('voting.signInToVote')}
             </Button>
           </CardContent>
         </Card>
@@ -386,7 +388,7 @@ const VotingDetailPage: React.FC = () => {
 
       {/* Sorting Controls */}
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Entries ({entries.length})</h2>
+        <h2 className="text-2xl font-bold">{t('voting.entries')} ({entries.length})</h2>
         
         <div className="flex items-center gap-2">
           <Filter className="h-4 w-4 text-muted-foreground" />
@@ -398,12 +400,12 @@ const VotingDetailPage: React.FC = () => {
               <SelectItem value="random">
                 <div className="flex items-center gap-2">
                   <Shuffle className="h-4 w-4" />
-                  Random
+                  {t('voting.sort.random')}
                 </div>
               </SelectItem>
-              <SelectItem value="votes">Most Votes</SelectItem>
-              <SelectItem value="newest">Newest First</SelectItem>
-              <SelectItem value="oldest">Oldest First</SelectItem>
+              <SelectItem value="votes">{t('voting.sort.mostVotes')}</SelectItem>
+              <SelectItem value="newest">{t('voting.sort.newestFirst')}</SelectItem>
+              <SelectItem value="oldest">{t('voting.sort.oldestFirst')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -413,9 +415,9 @@ const VotingDetailPage: React.FC = () => {
       {entries.length === 0 ? (
         <div className="text-center py-12">
           <Trophy className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-          <h3 className="text-xl font-medium mb-2">No entries yet</h3>
+          <h3 className="text-xl font-medium mb-2">{t('voting.noEntriesYet')}</h3>
           <p className="text-muted-foreground">
-            This campaign doesn't have any entries to vote on yet.
+            {t('voting.noEntriesDescription')}
           </p>
         </div>
       ) : (
@@ -449,7 +451,7 @@ const VotingDetailPage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Heart className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">{entry.voteCount || 0} votes</span>
+                    <span className="font-medium">{entry.voteCount || 0} {t('voting.votes')}</span>
                   </div>
                   
                   {campaign.isVotingCompleted && entry.voteCount > 0 && (
@@ -475,7 +477,7 @@ const VotingDetailPage: React.FC = () => {
                       ) : (
                         <CheckCircle className="h-4 w-4 mr-2" />
                       )}
-                      Voted
+                      {t('voting.voted')}
                     </Button>
                   ) : (
                     <Button 
@@ -488,19 +490,19 @@ const VotingDetailPage: React.FC = () => {
                       ) : (
                         <Vote className="h-4 w-4 mr-2" />
                       )}
-                      {!user ? 'Vote' : !canUserVote() ? 'Max Votes Reached' : 'Vote'}
+                      {!user ? t('voting.vote') : !canUserVote() ? t('voting.maxVotesReached') : t('voting.vote')}
                     </Button>
                   )
                 ) : (
                   <Button variant="outline" className="w-full" disabled>
-                    {campaign.status === 'closed' || campaign.status === 'completed' ? 'Voting Ended' : 'Voting Not Started'}
+                    {campaign.status === 'closed' || campaign.status === 'completed' ? t('voting.votingEnded') : t('voting.votingNotStarted')}
                   </Button>
                 )}
 
                 {/* Recent Voters (if any) */}
                 {entry.votes && entry.votes.length > 0 && (
                   <div className="text-xs text-muted-foreground">
-                    <p className="font-medium mb-1">Recent voters:</p>
+                    <p className="font-medium mb-1">{t('voting.recentVoters')}:</p>
                     <div className="flex flex-wrap gap-1">
                       {entry.votes.slice(0, 3).map((vote, index) => (
                         <span key={index} className="bg-muted px-2 py-1 rounded">
@@ -509,7 +511,7 @@ const VotingDetailPage: React.FC = () => {
                       ))}
                       {entry.votes.length > 3 && (
                         <span className="text-muted-foreground">
-                          +{entry.votes.length - 3} more
+                          +{entry.votes.length - 3} {t('voting.more')}
                         </span>
                       )}
                     </div>
