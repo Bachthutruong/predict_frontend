@@ -202,7 +202,7 @@ const FeedbackPage: React.FC = () => {
           ) : isLoadingFeedbacks ? (
             <p>{t('feedback.loadingHistory')}</p>
           ) : approvedFeedbacks.length > 0 ? (
-            <div className="space-y-4">
+            <div className="space-y-4 max-w-[300px] overflow-x-auto md:max-w-full">
               <Table>
                 <TableHeader>
                   <TableRow>

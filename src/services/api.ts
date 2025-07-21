@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { ApiResponse, LoginCredentials, RegisterData, Prediction, UserPrediction, User, Question, Feedback } from '../types';
+import type { ApiResponse, LoginCredentials, RegisterData, Prediction, UserPrediction, User, Question, Feedback, Contest, UserContest } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://predict-backend-63un.onrender.com/api';
 
@@ -578,6 +578,126 @@ export const votingAPI = {
   },
 };
 
+// Contest API
+export const contestAPI = {
+  getActiveContests: async (): Promise<ApiResponse<Contest[]>> => {
+    const response = await api.get('/contests');
+    return response.data;
+  },
+
+  getContestDetails: async (id: string, page = 1, limit = 20): Promise<ApiResponse<{
+    contest: Contest;
+    userSubmission: UserContest | null;
+    submissions: UserContest[];
+    totalSubmissions: number;
+    totalPages: number;
+  }>> => {
+    const response = await api.get(`/contests/${id}?page=${page}&limit=${limit}`);
+    return response.data;
+  },
+
+  submitAnswer: async (contestId: string, answer: string): Promise<ApiResponse<{
+    submission: UserContest;
+    remainingPoints: number;
+  }>> => {
+    const response = await api.post(`/contests/${contestId}/submit`, { answer });
+    return response.data;
+  },
+
+  getHistory: async (page = 1, limit = 20): Promise<ApiResponse<{
+    submissions: UserContest[];
+    totalSubmissions: number;
+    totalPages: number;
+    currentPage: number;
+  }>> => {
+    const response = await api.get(`/contests/history?page=${page}&limit=${limit}`);
+    return response.data;
+  },
+};
+
+// Admin Contest API
+export const adminContestAPI = {
+  getContests: async (): Promise<ApiResponse<Contest[]>> => {
+    const response = await api.get('/admin/contests');
+    return response.data;
+  },
+
+  getContestById: async (id: string, page = 1, limit = 10): Promise<ApiResponse<Contest>> => {
+    const response = await api.get(`/admin/contests/${id}`, { params: { page, limit } });
+    return response.data;
+  },
+
+  createContest: async (data: {
+    title: string;
+    description: string;
+    startDate: string;
+    endDate: string;
+    pointsPerAnswer: number;
+    rewardPoints: number;
+    imageUrl?: string;
+    status?: 'active' | 'finished' | 'draft';
+  }): Promise<ApiResponse<Contest>> => {
+    const response = await api.post('/admin/contests', data);
+    return response.data;
+  },
+
+  updateContest: async (id: string, data: any): Promise<ApiResponse<Contest>> => {
+    const response = await api.put(`/admin/contests/${id}`, data);
+    return response.data;
+  },
+
+  deleteContest: async (id: string): Promise<ApiResponse> => {
+    const response = await api.delete(`/admin/contests/${id}`);
+    return response.data;
+  },
+
+  publishAnswer: async (contestId: string, answer: string): Promise<ApiResponse<{
+    contest: Contest;
+    correctSubmissions: number;
+    totalSubmissions: number;
+  }>> => {
+    const response = await api.put(`/admin/contests/${contestId}/publish-answer`, { answer });
+    return response.data;
+  },
+
+  getSubmissions: async (contestId: string, page = 1, limit = 20, filter?: string): Promise<ApiResponse<{
+    submissions: UserContest[];
+    totalSubmissions: number;
+    totalPages: number;
+    currentPage: number;
+    statistics: {
+      total: number;
+      correct: number;
+      incorrect: number;
+    };
+  }>> => {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+    if (filter) params.append('filter', filter);
+    
+    const response = await api.get(`/admin/contests/${contestId}/submissions?${params}`);
+    return response.data;
+  },
+
+  getStatistics: async (contestId: string): Promise<ApiResponse<{
+    contest: Contest;
+    statistics: {
+      totalSubmissions: number;
+      correctSubmissions: number;
+      incorrectSubmissions: number;
+      participantCount: number;
+      totalPointsSpent: number;
+      totalRewardPointsAwarded: number;
+      accuracyRate: string;
+    };
+  }>> => {
+    const response = await api.get(`/admin/contests/${contestId}/statistics`);
+    return response.data;
+  },
+};
+
 // Unified API Service
 export const apiService = {
   get: api.get.bind(api),
@@ -596,6 +716,8 @@ export const apiService = {
   dashboard: dashboardAPI,
   staff: staffAPI,
   voting: votingAPI,
+  contest: contestAPI,
+  adminContest: adminContestAPI,
 };
 
 // Public API service for guest users (no interceptors)

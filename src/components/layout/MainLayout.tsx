@@ -6,6 +6,7 @@ import { useLanguage } from '../../hooks/useLanguage';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { LanguageSwitcher } from '../ui/language-switcher';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '../ui/dropdown-menu';
 import { 
   Trophy, 
   Home, 
@@ -24,7 +25,8 @@ import {
   X,
   Package,
   ListChecks,
-  Vote
+  Vote,
+  Award
 } from 'lucide-react';
 
 interface MainLayoutProps {
@@ -40,6 +42,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   const guestNavigation = useMemo(() => [
     { name: t('navigation.predictions'), href: '/predictions', icon: Target },
+    { name: t('navigation.contests'), href: '/contests', icon: Award },
     { name: t('navigation.voting'), href: '/voting', icon: Vote },
     { name: t('navigation.surveys'), href: '/surveys', icon: ListChecks },
     { name: t('navigation.feedback'), href: '/feedback', icon: MessageSquare },
@@ -48,6 +51,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const userNavigation = useMemo(() => [
     { name: t('navigation.dashboard'), href: '/dashboard', icon: Home },
     { name: t('navigation.predictions'), href: '/predictions', icon: Target },
+    { name: t('navigation.contests'), href: '/contests', icon: Award },
     { name: t('navigation.voting'), href: '/voting', icon: Vote },
     { name: t('navigation.checkIn'), href: '/check-in', icon: Calendar },
     { name: t('navigation.surveys'), href: '/surveys', icon: ListChecks },
@@ -58,8 +62,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   const navigation = useMemo(() => user ? userNavigation : guestNavigation, [user, userNavigation, guestNavigation]);
 
+  // Tách menu chính và menu more
+  const mainMenu = navigation.slice(0, 6);
+  const moreMenu = navigation.slice(6);
+
   const adminNavigation = useMemo(() => [
     { name: t('admin.managePredictions'), href: '/admin/predictions', icon: Trophy },
+    { name: t('admin.manageContests'), href: '/admin/contests', icon: Award },
     { name: t('admin.manageVoting'), href: '/admin/voting/campaigns', icon: Vote },
     { name: t('navigation.orders'), href: '/admin/orders', icon: Package },
     { name: t('admin.manageSurveys'), href: '/admin/surveys', icon: ListChecks },
@@ -93,7 +102,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Top Navigation */}
       <nav className="bg-white shadow-sm border-b relative z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             {/* Left side - Logo and Navigation */}
             <div className="flex items-center">
@@ -103,8 +112,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               </Link>
               
               {/* Desktop Navigation */}
-              <div className="hidden md:flex space-x-1">
-                {navigation.map((item) => {
+              <div className="hidden md:flex space-x-1 items-center">
+                {mainMenu.map((item) => {
                   const Icon = item.icon;
                   return (
                     <Link
@@ -121,6 +130,32 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                     </Link>
                   );
                 })}
+                {moreMenu.length > 0 && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="flex items-center px-3 py-2 text-sm font-medium">
+                        {t('navigation.more')}
+                        <span className="ml-1">▼</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start">
+                      {moreMenu.map((item) => {
+                        const Icon = item.icon;
+                        return (
+                          <DropdownMenuItem asChild key={item.href}>
+                            <Link
+                              to={item.href}
+                              className="flex items-center gap-2 px-2 py-1 text-sm"
+                            >
+                              <Icon className="h-4 w-4" />
+                              {item.name}
+                            </Link>
+                          </DropdownMenuItem>
+                        );
+                      })}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
               </div>
             </div>
             

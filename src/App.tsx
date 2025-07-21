@@ -25,6 +25,11 @@ import SurveyDetailPage from './pages/surveys/SurveyDetailPage';
 import VotingCampaignsPage from './pages/voting/VotingCampaignsPage';
 import VotingDetailPage from './pages/voting/VotingDetailPage';
 
+// Contest pages
+import ContestsPage from './pages/contests/ContestsPage';
+import ContestDetailPage from './pages/contests/ContestDetailPage';
+import ContestHistoryPage from './pages/contests/ContestHistoryPage';
+
 // Admin pages
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminPredictions from './pages/admin/AdminPredictions';
@@ -43,6 +48,11 @@ import AdminVotingCampaigns from './pages/admin/AdminVotingCampaigns';
 import AdminVotingForm from './pages/admin/AdminVotingForm';
 import AdminVotingDetail from './pages/admin/AdminVotingDetail';
 import AdminVotingStatistics from './pages/admin/AdminVotingStatistics';
+
+// Admin Contest pages
+import AdminContests from './pages/admin/AdminContests';
+import AdminContestDetail from './pages/admin/AdminContestDetail';
+import AdminContestEdit from './pages/admin/AdminContestEdit';
 
 // Staff pages
 import StaffDashboard from './pages/staff/StaffDashboard';
@@ -218,6 +228,34 @@ function AppRoutes() {
           <MainLayout>
             <VotingDetailPage />
           </MainLayout>
+        }
+      />
+
+      {/* Contest Routes */}
+      <Route
+        path="/contests"
+        element={
+          <MainLayout>
+            <ContestsPage />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/contests/:id"
+        element={
+          <MainLayout>
+            <ContestDetailPage />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/contests/history"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <ContestHistoryPage />
+            </MainLayout>
+          </ProtectedRoute>
         }
       />
 
@@ -420,6 +458,38 @@ function AppRoutes() {
           <ProtectedRoute roles={['admin']}>
             <MainLayout>
               <AdminVotingStatistics />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Admin Contest Routes */}
+      <Route
+        path="/admin/contests"
+        element={
+          <ProtectedRoute roles={['admin']}>
+            <MainLayout>
+              <AdminContests />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/contests/:id"
+        element={
+          <ProtectedRoute roles={['admin']}>
+            <MainLayout>
+              <AdminContestDetail />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/contests/:id/edit"
+        element={
+          <ProtectedRoute roles={['admin']}>
+            <MainLayout>
+              <AdminContestEdit />
             </MainLayout>
           </ProtectedRoute>
         }
