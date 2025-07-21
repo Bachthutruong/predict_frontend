@@ -36,15 +36,23 @@ const AdminContestEdit: React.FC = () => {
     try {
       setLoading(true);
       const response = await adminContestAPI.getContestById(id!);
-      if (response && response.data) {
+      // @ts-ignore
+      if (response && response.data && response.data.contest ) {
         setForm({
-          title: response.data.title || '',
-          description: response.data.description || '',
-          startDate: response.data.startDate ? response.data.startDate.slice(0, 16) : '',
-          endDate: response.data.endDate ? response.data.endDate.slice(0, 16) : '',
-          pointsPerAnswer: response.data.pointsPerAnswer || 0,
-          rewardPoints: response.data.rewardPoints || 0,
-          imageUrl: response.data.imageUrl || ''
+          // @ts-ignore
+          title: response.data.contest?.title || '',
+          // @ts-ignore
+          description: response.data.contest?.description || '',
+          // @ts-ignore
+          startDate: response.data.contest?.startDate ? response.data.contest?.startDate.slice(0, 16) : '',
+          // @ts-ignore
+          endDate: response.data.contest?.endDate ? response.data.contest?.endDate.slice(0, 16) : '',
+          // @ts-ignore
+          pointsPerAnswer: response.data.contest?.pointsPerAnswer || 0,
+          // @ts-ignore
+          rewardPoints: response.data.contest?.rewardPoints || 0,
+          // @ts-ignore
+          imageUrl: response.data.contest?.imageUrl || ''
         });
       } else {
         toast({ title: t('common.error'), description: t('contests.failedToFetchDetails'), variant: 'destructive' });
