@@ -200,7 +200,7 @@ const AdminPredictions: React.FC = () => {
             <RefreshCw className="h-4 w-4 mr-2" />
             <span className="hidden sm:inline">{t('common.refresh')}</span>
           </Button>
-          <Button size="sm">
+          <Button size="sm" onClick={() => navigate('/admin/predictions/create')}>
             <Plus className="h-4 w-4 mr-2" />
             <span className="hidden sm:inline">{t('admin.createPrediction')}</span>
           </Button>

@@ -5,6 +5,7 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 // Import translations
 import en from './locales/en.json';
 import zhTW from './locales/zh-TW.json';
+import vi from './locales/vi.json';
 
 const resources = {
   en: {
@@ -13,6 +14,9 @@ const resources = {
   'zh-TW': {
     translation: zhTW,
   },
+  vi: {
+    translation: vi,
+  },
 };
 
 i18n
@@ -20,7 +24,8 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    fallbackLng: 'en',
+    lng: 'vi', // Set Vietnamese as default language
+    fallbackLng: 'vi', // Set Vietnamese as fallback language
     debug: process.env.NODE_ENV === 'development',
 
     interpolation: {

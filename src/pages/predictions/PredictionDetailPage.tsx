@@ -240,10 +240,16 @@ const PredictionDetailPage: React.FC = () => {
                 <CardTitle className="flex items-center gap-2 text-2xl font-bold">
                   {prediction.title}
                 </CardTitle>
-                <Badge variant="outline" className="flex items-center gap-1">
-                  <Coins className="h-3 w-3" />
-                  {prediction.pointsCost} points
-                </Badge>
+                <div className="flex gap-2">
+                  <Badge variant="outline" className="flex items-center gap-1 text-red-600">
+                    <Coins className="h-3 w-3" />
+                    Trừ: {prediction.pointsCost} điểm
+                  </Badge>
+                  <Badge variant="outline" className="flex items-center gap-1 text-green-600">
+                    <Trophy className="h-3 w-3" />
+                    Thưởng: {prediction.rewardPoints || Math.round(prediction.pointsCost * 1.5)} điểm
+                  </Badge>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -275,23 +281,27 @@ const PredictionDetailPage: React.FC = () => {
                   </div>
                 </div>
                 <div>
-                  <span className="text-gray-500">Entry Cost:</span>
-                  <div className="font-medium">{prediction.pointsCost} points</div>
+                  <span className="text-gray-500">Chi phí dự đoán:</span>
+                  <div className="font-medium text-red-600">{prediction.pointsCost} điểm</div>
+                </div>
+                <div>
+                  <span className="text-gray-500">Điểm thưởng:</span>
+                  <div className="font-medium text-green-600">{prediction.rewardPoints || Math.round(prediction.pointsCost * 1.5)} điểm</div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           {/* Submit Prediction Form */}
-          {isActive && (
+          {isActive && !currentUserPrediction?.isCorrect && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Send className="h-5 w-5" />
-                  Make Your Prediction
+                  Dự đoán của bạn
                 </CardTitle>
                 <CardDescription>
-                  Submit your answer for a chance to win points! You can predict multiple times.
+                  Gửi câu trả lời để có cơ hội thắng điểm! Bạn có thể dự đoán nhiều lần cho đến khi đúng.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -307,7 +317,8 @@ const PredictionDetailPage: React.FC = () => {
                   </div>
                   <div className="flex justify-between items-center">
                     <div className="text-sm text-gray-500">
-                      Cost: {prediction.pointsCost} points • Win: {Math.round(prediction.pointsCost * 1.5)} points
+                      <span className="text-red-600">Trừ: {prediction.pointsCost} điểm</span> • 
+                      <span className="text-green-600"> Thưởng: {prediction.rewardPoints || Math.round(prediction.pointsCost * 1.5)} điểm</span>
                     </div>
                     <Button type="submit" disabled={isSubmitting || !guess.trim()}>
                       {isSubmitting ? (
@@ -372,12 +383,12 @@ const PredictionDetailPage: React.FC = () => {
                   <XCircle className="h-4 w-4 text-red-500" />
                 )}
                 <AlertDescription>
-                  <strong>Your prediction:</strong> "{currentUserPrediction.guess}"
+                  <strong>Dự đoán của bạn:</strong> "{currentUserPrediction.guess}"
                   {currentUserPrediction.isCorrect ? (
-                    <span className="text-green-700 ml-2">✓ Correct! You won points.</span>
+                    <span className="text-green-700 ml-2">✓ Chính xác! Bạn đã thắng {prediction.rewardPoints || Math.round(prediction.pointsCost * 1.5)} điểm thưởng!</span>
                   ) : (
                     <span className="text-gray-500 ml-2">
-                      Keep trying if you have enough points!
+                      Hãy thử lại nếu còn đủ điểm!
                     </span>
                   )}
                 </AlertDescription>

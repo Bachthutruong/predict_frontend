@@ -331,7 +331,9 @@ const AdminPredictionDetail: React.FC = () => {
             {prediction.answer && (
               <div className="flex flex-col sm:flex-row sm:justify-between gap-2">
                 <span className="text-sm font-medium text-gray-600">{t('admin.correctAnswer')}:</span>
-                <span className="text-sm font-medium text-green-600">{prediction.answer}</span>
+                <span className={`text-sm font-medium ${prediction.answer === '***ENCRYPTED***' ? 'text-red-500' : 'text-green-600'}`}>
+                  {prediction.answer === '***ENCRYPTED***' ? t('admin.encryptedAnswer') : prediction.answer}
+                </span>
               </div>
             )}
           </CardContent>

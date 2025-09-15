@@ -15,11 +15,17 @@ export const PredictionCard: React.FC<PredictionCardProps> = ({ prediction }) =>
     <Card className="flex flex-col">
       <CardHeader className="p-0">
         <Link to={`/predictions/${prediction.id}`}>
-          <img
-            src={prediction.imageUrl}
-            alt={prediction.title}
-            className="rounded-t-lg aspect-[3/2] object-cover w-full"
-          />
+          {prediction.imageUrl ? (
+            <img
+              src={prediction.imageUrl}
+              alt={prediction.title}
+              className="rounded-t-lg aspect-[3/2] object-cover w-full"
+            />
+          ) : (
+            <div className="rounded-t-lg aspect-[3/2] w-full bg-gradient-to-br from-blue-100 to-indigo-200 flex items-center justify-center">
+              <Trophy className="h-12 w-12 text-blue-400" />
+            </div>
+          )}
         </Link>
       </CardHeader>
       <CardContent className="flex-grow p-4">
@@ -47,13 +53,19 @@ export const PredictionCard: React.FC<PredictionCardProps> = ({ prediction }) =>
         </div>
       </CardContent>
       <CardFooter className="p-4 pt-0 flex justify-between items-center">
-        <div className="flex items-center gap-2 text-primary font-semibold">
-          <Tag className="h-4 w-4" />
-          <span>{prediction.pointsCost} Points</span>
+        <div className="flex items-center gap-2 text-sm">
+          <div className="flex items-center gap-1 text-red-600">
+            <Tag className="h-3 w-3" />
+            <span>Trừ: {prediction.pointsCost}</span>
+          </div>
+          <div className="flex items-center gap-1 text-green-600">
+            <Trophy className="h-3 w-3" />
+            <span>Thưởng: {prediction.rewardPoints || Math.round(prediction.pointsCost * 1.5)}</span>
+          </div>
         </div>
         <Button asChild>
           <Link to={`/predictions/${prediction.id}`}>
-            Make Prediction
+            Dự đoán
           </Link>
         </Button>
       </CardFooter>

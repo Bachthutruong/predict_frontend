@@ -2,7 +2,7 @@ import axios from 'axios';
 import type { ApiResponse, LoginCredentials, RegisterData, Prediction, UserPrediction, User, Question, Feedback, Contest, UserContest } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://predict-backend-63un.onrender.com/api';
-
+  
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {

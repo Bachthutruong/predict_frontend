@@ -13,7 +13,8 @@ export const useLanguage = () => {
 
   const availableLanguages = useMemo(() => [
     { code: 'en', name: 'English', nativeName: 'English' },
-    { code: 'zh-TW', name: 'Chinese (Traditional)', nativeName: '繁體中文' }
+    { code: 'zh-TW', name: 'Chinese (Traditional)', nativeName: '繁體中文' },
+    { code: 'vi', name: 'Vietnamese', nativeName: 'Tiếng Việt' }
   ], []);
 
   return {

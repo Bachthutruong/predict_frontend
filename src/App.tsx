@@ -35,6 +35,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminPredictions from './pages/admin/AdminPredictions';
 import AdminPredictionDetail from './pages/admin/AdminPredictionDetail';
 import AdminPredictionEdit from './pages/admin/AdminPredictionEdit';
+import AdminPredictionCreate from './pages/admin/AdminPredictionCreate';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminFeedback from './pages/admin/AdminFeedback';
 import AdminGrantPoints from './pages/admin/AdminGrantPoints';
@@ -296,6 +297,16 @@ function AppRoutes() {
           <ProtectedRoute roles={['admin']}>
             <MainLayout>
               <AdminPredictionDetail />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/predictions/create"
+        element={
+          <ProtectedRoute roles={['admin']}>
+            <MainLayout>
+              <AdminPredictionCreate />
             </MainLayout>
           </ProtectedRoute>
         }

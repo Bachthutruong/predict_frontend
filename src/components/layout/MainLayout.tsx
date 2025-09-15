@@ -5,7 +5,6 @@ import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../hooks/useLanguage';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { LanguageSwitcher } from '../ui/language-switcher';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '../ui/dropdown-menu';
 import { 
   Trophy, 
@@ -161,9 +160,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             
             {/* Right side - User info and actions */}
             <div className="flex items-center space-x-2 sm:space-x-4">
-              {/* Language Switcher */}
-              <LanguageSwitcher />
-              
               {user ? (
                 <>
                   {/* Points Display */}

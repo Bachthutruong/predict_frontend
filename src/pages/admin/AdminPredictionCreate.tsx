@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/textarea';
-
 import { Label } from '../../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { ImageUpload } from '../../components/ui/image-upload';
@@ -16,72 +15,22 @@ import {
 import { useToast } from '../../hooks/use-toast';
 import { useLanguage } from '../../hooks/useLanguage';
 import apiService from '../../services/api';
-import type { Prediction } from '../../types';
 
-const AdminPredictionEdit: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+const AdminPredictionCreate: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t } = useLanguage();
-
-  const [prediction, setPrediction] = useState<Prediction | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    pointsCost: 0,
-    rewardPoints: 0,
+    pointsCost: 10,
+    rewardPoints: 15, // Default to 1.5x pointsCost
     status: 'active',
     answer: '',
     imageUrl: ''
   });
-
-  useEffect(() => {
-    if (id) {
-      loadPrediction();
-    }
-  }, [id]);
-
-  const loadPrediction = async () => {
-    try {
-      setIsLoading(true);
-      const response = await apiService.get(`/admin/predictions/${id}`);
-      
-      if (response.data?.success && response.data?.data) {
-        const predictionData = response.data.data;
-        setPrediction(predictionData);
-        setFormData({
-          title: predictionData.title || '',
-          description: predictionData.description || '',
-          pointsCost: predictionData.pointsCost || 0,
-          rewardPoints: typeof predictionData.rewardPoints === 'number' && predictionData.rewardPoints > 0
-            ? predictionData.rewardPoints
-            : Math.round((predictionData.pointsCost || 0) * 1.5),
-          status: predictionData.status || 'active',
-          answer: predictionData.correctAnswer || predictionData.answer || '',
-          imageUrl: predictionData.imageUrl || ''
-        });
-      } else {
-        toast({
-          title: t('common.error'),
-          description: t('admin.failedToLoadPredictions'),
-          variant: 'destructive',
-        });
-        navigate('/admin/predictions');
-      }
-    } catch (error) {
-      console.error('Failed to load prediction:', error);
-      toast({
-        title: t('common.error'),
-        description: t('admin.failedToLoadPredictions'),
-        variant: 'destructive',
-      });
-      navigate('/admin/predictions');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,7 +38,7 @@ const AdminPredictionEdit: React.FC = () => {
     if (!formData.title.trim() || !formData.description.trim()) {
       toast({
         title: t('common.error'),
-        description: 'Please fill in all required fields',
+        description: t('admin.fillAllFields'),
         variant: 'destructive',
       });
       return;
@@ -97,7 +46,7 @@ const AdminPredictionEdit: React.FC = () => {
 
     setIsSaving(true);
     try {
-      const response = await apiService.put(`/admin/predictions/${id}`, {
+      const response = await apiService.post('/admin/predictions', {
         title: formData.title,
         description: formData.description,
         pointsCost: formData.pointsCost,
@@ -110,22 +59,22 @@ const AdminPredictionEdit: React.FC = () => {
       if (response.data?.success) {
         toast({
           title: t('common.success'),
-          description: 'Prediction updated successfully!',
+          description: t('admin.predictionCreatedSuccessfully'),
           variant: 'default',
         });
-        navigate(`/admin/predictions/${id}`);
+        navigate('/admin/predictions');
       } else {
         toast({
           title: t('common.error'),
-          description: 'Failed to update prediction',
+          description: t('admin.failedToCreatePrediction'),
           variant: 'destructive',
         });
       }
     } catch (error) {
-      console.error('Failed to update prediction:', error);
+      console.error('Failed to create prediction:', error);
       toast({
         title: t('common.error'),
-        description: 'Failed to update prediction',
+        description: t('admin.failedToCreatePrediction'),
         variant: 'destructive',
       });
     } finally {
@@ -135,78 +84,47 @@ const AdminPredictionEdit: React.FC = () => {
 
   const handleInputChange = (field: string, value: string | number) => {
     setFormData(prev => {
-      const newData: any = {
+      const newData = {
         ...prev,
         [field]: value
-      };
-      // Do not override rewardPoints if admin is editing it directly
-      if (field === 'pointsCost' && (prev.rewardPoints === Math.round(Number(prev.pointsCost) * 1.5))) {
+      } as any;
+      // Only auto-calc on create if rewardPoints has not been manually edited
+      if (field === 'pointsCost' && (!prev.rewardPoints || prev.rewardPoints === Math.round(Number(prev.pointsCost) * 1.5))) {
         newData.rewardPoints = Math.round(Number(value) * 1.5);
       }
       return newData;
     });
   };
 
-  if (isLoading) {
-    return (
-      <div className="container mx-auto p-4 sm:p-6">
-        <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-gray-200 rounded w-1/3"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
-          <div className="space-y-4">
-            <div className="h-12 bg-gray-200 rounded"></div>
-            <div className="h-32 bg-gray-200 rounded"></div>
-            <div className="h-12 bg-gray-200 rounded"></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!prediction) {
-    return (
-      <div className="container mx-auto p-4 sm:p-6 text-center">
-        <h1 className="text-xl sm:text-2xl font-bold mb-2">Prediction Not Found</h1>
-        <p className="text-gray-600 mb-6 text-sm sm:text-base">
-          The prediction you're looking for doesn't exist or has been removed.
-        </p>
-        <Button onClick={() => navigate('/admin/predictions')}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Predictions
-        </Button>
-      </div>
-    );
-  }
-
   return (
-    <div className="container mx-auto p-4 sm:p-6 space-y-6">
+    <div className="container mx-auto p-4 sm:p-6 max-w-4xl">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-4 flex-1 min-w-0">
-          <Button 
-            variant="ghost" 
-            onClick={() => navigate(`/admin/predictions/${id}`)}
-            className="flex items-center gap-2 flex-shrink-0"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">{t('common.back')}</span>
-          </Button>
-          
-          <div className="flex-1 min-w-0">
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold truncate">{t('admin.editPrediction')}</h1>
-            <p className="text-muted-foreground mt-1 text-sm sm:text-base">
-              {t('admin.editPredictionDescription')}
-            </p>
-          </div>
+      <div className="flex items-center gap-4 mb-6">
+        <Button 
+          variant="ghost" 
+          onClick={() => navigate('/admin/predictions')}
+          className="flex items-center gap-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          {t('common.back')}
+        </Button>
+        
+        <div>
+          <h1 className="text-3xl font-bold">
+            {t('admin.createPrediction')}
+          </h1>
+          <p className="text-muted-foreground">
+            {t('admin.createEditPredictions')}
+          </p>
         </div>
       </div>
 
-      {/* Edit Form */}
+      {/* Create Form */}
       <Card>
         <CardHeader>
           <CardTitle>{t('admin.predictionDetails')}</CardTitle>
           <CardDescription>
-            {t('admin.updatePredictionInfo')}
+            {t('admin.createEditPredictions')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -249,7 +167,7 @@ const AdminPredictionEdit: React.FC = () => {
               </p>
             </div>
 
-            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="pointsCost">{t('admin.pointsCost')} *</Label>
                 <Input
@@ -258,7 +176,6 @@ const AdminPredictionEdit: React.FC = () => {
                   min="1"
                   value={formData.pointsCost}
                   onChange={(e) => handleInputChange('pointsCost', parseInt(e.target.value) || 0)}
-                  placeholder="10"
                   required
                   className="w-full"
                 />
@@ -273,7 +190,6 @@ const AdminPredictionEdit: React.FC = () => {
                   min="1"
                   value={formData.rewardPoints}
                   onChange={(e) => handleInputChange('rewardPoints', parseInt(e.target.value) || 0)}
-                  placeholder="15"
                   required
                   className="w-full"
                 />
@@ -281,18 +197,16 @@ const AdminPredictionEdit: React.FC = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="status">{t('admin.status')}</Label>
-                <Select
-                  value={formData.status}
-                  onValueChange={(value) => handleInputChange('status', value)}
-                >
-                  <SelectTrigger className="w-full">
+                <Label htmlFor="status">{t('admin.status')} *</Label>
+                <Select value={formData.status} onValueChange={(value) => handleInputChange('status', value)}>
+                  <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="active">{t('admin.active')}</SelectItem>
-                    <SelectItem value="finished">{t('admin.finished')}</SelectItem>
-                    <SelectItem value="cancelled">{t('admin.cancelled')}</SelectItem>
+                    <SelectItem value="inactive">{t('admin.inactive')}</SelectItem>
+                    <SelectItem value="pending">{t('admin.pending')}</SelectItem>
+                    <SelectItem value="completed">{t('admin.completed')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -300,22 +214,14 @@ const AdminPredictionEdit: React.FC = () => {
 
             <div className="space-y-2">
               <Label htmlFor="answer">{t('admin.correctAnswer')}</Label>
-              {formData.answer === '***ENCRYPTED***' ? (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-                  <p className="text-sm text-red-600">
-                    {t('admin.encryptedAnswerMessage')}
-                  </p>
-                </div>
-              ) : (
-                <Input
-                  id="answer"
-                  value={formData.answer}
-                  onChange={(e) => handleInputChange('answer', e.target.value)}
-                  placeholder={t('admin.enterCorrectAnswer')}
-                  className="w-full"
-                />
-              )}
-              <p className="text-sm text-gray-500">
+              <Input
+                id="answer"
+                value={formData.answer}
+                onChange={(e) => handleInputChange('answer', e.target.value)}
+                placeholder={t('admin.enterCorrectAnswer')}
+                className="w-full"
+              />
+              <p className="text-sm text-muted-foreground">
                 {t('admin.answerDescription')}
               </p>
             </div>
@@ -324,13 +230,13 @@ const AdminPredictionEdit: React.FC = () => {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => navigate(`/admin/predictions/${id}`)}
+                onClick={() => navigate('/admin/predictions')}
                 disabled={isSaving}
                 className="w-full sm:w-auto"
               >
                 {t('common.cancel')}
               </Button>
-              <Button type="submit" disabled={isSaving || formData.answer === '***ENCRYPTED***'} className="w-full sm:w-auto">
+              <Button type="submit" disabled={isSaving} className="w-full sm:w-auto">
                 {isSaving ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -339,7 +245,7 @@ const AdminPredictionEdit: React.FC = () => {
                 ) : (
                   <>
                     <Save className="h-4 w-4 mr-2" />
-                    {t('common.save')}
+                    {t('admin.createPrediction')}
                   </>
                 )}
               </Button>
@@ -351,4 +257,4 @@ const AdminPredictionEdit: React.FC = () => {
   );
 };
 
-export default AdminPredictionEdit; 
+export default AdminPredictionCreate;

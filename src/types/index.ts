@@ -24,6 +24,7 @@ export type Prediction = {
   'data-ai-hint'?: string;
   answer: string;
   pointsCost: number;
+  rewardPoints: number;
   status: 'active' | 'finished';
   authorId: string;
   createdAt: string;
