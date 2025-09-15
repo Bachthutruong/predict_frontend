@@ -7,6 +7,7 @@ import { Textarea } from '../../components/ui/textarea';
 import { Label } from '../../components/ui/label';
 import { Badge } from '../../components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../../components/ui/dialog';
+import { ImageUpload } from '../../components/ui/image-upload';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
 import { 
   HelpCircle, 
@@ -376,17 +377,12 @@ const AdminQuestions: React.FC = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="imageUrl">{t('formFields.imageUrlLabel')}</Label>
-                <Input
-                  id="imageUrl"
+                <Label htmlFor="imageUrl">{t('formFields.image')}</Label>
+                <ImageUpload
                   value={newQuestion.imageUrl}
-                  onChange={(e) => setNewQuestion(prev => ({...prev, imageUrl: e.target.value}))}
-                  placeholder={t('formFields.imageUrlPlaceholder')}
+                  onChange={(url) => setNewQuestion(prev => ({ ...prev, imageUrl: url }))}
                   disabled={isSubmitting}
                 />
-                <p className="text-xs text-muted-foreground">
-                  {t('formFields.imageUrlHint')}
-                </p>
               </div>
 
               <div className="space-y-2">
@@ -598,12 +594,10 @@ const AdminQuestions: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit-imageUrl">{t('formFields.imageUrlLabel')}</Label>
-              <Input
-                id="edit-imageUrl"
+              <Label htmlFor="edit-imageUrl">{t('formFields.image')}</Label>
+              <ImageUpload
                 value={editQuestion.imageUrl}
-                onChange={(e) => setEditQuestion(prev => ({...prev, imageUrl: e.target.value}))}
-                placeholder={t('formFields.imageUrlPlaceholder')}
+                onChange={(url) => setEditQuestion(prev => ({ ...prev, imageUrl: url }))}
                 disabled={isSubmitting}
               />
             </div>
