@@ -741,7 +741,7 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
                     <Button
                       size="sm"
                       variant={question.status === 'active' ? 'destructive' : 'default'}
-                      onClick={() => onStatusToggle(question.id, question.status)}
+                      onClick={() => onStatusToggle(question.id || question._id || '', question.status)}
                       className="text-xs p-1 sm:p-2"
                     >
                       {question.status === 'active' ? <XCircle className="h-3 w-3" /> : <CheckCircle className="h-3 w-3" />}
@@ -749,7 +749,7 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
                     <Button
                       size="sm"
                       variant={question.isPriority ? 'secondary' : 'outline'}
-                      onClick={() => onPriorityToggle(question.id, question.isPriority)}
+                      onClick={() => onPriorityToggle(question.id || question._id || '', question.isPriority)}
                       className="text-xs p-1 sm:p-2"
                     >
                       <Star className="h-3 w-3" />

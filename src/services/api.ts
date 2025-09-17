@@ -153,6 +153,10 @@ export const predictionsAPI = {
     }
     throw new Error('Failed after retries');
   },
+  useHint: async (id: string): Promise<ApiResponse<{ hint: string; remaining: number; total: number }>> => {
+    const response = await api.post(`/predictions/${id}/use-hint`);
+    return response.data;
+  },
 };
 
 // Admin API
@@ -280,7 +284,7 @@ export const adminAPI = {
 
 // Check-in API
 export const checkInAPI = {
-  getStatus: async (): Promise<ApiResponse<{ hasCheckedIn: boolean; isCorrect?: boolean; pointsEarned?: number }>> => {
+  getStatus: async (): Promise<ApiResponse<{ hasCheckedIn: boolean; isCorrect?: boolean; pointsEarned?: number; consecutiveCheckIns?: number; displayConsecutiveCheckIns?: number }>> => {
     const response = await api.get('/check-in/status');
     return response.data;
   },
@@ -294,7 +298,19 @@ export const checkInAPI = {
   submit: async (data: {
     questionId: string;
     answer: string;
-  }): Promise<ApiResponse<{ isCorrect: boolean; pointsEarned: number; correctAnswer: string }>> => {
+    action?: 'answer' | 'skip';
+  }): Promise<ApiResponse<{ 
+    isCorrect?: boolean; 
+    pointsEarned?: number; 
+    streakBonus?: number;
+    totalPointsEarned?: number;
+    correctAnswer?: string;
+    action?: string;
+    skipCount?: number;
+    maxSkips?: number;
+    consecutiveCheckIns?: number;
+    displayConsecutiveCheckIns?: number;
+  }>> => {
     const response = await api.post('/check-in/submit', data);
     return response.data;
   },

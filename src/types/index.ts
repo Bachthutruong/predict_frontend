@@ -13,7 +13,25 @@ export type User = {
   consecutiveCheckIns: number;
   lastCheckInDate?: string;
   totalSuccessfulReferrals: number;
+  
+  // Skip feature
+  skipCount: number;
+  maxSkips: number;
+  lastSkipResetDate?: string;
+  
+  // Answered questions tracking
+  answeredQuestionIds: string[];
+  
   createdAt: string;
+  // Optional profile fields present in backend
+  phone?: string;
+  address?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    postalCode?: string;
+    country?: string;
+  };
 };
 
 export type Prediction = {
@@ -113,7 +131,8 @@ export type PointTransaction = {
 };
 
 export type Question = {
-  id: string;
+  id?: string;
+  _id?: string;
   questionText: string;
   imageUrl?: string;
   answer: string;
@@ -123,6 +142,12 @@ export type Question = {
   correctAnswerCount: number;
   points: number;
   createdAt: string;
+  // Additional fields for check-in
+  skipCount?: number;
+  maxSkips?: number;
+  consecutiveCheckIns?: number;
+  // Display-only streak value for 7-day bonus day
+  displayConsecutiveCheckIns?: number;
 };
 
 export type Referral = {

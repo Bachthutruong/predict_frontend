@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
-import type { AuthUser, LoginCredentials, RegisterData } from '../types';
+import type { AuthUser, LoginCredentials, RegisterData, User } from '../types';
 import { authAPI, userAPI } from '../services/api';
 import axios from 'axios';
 
@@ -24,6 +24,31 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+// Helper function to convert User to AuthUser
+const convertUserToAuthUser = (user: User): AuthUser => {
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role,
+    points: user.points,
+    avatarUrl: user.avatarUrl,
+    isEmailVerified: user.isEmailVerified,
+    consecutiveCheckIns: user.consecutiveCheckIns,
+    totalSuccessfulReferrals: user.totalSuccessfulReferrals,
+    referralCode: user.referralCode,
+    createdAt: user.createdAt,
+    phone: user.phone,
+    address: user.address ? {
+      street: user.address.street || '',
+      city: user.address.city || '',
+      state: user.address.state || '',
+      postalCode: user.address.postalCode || '',
+      country: user.address.country || '',
+    } : undefined,
+  };
+};
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -98,7 +123,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(userData));
-        setUser(userData);
+        setUser(convertUserToAuthUser(userData));
         
         return { success: true };
       } else {
@@ -148,7 +173,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (response.success && response.data) {
         const updatedUser = response.data;
         localStorage.setItem('user', JSON.stringify(updatedUser));
-        setUser(updatedUser);
+        setUser(convertUserToAuthUser(updatedUser));
       }
     } catch (error) {
       console.error('Failed to refresh user data:', error);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -31,6 +31,7 @@ interface PredictionWithStats extends Prediction {
 
 const AdminPredictions: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const { t } = useLanguage();
   const [predictions, setPredictions] = useState<PredictionWithStats[]>([]);
@@ -40,6 +41,7 @@ const AdminPredictions: React.FC = () => {
   const [confirmDeleteDialogOpen, setConfirmDeleteDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -66,7 +68,16 @@ const AdminPredictions: React.FC = () => {
 
   useEffect(() => {
     loadPredictions();
+    setIsInitialLoad(false);
   }, []);
+
+  // Refresh data when navigating back to this page (e.g., from create/edit pages)
+  useEffect(() => {
+    // Only refresh if we're on the predictions page and this is not the initial load
+    if (location.pathname === '/admin/predictions' && !isInitialLoad) {
+      loadPredictions();
+    }
+  }, [location.key, isInitialLoad]);
 
     const handleDelete = async () => {
     if (!selectedPrediction) return;

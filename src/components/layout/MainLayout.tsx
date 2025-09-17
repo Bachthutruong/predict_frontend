@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import type { ReactNode } from 'react';
 import { useAuth } from '../../context/AuthContext';
@@ -25,8 +25,11 @@ import {
   Package,
   ListChecks,
   Vote,
-  Award
+  Award,
+  Tags,
+  ShoppingCart
 } from 'lucide-react';
+import { cartApi } from '../../services/shopApi';
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -38,6 +41,26 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { t } = useLanguage();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
+
+  useEffect(() => {
+    const loadCart = async () => {
+      if (!user) { setCartCount(0); return; }
+      try {
+        const token = localStorage.getItem('token') || '';
+        if (!token) return;
+        const res = await cartApi.getCart(token);
+        if (res?.success) {
+          const count = (res.data?.items || []).reduce((s: number, it: any) => s + (it.quantity || 1), 0);
+          setCartCount(count);
+        }
+      } catch {}
+    };
+    loadCart();
+    const handler = () => loadCart();
+    window.addEventListener('cart-updated', handler as any);
+    return () => window.removeEventListener('cart-updated', handler as any);
+  }, [user]);
 
   const guestNavigation = useMemo(() => [
     { name: t('navigation.predictions'), href: '/predictions', icon: Target },
@@ -54,9 +77,15 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     { name: t('navigation.voting'), href: '/voting', icon: Vote },
     { name: t('navigation.checkIn'), href: '/check-in', icon: Calendar },
     { name: t('navigation.surveys'), href: '/surveys', icon: ListChecks },
+    { name: t('navigation.buyPoints') || 'Mua điểm', href: '/buy-points', icon: Coins },
     { name: t('navigation.profile'), href: '/profile', icon: User },
     { name: t('navigation.referrals'), href: '/referrals', icon: Gift },
     { name: t('navigation.feedback'), href: '/feedback', icon: MessageSquare },
+    { name: t('navigation.products'), href: '/products', icon: Package },
+    // { name: t('navigation.coupons'), href: '/coupons', icon: Gift },
+    { name: t('navigation.suggestionPackages'), href: '/suggestion-packages', icon: Package },
+    { name: 'Đơn hàng', href: '/orders', icon: Package },
+    // { name: t('navigation.orders'), href: '/orders-woo', icon: Package },
   ], [t]);
 
   const navigation = useMemo(() => user ? userNavigation : guestNavigation, [user, userNavigation, guestNavigation]);
@@ -69,12 +98,18 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     { name: t('admin.managePredictions'), href: '/admin/predictions', icon: Trophy },
     { name: t('admin.manageContests'), href: '/admin/contests', icon: Award },
     { name: t('admin.manageVoting'), href: '/admin/voting/campaigns', icon: Vote },
+    { name: t('navigation.products'), href: '/admin/products', icon: Package },
+    { name: 'Danh mục sản phẩm', href: '/admin/categories', icon: Tags },
+    { name: t('navigation.coupons'), href: '/admin/coupons', icon: Gift },
+    { name: t('navigation.suggestionPackages'), href: '/admin/suggestion-packages', icon: Package },
     { name: t('navigation.orders'), href: '/admin/orders', icon: Package },
+    { name: `${t('navigation.orders')} (WooCommerce)`, href: '/admin/orders-woo', icon: Package },
     { name: t('admin.manageSurveys'), href: '/admin/surveys', icon: ListChecks },
     { name: t('navigation.questions'), href: '/admin/questions', icon: HelpCircle },
     { name: t('admin.manageStaff'), href: '/admin/staff', icon: Shield },
     { name: t('admin.manageUsers'), href: '/admin/users', icon: User },
     { name: t('admin.grantPoints'), href: '/admin/grant-points', icon: Coins },
+    { name: 'Cấu hình giá điểm', href: '/admin/point-settings', icon: Coins },
     { name: t('navigation.feedback'), href: '/admin/feedback', icon: MessageSquare },
   ], [t]);
 
@@ -162,6 +197,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             <div className="flex items-center space-x-2 sm:space-x-4">
               {user ? (
                 <>
+                  {/* Cart shortcut */}
+                  <Link to="/cart" className="relative p-2 rounded-md hover:bg-gray-100" title="Giỏ hàng">
+                    <ShoppingCart className="h-5 w-5 text-gray-700" />
+                    {cartCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 leading-none">{cartCount}</span>
+                    )}
+                  </Link>
                   {/* Points Display */}
                   <div className="hidden sm:flex items-center space-x-2 bg-blue-100 px-3 py-1 rounded-full">
                     <Coins className="h-4 w-4 text-blue-600" />
@@ -220,6 +262,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 </>
               ) : (
                 <div className="flex items-center space-x-2">
+                  <Link to="/cart" className="relative p-2 rounded-md hover:bg-gray-100" title="Giỏ hàng">
+                    <ShoppingCart className="h-5 w-5" />
+                    {cartCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 leading-none">{cartCount}</span>
+                    )}
+                  </Link>
                   <Button asChild variant="ghost">
                     <Link to="/login">{t('auth.login')}</Link>
                   </Button>

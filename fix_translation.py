@@ -284,3 +284,5 @@ with open('src/i18n/locales/vi.json', 'w', encoding='utf-8') as f:
     json.dump(vi_data, f, ensure_ascii=False, indent=2)
 
 print("Đã dịch xong file tiếng Việt hoàn chỉnh!")
+
+

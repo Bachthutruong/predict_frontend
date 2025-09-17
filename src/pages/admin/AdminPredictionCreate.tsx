@@ -204,7 +204,7 @@ const AdminPredictionCreate: React.FC = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="active">{t('admin.active')}</SelectItem>
-                    <SelectItem value="inactive">{t('admin.inactive')}</SelectItem>
+                    {/* <SelectItem value="inactive">{t('admin.inactive')}</SelectItem> */}
                     <SelectItem value="pending">{t('admin.pending')}</SelectItem>
                     <SelectItem value="completed">{t('admin.completed')}</SelectItem>
                   </SelectContent>

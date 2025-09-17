@@ -132,3 +132,5 @@ const viPath = path.join(__dirname, 'src/i18n/locales/vi.json');
 fs.writeFileSync(viPath, JSON.stringify(translatedData, null, 2), 'utf8');
 
 console.log('Đã dịch xong file tiếng Việt!');
+
+

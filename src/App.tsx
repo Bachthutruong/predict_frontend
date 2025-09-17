@@ -42,6 +42,12 @@ import AdminGrantPoints from './pages/admin/AdminGrantPoints';
 import AdminStaff from './pages/admin/AdminStaff';
 import AdminQuestions from './pages/admin/AdminQuestions';
 import AdminOrders from './pages/admin/AdminOrders';
+import AdminOrdersPage from './pages/admin/AdminOrdersPage';
+import AdminProductsPage from './pages/admin/AdminProductsPage';
+import AdminProductFormPage from './pages/admin/AdminProductFormPage';
+import AdminCategoriesPage from './pages/admin/AdminCategoriesPage';
+import AdminCouponsPage from './pages/admin/AdminCouponsPage';
+import AdminSuggestionPackagesPage from './pages/admin/AdminSuggestionPackagesPage';
 import AdminSurveys from './pages/admin/AdminSurveys';
 import AdminSurveyForm from './pages/admin/AdminSurveyForm';
 import AdminSurveyResults from './pages/admin/AdminSurveyResults';
@@ -49,6 +55,19 @@ import AdminVotingCampaigns from './pages/admin/AdminVotingCampaigns';
 import AdminVotingForm from './pages/admin/AdminVotingForm';
 import AdminVotingDetail from './pages/admin/AdminVotingDetail';
 import AdminVotingStatistics from './pages/admin/AdminVotingStatistics';
+import AdminSystemOrderFormPage from './pages/admin/AdminSystemOrderFormPage';
+import AdminPointSettingsPage from './pages/admin/AdminPointSettingsPage';
+
+// Shop pages
+import ShopPage from './pages/shop/ShopPage';
+import CartPage from './pages/shop/CartPage';
+import CheckoutPage from './pages/shop/CheckoutPage';
+import ProductDetailPage from './pages/shop/ProductDetailPage';
+import UserOrdersPage from './pages/account/UserOrdersPage';
+import BuyPointsPage from './pages/account/BuyPointsPage';
+import UserCouponsPage from './pages/account/UserCouponsPage';
+import UserSuggestionPackagesPage from './pages/account/UserSuggestionPackagesPage';
+import UserWooOrdersPage from './pages/account/UserWooOrdersPage';
 
 // Admin Contest pages
 import AdminContests from './pages/admin/AdminContests';
@@ -133,6 +152,100 @@ function AppRoutes() {
       />
 
       {/* Protected Routes */}
+      <Route
+        path="/shop"
+        element={
+          <MainLayout>
+            <ShopPage />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/products"
+        element={
+          <MainLayout>
+            <ShopPage />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/products/:id"
+        element={
+          <MainLayout>
+            <ProductDetailPage />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/cart"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <CartPage />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/checkout"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <CheckoutPage />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/orders"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <UserOrdersPage />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/orders-woo"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <UserWooOrdersPage />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/buy-points"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <BuyPointsPage />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/coupons"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <UserCouponsPage />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/suggestion-packages"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <UserSuggestionPackagesPage />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/dashboard"
         element={
@@ -373,6 +486,106 @@ function AppRoutes() {
       />
       <Route
         path="/admin/orders"
+        element={
+          <ProtectedRoute roles={['admin']}>
+            <MainLayout>
+              <AdminOrdersPage />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/point-settings"
+        element={
+          <ProtectedRoute roles={['admin']}>
+            <MainLayout>
+              <AdminPointSettingsPage />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/system-orders/new"
+        element={
+          <ProtectedRoute roles={['admin']}>
+            <MainLayout>
+              <AdminSystemOrderFormPage />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/system-orders/:id/edit"
+        element={
+          <ProtectedRoute roles={['admin']}>
+            <MainLayout>
+              <AdminSystemOrderFormPage />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/products"
+        element={
+          <ProtectedRoute roles={['admin']}>
+            <MainLayout>
+              <AdminProductsPage />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/categories"
+        element={
+          <ProtectedRoute roles={['admin']}>
+            <MainLayout>
+              <AdminCategoriesPage />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/products/new"
+        element={
+          <ProtectedRoute roles={['admin']}>
+            <MainLayout>
+              <AdminProductFormPage />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/products/:id/edit"
+        element={
+          <ProtectedRoute roles={['admin']}>
+            <MainLayout>
+              <AdminProductFormPage />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/coupons"
+        element={
+          <ProtectedRoute roles={['admin']}>
+            <MainLayout>
+              <AdminCouponsPage />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/suggestion-packages"
+        element={
+          <ProtectedRoute roles={['admin']}>
+            <MainLayout>
+              <AdminSuggestionPackagesPage />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/orders-woo"
         element={
           <ProtectedRoute roles={['admin']}>
             <MainLayout>

@@ -6,7 +6,6 @@ import { Input } from '../../components/ui/input';
 import { Badge } from '../../components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar';
 import { Alert, AlertDescription } from '../../components/ui/alert';
-import { Separator } from '../../components/ui/separator';
 import { 
   Trophy, 
   Coins, 
@@ -20,7 +19,7 @@ import {
   // RefreshCw
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import apiService from '../../services/api';
+import apiService, { predictionsAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../hooks/use-toast';
 import type { Prediction, UserPrediction, User } from '../../types';
@@ -49,7 +48,10 @@ const PredictionDetailPage: React.FC = () => {
   console.log('totalPages', totalPages);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isHinting, setIsHinting] = useState(false);
   const [guess, setGuess] = useState('');
+  const [lastHint, setLastHint] = useState<string>('');
+  const [remainingHints, setRemainingHints] = useState<number | null>(null);
   // const [refreshing, setRefreshing] = useState(false);
   // console.log('refreshing', refreshing);
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -73,6 +75,7 @@ const PredictionDetailPage: React.FC = () => {
       setUserPredictions(data.userPredictions || []);
       setCurrentUserPrediction(data.currentUserPrediction || null);
       setTotalPages(data.totalPages || 1);
+      // Do not fetch hint usage here to keep it fast
       
       // Debug logging
       console.log('Current user:', user);
@@ -97,6 +100,24 @@ const PredictionDetailPage: React.FC = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleUseHint = async () => {
+    if (!predictionId || !user) { setShowAuthModal(true); return; }
+    setIsHinting(true);
+    try {
+      const res = await predictionsAPI.useHint(predictionId);
+      const payload = (res as any)?.data || res;
+      const hintText = payload?.hint || 'Không có gợi ý.';
+      setLastHint(hintText);
+      if (typeof payload?.remaining === 'number') setRemainingHints(payload.remaining);
+      toast({ title: 'Gợi ý', description: hintText });
+    } catch (e: any) {
+      const msg = e?.response?.data?.message || 'Không thể lấy gợi ý. Vui lòng thử lại.';
+      toast({ title: 'Lỗi', description: msg, variant: 'destructive' });
+    } finally {
+      setIsHinting(false);
     }
   };
 
@@ -226,6 +247,7 @@ const PredictionDetailPage: React.FC = () => {
   }
 
   const isActive = prediction.status === 'active';
+  const isFinished = prediction.status === 'finished';
   // const hasWinner = !!prediction.winnerId;
 
   return (
@@ -288,9 +310,57 @@ const PredictionDetailPage: React.FC = () => {
                   <span className="text-gray-500">Điểm thưởng:</span>
                   <div className="font-medium text-green-600">{prediction.rewardPoints || Math.round(prediction.pointsCost * 1.5)} điểm</div>
                 </div>
+                {/* Hints */}
+                <div className="md:col-span-2">
+                  <div className="flex items-center justify-between">
+                    <div className="text-gray-500">Gợi ý khi dự đoán:</div>
+                    <Button variant="outline" size="sm" onClick={handleUseHint} disabled={isHinting}>
+                      {isHinting ? 'Đang lấy...' : 'Lấy gợi ý'}
+                    </Button>
+                  </div>
+                  {lastHint && (
+                    <div className="mt-2 p-3 rounded-lg border bg-amber-50 text-amber-800 text-sm">{lastHint}</div>
+                  )}
+                  {remainingHints !== null && (
+                    <div className="mt-1 text-xs text-gray-500">Lượt gợi ý còn lại: {remainingHints}</div>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
+
+          {/* Finished Prediction Notice */}
+          {isFinished && (
+            <Card className="border-blue-200 bg-blue-50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-blue-800">
+                  <Trophy className="h-5 w-5" />
+                  Dự đoán đã hoàn thành!
+                </CardTitle>
+                <CardDescription className="text-blue-700">
+                  {prediction.winnerId 
+                    ? 'Dự đoán này đã có người trả lời đúng. Cuộn xuống để xem lịch sử tất cả các dự đoán đã được gửi.'
+                    : 'Dự đoán này đã kết thúc. Cuộn xuống để xem lịch sử tất cả các dự đoán đã được gửi.'
+                  }
+                </CardDescription>
+              </CardHeader>
+              {prediction.winnerId && (
+                <CardContent className="pt-0">
+                  <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-blue-200">
+                    <Trophy className="h-6 w-6 text-yellow-500" />
+                    <div>
+                      <p className="font-medium text-blue-800">Người thắng:</p>
+                      <p className="text-sm text-blue-700">
+                        {typeof prediction.winnerId === 'object' && prediction.winnerId.name 
+                          ? prediction.winnerId.name 
+                          : 'Người dùng ẩn danh'}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              )}
+            </Card>
+          )}
 
           {/* Submit Prediction Form */}
           {isActive && !currentUserPrediction?.isCorrect && (
@@ -335,40 +405,52 @@ const PredictionDetailPage: React.FC = () => {
                     </Button>
                   </div>
                 </form>
-                
-                {/* All Predictions moved here */}
-                {userPredictions.length > 0 && (
-                  <>
-                    <Separator className="my-6" />
-                    <div className="space-y-4">
-                       <h3 className="font-medium flex items-center gap-2">
-                         <Users className="h-5 w-5" />
-                         All Predictions ({userPredictions.length})
-                       </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {userPredictions.map((userPrediction) => (
-                          <div key={userPrediction.id} className="flex items-start gap-3 p-3 border rounded-lg">
-                            <Avatar className="h-8 w-8">
-                              <AvatarImage src={userPrediction.user?.avatarUrl || ''} />
-                              <AvatarFallback className="text-xs">
-                                {userPrediction.user?.name ? getInitials(userPrediction.user.name) : '?'}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1">
-                              <p className="font-medium text-sm">{userPrediction.user?.name || 'Unknown User'}</p>
-                              <p className="text-sm text-gray-700 my-1">
-                                "{userPrediction.guess}"
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                {new Date(userPrediction.createdAt).toLocaleString()}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* All Predictions History - Always show when there are predictions */}
+          {userPredictions.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Lịch sử dự đoán ({userPredictions.length})
+                </CardTitle>
+                <CardDescription>
+                  Tất cả các dự đoán đã được gửi cho thử thách này
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {userPredictions.map((userPrediction) => (
+                    <div key={userPrediction.id} className="flex items-start gap-3 p-3 border rounded-lg">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={userPrediction.user?.avatarUrl || ''} />
+                        <AvatarFallback className="text-xs">
+                          {userPrediction.user?.name ? getInitials(userPrediction.user.name) : '?'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-sm">{userPrediction.user?.name || 'Unknown User'}</p>
+                          {userPrediction.isCorrect && (
+                            <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">
+                              <Trophy className="h-3 w-3 mr-1" />
+                              Đúng
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-700 my-1">
+                          "{userPrediction.guess}"
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {new Date(userPrediction.createdAt).toLocaleString()}
+                        </p>
                       </div>
                     </div>
-                  </>
-                )}
+                  ))}
+                </div>
               </CardContent>
             </Card>
           )}

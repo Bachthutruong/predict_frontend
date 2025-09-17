@@ -82,16 +82,19 @@ const AdminOrders: React.FC = () => {
         }
       });
 
-      const orderData = ordersResponse.data?.data;
-      if (orderData) {
-        setOrders(orderData.orders || []);
-        setTotalPages(orderData.pagination?.pages || 1);
-        setTotalItems(orderData.pagination?.total || 0);
-      } else {
-        setOrders([]);
-        setTotalPages(1);
-        setTotalItems(0);
-      }
+      const raw = ordersResponse.data;
+      const list = Array.isArray(raw?.data)
+        ? raw.data
+        : Array.isArray(raw?.data?.orders)
+          ? raw.data.orders
+          : Array.isArray(raw?.orders)
+            ? raw.orders
+            : [];
+      const pg = raw?.pagination || raw?.data?.pagination || { pages: 1, total: list.length };
+
+      setOrders(list);
+      setTotalPages(Number(pg.pages || 1));
+      setTotalItems(Number(pg.total || list.length));
 
       // Load stats
       const statsResponse = await apiService.get('/admin/orders/stats/overview');

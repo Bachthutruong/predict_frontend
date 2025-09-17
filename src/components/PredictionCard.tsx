@@ -42,12 +42,12 @@ export const PredictionCard: React.FC<PredictionCardProps> = ({ prediction }) =>
         </CardDescription>
         <div className="flex items-center gap-2 mt-3">
           <Badge variant={prediction.status === 'active' ? 'default' : 'secondary'}>
-            {prediction.status}
+            {prediction.status === 'active' ? 'Đang diễn ra' : 'Đã hoàn thành'}
           </Badge>
           {prediction.winnerId && (
             <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
               <Trophy className="h-3 w-3 mr-1" />
-              Solved
+              Có người thắng
             </Badge>
           )}
         </div>
@@ -63,9 +63,9 @@ export const PredictionCard: React.FC<PredictionCardProps> = ({ prediction }) =>
             <span>Thưởng: {prediction.rewardPoints || Math.round(prediction.pointsCost * 1.5)}</span>
           </div>
         </div>
-        <Button asChild>
+        <Button asChild disabled={prediction.status === 'finished'}>
           <Link to={`/predictions/${prediction.id}`}>
-            Dự đoán
+            {prediction.status === 'finished' ? 'Đã hoàn thành' : 'Dự đoán'}
           </Link>
         </Button>
       </CardFooter>

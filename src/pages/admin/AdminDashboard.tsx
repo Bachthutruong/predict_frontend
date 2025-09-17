@@ -251,6 +251,17 @@ const AdminDashboard: React.FC = () => {
                 <p className="text-sm text-gray-500">{t('admin.processOrders')}</p>
               </div>
             </Link>
+
+            <Link 
+              to="/admin/point-settings"
+              className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <Coins className="h-8 w-8 text-emerald-600" />
+              <div>
+                <h4 className="font-medium">Cấu hình giá điểm</h4>
+                <p className="text-sm text-gray-500">Thiết lập 1 điểm = bao nhiêu tiền</p>
+              </div>
+            </Link>
           </div>
         </CardContent>
       </Card>
