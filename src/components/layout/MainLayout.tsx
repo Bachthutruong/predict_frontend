@@ -13,6 +13,7 @@ import {
   User,
   Calendar,
   MessageSquare,
+  MessageCircle,
   Settings,
   LogOut,
   Coins,
@@ -22,7 +23,7 @@ import {
   HelpCircle,
   Menu,
   X,
-  Package,
+  // Package,
   ListChecks,
   List,
   Vote,
@@ -30,7 +31,9 @@ import {
   MapPin,
   CreditCard,
   ShoppingBag,
-  Store
+  Store,
+  Star,
+  Ticket
 } from 'lucide-react';
 
 interface MainLayoutProps {
@@ -44,7 +47,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const guestNavigation = useMemo(() => [
-    { name: 'Shop', href: '/shop', icon: Store },
+    { name: t('navigation.shop'), href: '/shop', icon: Store },
     { name: t('navigation.predictions'), href: '/predictions', icon: Target },
     { name: t('navigation.contests'), href: '/contests', icon: Award },
     { name: t('navigation.voting'), href: '/voting', icon: Vote },
@@ -54,7 +57,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   const userNavigation = useMemo(() => [
     { name: t('navigation.dashboard'), href: '/dashboard', icon: Home },
-    { name: 'Shop', href: '/shop', icon: Store },
+    { name: t('navigation.shop'), href: '/shop', icon: Store },
+    { name: t('navigation.myOrders'), href: '/shop/orders', icon: ShoppingBag },
     { name: t('navigation.predictions'), href: '/predictions', icon: Target },
     { name: t('navigation.contests'), href: '/contests', icon: Award },
     { name: t('navigation.voting'), href: '/voting', icon: Vote },
@@ -75,18 +79,21 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     { name: t('admin.managePredictions'), href: '/admin/predictions', icon: Trophy },
     { name: t('admin.manageContests'), href: '/admin/contests', icon: Award },
     { name: t('admin.manageVoting'), href: '/admin/voting/campaigns', icon: Vote },
-    { name: t('navigation.orders'), href: '/admin/orders', icon: Package },
+    // { name: t('navigation.orders'), href: '/admin/orders', icon: Package },
     { name: t('admin.manageSurveys'), href: '/admin/surveys', icon: ListChecks },
     { name: t('navigation.questions'), href: '/admin/questions', icon: HelpCircle },
     { name: t('admin.manageStaff'), href: '/admin/staff', icon: Shield },
     { name: t('admin.manageUsers'), href: '/admin/users', icon: User },
     { name: t('admin.grantPoints'), href: '/admin/grant-points', icon: Coins },
     // Shop Management
-    { name: 'Products', href: '/admin/shop/products', icon: Store },
-    { name: 'Categories', href: '/admin/shop/categories', icon: List },
-    { name: 'Orders', href: '/admin/shop/orders', icon: ShoppingBag },
-    { name: 'Branches', href: '/admin/shop/branches', icon: MapPin },
-    { name: 'Payment Settings', href: '/admin/shop/settings', icon: CreditCard },
+    { name: t('admin.products'), href: '/admin/shop/products', icon: Store },
+    { name: t('admin.categories'), href: '/admin/shop/categories', icon: List },
+    { name: t('admin.orders'), href: '/admin/shop/orders', icon: ShoppingBag },
+    { name: t('admin.reviews'), href: '/admin/shop/reviews', icon: Star },
+    { name: t('admin.coupons'), href: '/admin/shop/coupons', icon: Ticket },
+    { name: t('admin.branches'), href: '/admin/shop/branches', icon: MapPin },
+    { name: t('admin.paymentSettings'), href: '/admin/shop/settings', icon: CreditCard },
+    { name: t('admin.chatSupport'), href: '/admin/shop/chat', icon: MessageCircle },
     { name: t('navigation.feedback'), href: '/admin/feedback', icon: MessageSquare },
   ], [t]);
 
@@ -308,7 +315,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         )}
 
         {/* Content Area */}
-        <main className={`flex-1 transition-all duration-300 ${isAdminOrStaff ? 'lg:ml-72' : ''} bg-[#f8f9fa] p-4 sm:p-6 lg:p-8 overflow-x-hidden w-full`}>
+        <main className={`flex-1 transition-all duration-300 ${isAdminOrStaff ? 'lg:ml-72' : ''} bg-[#f8f9fa] p-2 overflow-x-hidden w-full`}>
           <div className="max-w-[1600px] mx-auto animate-fade-in-up">
             {children}
           </div>

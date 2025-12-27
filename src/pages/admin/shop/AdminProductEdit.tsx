@@ -12,8 +12,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../components/ui/table';
 import { ArrowLeft, Save, Plus, Trash2, Package, DollarSign, Layers, Gift } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useLanguage } from '../../../hooks/useLanguage';
 
 export default function AdminProductEdit() {
+    const { t } = useLanguage();
     const { id } = useParams();
     const navigate = useNavigate();
     const isNew = !id || id === 'new';
@@ -62,7 +64,7 @@ export default function AdminProductEdit() {
                     category: res.data.data.category || '' // Ensure category is string
                 });
             }
-        } catch (e) { toast.error('Failed to load product'); navigate('/admin/shop/products'); }
+        } catch (e) { toast.error(t('admin.shop.productEdit.toast.loadFailed')); navigate('/admin/shop/products'); }
         finally { setLoading(false); }
     };
 
@@ -78,19 +80,19 @@ export default function AdminProductEdit() {
         e.preventDefault();
         try {
             if (!product.category) {
-                toast.error('Please select a category');
+                toast.error(t('admin.shop.productEdit.toast.selectCategory'));
                 return;
             }
             if (isNew) {
                 const res = await adminProductAPI.create(product);
-                toast.success('Product created');
+                toast.success(t('admin.shop.productEdit.toast.created'));
                 navigate(`/admin/shop/products/${res.data.data.id}/edit`);
             } else {
                 await adminProductAPI.update(id!, product);
-                toast.success('Product updated');
+                toast.success(t('admin.shop.productEdit.toast.updated'));
             }
         } catch (e: any) {
-            toast.error(e.response?.data?.message || 'Check fields and try again');
+            toast.error(e.response?.data?.message || t('admin.shop.productEdit.toast.opFailed'));
         }
     };
 
@@ -102,14 +104,14 @@ export default function AdminProductEdit() {
                 operation: type,
                 reason: stockAdjustment.reason
             });
-            toast.success('Stock updated');
+            toast.success(t('admin.shop.productEdit.toast.stockUpdated'));
             fetchProduct();
             fetchHistory();
             setStockAdjustment({ quantity: 0, reason: '' });
-        } catch (e) { toast.error('Failed update stock'); }
+        } catch (e) { toast.error(t('admin.shop.productEdit.toast.stockUpdateFailed')); }
     };
 
-    if (loading) return <div>Loading...</div>;
+    if (loading) return <div>{t('common.loading')}</div>;
 
     return (
         <div className="space-y-6 max-w-6xl mx-auto pb-20">
@@ -117,16 +119,16 @@ export default function AdminProductEdit() {
             <div className="flex items-center justify-between sticky top-0 bg-gray-50/95 backdrop-blur z-10 py-4 border-b">
                 <div className="flex items-center gap-4">
                     <Button variant="ghost" size="sm" onClick={() => navigate('/admin/shop/products')}>
-                        <ArrowLeft className="mr-2 h-4 w-4" /> Back
+                        <ArrowLeft className="mr-2 h-4 w-4" /> {t('admin.shop.productEdit.back')}
                     </Button>
                     <div>
-                        <h1 className="text-2xl font-bold tracking-tight">{isNew ? 'Create New Product' : 'Edit Product'}</h1>
-                        <p className="text-sm text-gray-500">{isNew ? 'Add a new product to your shop' : `Updating: ${product.name}`}</p>
+                        <h1 className="text-2xl font-bold tracking-tight">{isNew ? t('admin.shop.productEdit.newTitle') : t('admin.shop.productEdit.editTitle')}</h1>
+                        <p className="text-sm text-gray-500">{isNew ? t('admin.shop.productEdit.newSub') : `${t('admin.shop.productEdit.editSub')} ${product.name}`}</p>
                     </div>
                 </div>
                 <div className="flex gap-2">
-                    <Button variant="outline" onClick={() => fetchProduct()}>Discard Changes</Button>
-                    <Button onClick={handleSubmit} className="bg-[#ee4d2d] hover:bg-[#d04327]"><Save className="mr-2 h-4 w-4" /> Save Product</Button>
+                    <Button variant="outline" onClick={() => fetchProduct()}>{t('admin.shop.productEdit.discard')}</Button>
+                    <Button onClick={handleSubmit} className="bg-[#ee4d2d] hover:bg-[#d04327]"><Save className="mr-2 h-4 w-4" /> {t('admin.shop.productEdit.save')}</Button>
                 </div>
             </div>
 
@@ -136,11 +138,11 @@ export default function AdminProductEdit() {
                     {/* Basic Info */}
                     <Card>
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2"><Package className="h-5 w-5 text-gray-500" /> Basic Information</CardTitle>
+                            <CardTitle className="flex items-center gap-2"><Package className="h-5 w-5 text-gray-500" /> {t('admin.shop.productEdit.basic')}</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="space-y-2">
-                                <Label>Product Name</Label>
+                                <Label>{t('admin.shop.categories.form.name')}</Label>
                                 <Input
                                     placeholder="e.g. Men's Cotton T-Shirt"
                                     value={product.name}
@@ -149,7 +151,7 @@ export default function AdminProductEdit() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label>Description</Label>
+                                <Label>{t('admin.shop.categories.form.description')}</Label>
                                 <Textarea
                                     placeholder="Detailed product description..."
                                     value={product.description}
@@ -158,7 +160,7 @@ export default function AdminProductEdit() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label>Brand</Label>
+                                <Label>{t('admin.shop.categories.form.brand') || 'Brand'}</Label>
                                 <Input
                                     placeholder="e.g. Adidas, Nike, No Brand"
                                     value={product.brand}
@@ -171,8 +173,8 @@ export default function AdminProductEdit() {
                     {/* Media */}
                     <Card>
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2"><Layers className="h-5 w-5 text-gray-500" /> Media & Images</CardTitle>
-                            <CardDescription>Upload high quality images. First image will be the cover.</CardDescription>
+                            <CardTitle className="flex items-center gap-2"><Layers className="h-5 w-5 text-gray-500" /> {t('admin.shop.productEdit.media')}</CardTitle>
+                            <CardDescription>{t('admin.shop.productEdit.mediaDesc')}</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -187,7 +189,7 @@ export default function AdminProductEdit() {
                                                 <Trash2 className="h-4 w-4" />
                                             </Button>
                                         </div>
-                                        {i === 0 && <div className="absolute top-2 left-2 bg-[#ee4d2d] text-white text-[10px] px-2 py-0.5 rounded-full">Cover</div>}
+                                        {i === 0 && <div className="absolute top-2 left-2 bg-[#ee4d2d] text-white text-[10px] px-2 py-0.5 rounded-full">{t('admin.shop.productEdit.cover')}</div>}
                                     </div>
                                 ))}
                                 <div className="relative aspect-square flex items-center justify-center border-2 border-dashed rounded-lg hover:bg-gray-50 transition-colors">
@@ -199,7 +201,7 @@ export default function AdminProductEdit() {
                                     />
                                     <div className="text-center pointer-events-none">
                                         <Plus className="h-8 w-8 mx-auto text-gray-400" />
-                                        <span className="text-xs text-gray-500">Add Image</span>
+                                        <span className="text-xs text-gray-500">{t('admin.shop.productEdit.addImage')}</span>
                                     </div>
                                 </div>
                             </div>
@@ -209,12 +211,12 @@ export default function AdminProductEdit() {
                     {/* Pricing & Stock */}
                     <Card>
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2"><DollarSign className="h-5 w-5 text-gray-500" /> Pricing & Inventory</CardTitle>
+                            <CardTitle className="flex items-center gap-2"><DollarSign className="h-5 w-5 text-gray-500" /> {t('admin.shop.productEdit.pricing')}</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-6">
                             <div className="grid grid-cols-2 gap-6">
                                 <div className="space-y-2">
-                                    <Label>Price (VND)</Label>
+                                    <Label>{t('admin.shop.productEdit.price')}</Label>
                                     <div className="relative">
                                         <span className="absolute left-3 top-2.5 text-gray-500">₫</span>
                                         <Input
@@ -227,7 +229,7 @@ export default function AdminProductEdit() {
                                     </div>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label>Original Price (Optional)</Label>
+                                    <Label>{t('admin.shop.productEdit.originalPrice')}</Label>
                                     <div className="relative">
                                         <span className="absolute left-3 top-2.5 text-gray-500">₫</span>
                                         <Input
@@ -238,12 +240,12 @@ export default function AdminProductEdit() {
                                             min={0}
                                         />
                                     </div>
-                                    <p className="text-[10px] text-gray-500">Set higher than Price to show discount tag.</p>
+                                    <p className="text-[10px] text-gray-500">{t('admin.shop.productEdit.originalPriceDesc')}</p>
                                 </div>
                             </div>
 
                             <div className="space-y-2">
-                                <Label>Current Stock</Label>
+                                <Label>{t('admin.shop.productEdit.currentStock')}</Label>
                                 <Input
                                     type="number"
                                     value={product.stock}
@@ -252,7 +254,7 @@ export default function AdminProductEdit() {
                                     disabled={!isNew}
                                     className={!isNew ? "bg-gray-100" : ""}
                                 />
-                                {!isNew && <p className="text-xs text-blue-600">Use the Inventory Management section to adjust stock.</p>}
+                                {!isNew && <p className="text-xs text-blue-600">{t('admin.shop.productEdit.stockDesc')}</p>}
                             </div>
                         </CardContent>
                     </Card>
@@ -262,35 +264,35 @@ export default function AdminProductEdit() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <Card>
                                 <CardHeader>
-                                    <CardTitle className="text-base">Stock Adjustment</CardTitle>
+                                    <CardTitle className="text-base">{t('admin.shop.productEdit.stockAdj')}</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-2">
-                                            <Label>Amount</Label>
+                                            <Label>{t('admin.shop.productEdit.amount')}</Label>
                                             <Input type="number" value={stockAdjustment.quantity} onChange={e => setStockAdjustment({ ...stockAdjustment, quantity: Number(e.target.value) })} min={1} />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label>Reason</Label>
+                                            <Label>{t('admin.shop.productEdit.reason')}</Label>
                                             <Input value={stockAdjustment.reason} onChange={e => setStockAdjustment({ ...stockAdjustment, reason: e.target.value })} placeholder="e.g. Restock" />
                                         </div>
                                     </div>
                                     <div className="flex gap-2">
-                                        <Button size="sm" onClick={() => handleStockUpdate('add')} className="flex-1 bg-green-600 hover:bg-green-700">Add</Button>
-                                        <Button size="sm" onClick={() => handleStockUpdate('subtract')} className="flex-1 bg-red-600 hover:bg-red-700">Remove</Button>
-                                        <Button size="sm" onClick={() => handleStockUpdate('set')} variant="outline" className="flex-1">Set</Button>
+                                        <Button size="sm" onClick={() => handleStockUpdate('add')} className="flex-1 bg-green-600 hover:bg-green-700">{t('admin.shop.productEdit.add')}</Button>
+                                        <Button size="sm" onClick={() => handleStockUpdate('subtract')} className="flex-1 bg-red-600 hover:bg-red-700">{t('admin.shop.productEdit.remove')}</Button>
+                                        <Button size="sm" onClick={() => handleStockUpdate('set')} variant="outline" className="flex-1">{t('admin.shop.productEdit.set')}</Button>
                                     </div>
                                 </CardContent>
                             </Card>
                             <Card>
                                 <CardHeader>
-                                    <CardTitle className="text-base">Recent Stock History</CardTitle>
+                                    <CardTitle className="text-base">{t('admin.shop.productEdit.stockHist')}</CardTitle>
                                 </CardHeader>
                                 <CardContent className="p-0">
                                     <Table>
                                         <TableHeader>
                                             <TableRow>
-                                                <TableHead className="py-2">Date</TableHead>
+                                                <TableHead className="py-2">{t('admin.shop.reviews.table.date')}</TableHead>
                                                 <TableHead className="py-2">Type</TableHead>
                                                 <TableHead className="py-2">Qty</TableHead>
                                             </TableRow>
@@ -317,22 +319,22 @@ export default function AdminProductEdit() {
                 <div className="space-y-6">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Organization</CardTitle>
+                            <CardTitle>{t('admin.shop.productEdit.org')}</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="flex items-center justify-between p-3 border rounded-lg bg-gray-50">
                                 <div className="space-y-0.5">
-                                    <Label>Status</Label>
-                                    <div className="text-xs text-gray-500">{product.isActive ? 'Product is live' : 'Product is hidden'}</div>
+                                    <Label>{t('admin.shop.productEdit.status')}</Label>
+                                    <div className="text-xs text-gray-500">{product.isActive ? t('admin.shop.productEdit.statusActive') : t('admin.shop.productEdit.statusInactive')}</div>
                                 </div>
                                 <Switch checked={product.isActive} onCheckedChange={c => setProduct({ ...product, isActive: c })} />
                             </div>
 
                             <div className="space-y-2">
-                                <Label>Category</Label>
+                                <Label>{t('admin.shop.categories.title')}</Label>
                                 <Select value={product.category} onValueChange={(val) => setProduct({ ...product, category: val })}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select Category" />
+                                        <SelectValue placeholder={t('admin.shop.productEdit.selectCategory')} />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {categories.map((c) => (
@@ -341,7 +343,7 @@ export default function AdminProductEdit() {
                                     </SelectContent>
                                 </Select>
                                 <Button variant="link" className="p-0 h-auto text-xs" onClick={() => navigate('/admin/shop/categories')}>
-                                    + Manage Categories
+                                    {t('admin.shop.productEdit.manageCategories')}
                                 </Button>
                             </div>
                         </CardContent>
@@ -349,24 +351,24 @@ export default function AdminProductEdit() {
 
                     <Card>
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2"><Gift className="h-5 w-5 text-gray-500" /> Points & Rewards</CardTitle>
+                            <CardTitle className="flex items-center gap-2"><Gift className="h-5 w-5 text-gray-500" /> {t('admin.shop.productEdit.points')}</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="space-y-2">
-                                <Label>Points Earned</Label>
+                                <Label>{t('admin.shop.productEdit.pointsEarned')}</Label>
                                 <Input type="number" value={product.pointsReward} onChange={e => setProduct({ ...product, pointsReward: Number(e.target.value) })} />
-                                <p className="text-[10px] text-gray-500">Points user gets when they buy this.</p>
+                                <p className="text-[10px] text-gray-500">{t('admin.shop.productEdit.pointsEarnedDesc')}</p>
                             </div>
 
                             <div className="pt-4 border-t space-y-4">
                                 <div className="flex items-center gap-2">
                                     <Switch checked={product.canPurchaseWithPoints} onCheckedChange={c => setProduct({ ...product, canPurchaseWithPoints: c })} />
-                                    <Label className="text-sm">Allow Purchase with Points</Label>
+                                    <Label className="text-sm">{t('admin.shop.productEdit.allowPoints')}</Label>
                                 </div>
 
                                 {product.canPurchaseWithPoints && (
                                     <div className="space-y-2">
-                                        <Label>Points Price</Label>
+                                        <Label>{t('admin.shop.productEdit.pointsPrice')}</Label>
                                         <Input type="number" value={product.pointsRequired} onChange={e => setProduct({ ...product, pointsRequired: Number(e.target.value) })} />
                                     </div>
                                 )}

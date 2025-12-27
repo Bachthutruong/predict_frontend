@@ -4,6 +4,7 @@ export const shopAPI = {
     getProducts: (params: any) => api.get('/shop/products', { params }),
     getProduct: (id: string) => api.get(`/shop/products/${id}`),
     getCategories: () => api.get('/shop/categories'),
+    validateCoupon: (data: { code: string; orderAmount: number; orderItems: any[] }) => api.post('/shop/coupons/validate', data),
 };
 
 export const cartAPI = {

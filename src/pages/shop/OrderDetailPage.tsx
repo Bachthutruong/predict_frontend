@@ -6,22 +6,29 @@ import { Badge } from '../../components/ui/badge';
 import { ImageUpload } from '../../components/ui/image-upload';
 import { Input } from '../../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card';
-import { ArrowLeft, CheckCircle, Truck, Package } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Truck, Package, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useLanguage } from '../../hooks/useLanguage';
 
 export default function OrderDetailPage() {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { t } = useLanguage();
     const [order, setOrder] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [proofImage, setProofImage] = useState('');
     const [proofNote, setProofNote] = useState('');
+    const [isEditingProof, setIsEditingProof] = useState(false);
 
     useEffect(() => {
         fetchOrder();
     }, [id]);
 
     const fetchOrder = async () => {
+        if (!id || id === 'undefined') {
+            setLoading(false);
+            return;
+        }
         try {
             const res = await orderAPI.getById(id!);
             if (res.data.success) {
@@ -37,7 +44,7 @@ export default function OrderDetailPage() {
     const handleSubmitProof = async () => {
         if (!proofImage) return toast.error('Please upload an image');
         try {
-            await orderAPI.submitPaymentProof(id!, { image: proofImage, note: proofNote });
+            await orderAPI.submitPaymentProof(id!, { paymentImage: proofImage, note: proofNote });
             toast.success('Payment proof submitted');
             fetchOrder();
         } catch (e) { toast.error('Failed to submit'); }
@@ -52,29 +59,29 @@ export default function OrderDetailPage() {
         } catch (e) { toast.error('Failed to update'); }
     };
 
-    if (!loading && !order) return <div>Order not found</div>;
-    if (loading) return <div>Loading...</div>;
+    if (!loading && !order) return <div>{t('errors.notFound')}</div>;
+    if (loading) return <div>{t('common.loading')}</div>;
 
     return (
         <div className="max-w-4xl mx-auto space-y-8">
             <Button variant="ghost" onClick={() => navigate('/shop')}>
-                <ArrowLeft className="mr-2 h-4 w-4" /> Back to Shop
+                <ArrowLeft className="mr-2 h-4 w-4" /> {t('shop.orderDetail.backToShop')}
             </Button>
 
             <div className="flex justify-between items-center bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
                 <div>
-                    <h1 className="text-2xl font-bold">Order #{order.orderNumber}</h1>
-                    <p className="text-gray-500 text-sm">Placed on {new Date(order.createdAt).toLocaleDateString()}</p>
+                    <h1 className="text-2xl font-bold">{t('shop.orderDetail.title', { number: order.orderNumber })}</h1>
+                    <p className="text-gray-500 text-sm">{t('shop.orderDetail.placedOn')} {new Date(order.createdAt).toLocaleDateString()}</p>
                 </div>
                 <div className="text-right">
                     <Badge className="text-lg px-4 py-1 mb-1">{order.status.replace('_', ' ')}</Badge>
-                    <div className="text-sm text-gray-500 capitalize">Payment: {order.paymentStatus}</div>
+                    <div className="text-sm text-gray-500 capitalize">{t('shop.orders.payment')}: {order.paymentStatus}</div>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <Card>
-                    <CardHeader><CardTitle>Order Items</CardTitle></CardHeader>
+                    <CardHeader><CardTitle>{t('shop.orderDetail.items')}</CardTitle></CardHeader>
                     <CardContent className="space-y-4">
                         {order.items.map((item: any, i: number) => (
                             <div key={i} className="flex justify-between items-center">
@@ -89,18 +96,18 @@ export default function OrderDetailPage() {
                             </div>
                         ))}
                         <div className="border-t pt-4 space-y-1 text-sm">
-                            <div className="flex justify-between"><span>Subtotal</span><span>{order.subtotal.toLocaleString()} đ</span></div>
-                            <div className="flex justify-between"><span>Shipping</span><span>{order.shippingCost.toLocaleString()} đ</span></div>
-                            <div className="flex justify-between font-bold text-lg pt-2"><span>Total</span><span>{order.totalAmount.toLocaleString()} đ</span></div>
+                            <div className="flex justify-between"><span>{t('shop.orderDetail.subtotal')}</span><span>{order.subtotal.toLocaleString()} đ</span></div>
+                            <div className="flex justify-between"><span>{t('shop.orderDetail.shipping')}</span><span>{order.shippingCost.toLocaleString()} đ</span></div>
+                            <div className="flex justify-between font-bold text-lg pt-2"><span>{t('shop.orderDetail.total')}</span><span>{order.totalAmount.toLocaleString()} đ</span></div>
                         </div>
                     </CardContent>
                 </Card>
 
                 <Card>
-                    <CardHeader><CardTitle>Delivery Info</CardTitle></CardHeader>
+                    <CardHeader><CardTitle>{t('shop.orderDetail.deliveryInfo')}</CardTitle></CardHeader>
                     <CardContent className="space-y-4">
                         <div>
-                            <span className="font-semibold block mb-1">Method:</span>
+                            <span className="font-semibold block mb-1">{t('shop.orderDetail.method')}:</span>
                             <span className="capitalize flex items-center gap-2">
                                 {order.deliveryMethod === 'pickup' ? <Package className="h-4 w-4" /> : <Truck className="h-4 w-4" />}
                                 {order.deliveryMethod}
@@ -108,15 +115,15 @@ export default function OrderDetailPage() {
                         </div>
                         {order.deliveryMethod === 'shipping' ? (
                             <div className="text-sm text-gray-600">
-                                <p className="font-semibold text-gray-900 mb-1">Shipping Address:</p>
+                                <p className="font-semibold text-gray-900 mb-1">{t('shop.orderDetail.shippingAddress')}:</p>
                                 <p>{order.shippingAddress.name} - {order.shippingAddress.phone}</p>
                                 <p>{order.shippingAddress.street}, {order.shippingAddress.city}</p>
                             </div>
                         ) : (
                             <div className="text-sm text-gray-600">
-                                <p className="font-semibold text-gray-900 mb-1">Pickup at Store:</p>
+                                <p className="font-semibold text-gray-900 mb-1">{t('shop.orderDetail.pickupAtStore')}:</p>
                                 {/* Branch details would be populated ideally */}
-                                <p>Please visit the selected store to pick up your order.</p>
+                                <p>{t('shop.orderDetail.pickupDesc')}</p>
                             </div>
                         )}
                     </CardContent>
@@ -124,29 +131,72 @@ export default function OrderDetailPage() {
             </div>
 
             {order.paymentMethod === 'bank_transfer' && order.paymentStatus !== 'paid' && (
-                <Card className="border-blue-100 bg-blue-50/50">
-                    <CardHeader>
-                        <CardTitle className="text-blue-800">Payment Confirmation</CardTitle>
-                        <CardDescription>Please transfer the total amount and upload the proof here.</CardDescription>
+                <Card className="border-blue-200 bg-blue-50 shadow-sm mt-6">
+                    <CardHeader className="bg-blue-100/50 border-b border-blue-200/50 pb-4">
+                        <CardTitle className="text-blue-800 flex items-center gap-2 text-lg">
+                            <AlertCircle className="h-5 w-5 text-blue-600" />
+                            {t('shop.orderDetail.paymentConfirmation')}
+                        </CardTitle>
+                        <CardDescription className="text-blue-700 mt-2">
+                            {t('shop.orderDetail.paymentConfirmationDesc')}
+                            <br />
+                            <span className="text-xs opacity-80 mt-1 block">
+                                {t('shop.orderDetail.statusNote')}
+                            </span>
+                        </CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                        {order.paymentConfirmation?.submittedAt ? (
-                            <div className="text-center py-4 bg-white rounded-lg border border-green-100">
-                                <CheckCircle className="h-8 w-8 text-green-500 mx-auto mb-2" />
-                                <p className="font-medium text-green-800">Payment proof submitted</p>
-                                <p className="text-xs text-gray-500">Waiting for admin verification</p>
+                    <CardContent className="space-y-6 pt-6">
+                        {order.paymentConfirmation?.submittedAt && !isEditingProof ? (
+                            <div className="flex flex-col items-center justify-center py-8 bg-white rounded-xl border-2 border-dashed border-green-200">
+                                <CheckCircle className="h-12 w-12 text-green-500 mb-3" />
+                                <p className="font-bold text-green-700 text-lg">{t('shop.orderDetail.proofSubmitted')}</p>
+                                <p className="text-sm text-gray-500 mb-4">{t('shop.orderDetail.waitingApproval')}</p>
+                                <div className="text-xs text-gray-400">
+                                    {t('shop.orderDetail.submittedAt')} {new Date(order.paymentConfirmation.submittedAt).toLocaleString()}
+                                </div>
+                                <div className="flex gap-2 mt-4">
+                                    <Button variant="outline" size="sm" className="opacity-75 cursor-default">{t('shop.orderDetail.statusWaiting')}</Button>
+                                    <Button size="sm" onClick={() => setIsEditingProof(true)} variant="secondary">{t('shop.orderDetail.reUpload')}</Button>
+                                </div>
                             </div>
                         ) : (
-                            <div className="space-y-4">
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">Upload Screenshot</label>
-                                    <ImageUpload value={proofImage} onChange={setProofImage} />
+                            <div className="space-y-5">
+                                <div className="bg-white p-4 rounded-lg border border-blue-100">
+                                    <h4 className="text-sm font-semibold mb-3 text-gray-700">{t('shop.orderDetail.transferInfo')}</h4>
+                                    {/* Ideally show Bank info here again if available logic permits, but keep simple upload focus */}
+                                    <p className="text-sm text-gray-600 mb-2">
+                                        {t('shop.orderDetail.uploadInstruction')}
+                                    </p>
+                                    <ImageUpload
+                                        value={proofImage}
+                                        onChange={setProofImage}
+                                        placeholder={t('shop.orderDetail.uploadProof')}
+                                        className="h-48"
+                                    />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium">Note (Optional)</label>
-                                    <Input value={proofNote} onChange={e => setProofNote(e.target.value)} placeholder="Transaction code, etc." />
+                                    <label className="text-sm font-medium text-gray-700">{t('shop.orderDetail.noteLabel')}</label>
+                                    <Input
+                                        value={proofNote}
+                                        onChange={e => setProofNote(e.target.value)}
+                                        placeholder={t('shop.orderDetail.notePlaceholder')}
+                                        className="bg-white"
+                                    />
                                 </div>
-                                <Button onClick={handleSubmitProof} disabled={!proofImage}>Submit Payment Proof</Button>
+                                <div className="flex gap-3">
+                                    {isEditingProof && (
+                                        <Button variant="outline" className="flex-1" onClick={() => setIsEditingProof(false)}>{t('shop.orderDetail.cancel')}</Button>
+                                    )}
+                                    <Button
+                                        onClick={() => {
+                                            handleSubmitProof().then(() => setIsEditingProof(false));
+                                        }}
+                                        disabled={!proofImage}
+                                        className="flex-1 h-11 bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-md transition-all active:scale-[0.98]"
+                                    >
+                                        {t('shop.orderDetail.submit')}
+                                    </Button>
+                                </div>
                             </div>
                         )}
                     </CardContent>
@@ -155,7 +205,7 @@ export default function OrderDetailPage() {
 
             {order.status === 'shipped' && (
                 <Button className="w-full h-12 text-lg" onClick={handleMarkDelivered}>
-                    I have received this order
+                    {t('shop.orderDetail.received')}
                 </Button>
             )}
         </div>

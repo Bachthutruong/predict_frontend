@@ -50,7 +50,9 @@ import AdminVotingForm from './pages/admin/AdminVotingForm';
 import AdminVotingDetail from './pages/admin/AdminVotingDetail';
 import AdminVotingStatistics from './pages/admin/AdminVotingStatistics';
 
-// Admin Shop Pages
+// Admin Shop
+import AdminReview from './pages/admin/shop/AdminReviews';
+import AdminCoupons from './pages/admin/shop/AdminCoupons';
 import AdminProducts from './pages/admin/shop/AdminProducts';
 import AdminProductEdit from './pages/admin/shop/AdminProductEdit';
 import AdminCategories from './pages/admin/shop/AdminCategories';
@@ -75,6 +77,7 @@ import ProductDetailPage from './pages/shop/ProductDetailPage';
 import CartPage from './pages/shop/CartPage';
 import CheckoutPage from './pages/shop/CheckoutPage';
 import OrderDetailPage from './pages/shop/OrderDetailPage';
+import OrderHistoryPage from './pages/shop/OrderHistoryPage';
 
 // Admin Chat
 import AdminChat from './pages/admin/shop/AdminChat';
@@ -309,6 +312,17 @@ function AppRoutes() {
             <ProtectedRoute>
               <MainLayout>
                 <CheckoutPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/shop/orders"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <OrderHistoryPage />
               </MainLayout>
             </ProtectedRoute>
           }
@@ -615,6 +629,26 @@ function AppRoutes() {
             <ProtectedRoute roles={['admin']}>
               <MainLayout>
                 <AdminChat />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/shop/reviews"
+          element={
+            <ProtectedRoute roles={['admin']}>
+              <MainLayout>
+                <AdminReview />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/shop/coupons"
+          element={
+            <ProtectedRoute roles={['admin']}>
+              <MainLayout>
+                <AdminCoupons />
               </MainLayout>
             </ProtectedRoute>
           }

@@ -39,3 +39,12 @@ export const adminSystemOrderAPI = {
     updateStatus: (id: string, status: string, notes?: string) => api.patch(`/admin/system-orders/${id}/status`, { status, adminNotes: notes }),
     updatePaymentStatus: (id: string, status: string) => api.patch(`/admin/system-orders/${id}/payment-status`, { paymentStatus: status }),
 };
+
+export const adminCouponAPI = {
+    getAll: (params?: any) => api.get('/admin/coupons', { params }),
+    getById: (id: string) => api.get(`/admin/coupons/${id}`),
+    create: (data: any) => api.post('/admin/coupons', data),
+    update: (id: string, data: any) => api.put(`/admin/coupons/${id}`, data),
+    delete: (id: string) => api.delete(`/admin/coupons/${id}`),
+    toggleStatus: (id: string) => api.patch(`/admin/coupons/${id}/toggle-status`),
+};

@@ -3,8 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { shopAPI, cartAPI } from '../../services/shopServices';
 import { Button } from '../../components/ui/button';
 import {
-    ShoppingCart, Minus, Plus, Star,
-    Heart, Share2, ShieldCheck, Truck, Store,
+    ShoppingCart, Minus, Plus, Star, ShieldCheck, Truck, Store,
     RotateCcw, MessageCircle, Zap
 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -92,14 +91,14 @@ export default function ProductDetailPage() {
                                     ))}
                                 </div>
                             )}
-                            <div className="flex justify-center gap-8 text-sm text-gray-500 pt-2">
+                            {/* <div className="flex justify-center gap-8 text-sm text-gray-500 pt-2">
                                 <div className="flex items-center gap-2 cursor-pointer hover:text-primary transition-colors">
                                     <Share2 className="h-4 w-4" /> Share
                                 </div>
                                 <div className="border-l border-gray-300 pl-8 flex items-center gap-2 cursor-pointer hover:text-red-500 transition-colors">
                                     <Heart className="h-4 w-4" /> Favorite
                                 </div>
-                            </div>
+                            </div> */}
                         </div>
 
                         {/* Right: Info */}
@@ -110,21 +109,28 @@ export default function ProductDetailPage() {
 
                             <div className="flex items-center gap-6 text-sm mb-6 pb-6 border-b border-gray-100">
                                 <div className="flex items-center gap-2 pr-6 border-r border-gray-200 text-yellow-500">
-                                    <span className="text-primary font-bold text-lg border-b-2 border-primary text-black">4.9</span>
+                                    <span className="text-primary font-bold text-lg border-b-2 border-primary text-black">
+                                        {product.averageRating ? product.averageRating.toFixed(1) : '0.0'}
+                                    </span>
                                     <div className="flex">
-                                        <Star className="h-4 w-4 fill-current" />
-                                        <Star className="h-4 w-4 fill-current" />
-                                        <Star className="h-4 w-4 fill-current" />
-                                        <Star className="h-4 w-4 fill-current" />
-                                        <Star className="h-4 w-4 fill-current" />
+                                        {[1, 2, 3, 4, 5].map((star) => (
+                                            <Star
+                                                key={star}
+                                                className={`h-4 w-4 ${star <= Math.round(product.averageRating || 0) ? 'fill-current' : 'text-gray-300'}`}
+                                            />
+                                        ))}
                                     </div>
                                 </div>
                                 <div className="pr-6 border-r border-gray-200">
-                                    <span className="font-bold text-gray-900 text-lg mr-1">{Math.floor(Math.random() * 500) + 50}</span>
+                                    <span className="font-bold text-gray-900 text-lg mr-1">
+                                        {new Intl.NumberFormat('en-US', { notation: "compact", maximumFractionDigits: 1 }).format(product.totalReviews || 0)}
+                                    </span>
                                     <span className="text-gray-500">Ratings</span>
                                 </div>
                                 <div>
-                                    <span className="font-bold text-gray-900 text-lg mr-1">{product.stock < 100 ? '9.8k' : '500+'}</span>
+                                    <span className="font-bold text-gray-900 text-lg mr-1">
+                                        {new Intl.NumberFormat('en-US', { notation: "compact", maximumFractionDigits: 1 }).format(product.purchaseCount || 0)}
+                                    </span>
                                     <span className="text-gray-500">Sold</span>
                                 </div>
                             </div>

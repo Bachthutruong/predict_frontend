@@ -84,7 +84,7 @@ const AdminSurveys: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto max-w-full space-y-8 pb-10">
+    <div className=" max-w-full space-y-8 pb-10">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
         <div className="space-y-2">

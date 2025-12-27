@@ -168,7 +168,7 @@ const AdminVotingCampaigns: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto p-4 sm:p-8 space-y-8 pb-10">
+    <div className=" mx-auto space-y-8 pb-10">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
         <div className="space-y-2">

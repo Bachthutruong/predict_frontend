@@ -4,11 +4,13 @@ import { shopAPI, cartAPI } from '../../services/shopServices';
 import { Button } from '../../components/ui/button';
 import { ShoppingBag, Search, Filter, ShoppingCart, List, Star, ChevronLeft, ChevronRight, Store } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../hooks/useLanguage';
 import ChatWidget from './ChatWidget';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 
 export default function ShopPage() {
     const { user } = useAuth();
+    const { t } = useLanguage();
     const [products, setProducts] = useState<any[]>([]);
     const [categories, setCategories] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
@@ -93,13 +95,13 @@ export default function ShopPage() {
     const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
 
     return (
-        <div className="bg-[#f5f5f5] min-h-screen pb-20 font-sans">
+        <div className="min-h-screen pb-20 font-sans">
             {/* Main Header - Sticky */}
             <div className={`sticky top-0 z-40 transition-all duration-300 ${isScrolled ? 'bg-white/95 backdrop-blur-md shadow-md py-2' : 'bg-gradient-to-r from-primary to-[#1557b0] py-4'} text-white`}>
                 <div className="container mx-auto max-w-7xl px-4 flex gap-4 items-center justify-between">
                     <div className="flex items-center gap-8 flex-1">
                         <Link to="/shop" className={`font-bold text-2xl tracking-tighter cursor-pointer flex items-center gap-2 transition-colors ${isScrolled ? 'text-primary' : 'text-white'}`}>
-                            <Store className="h-8 w-8" /> <span>Jiudi Shop</span>
+                            <Store className="h-8 w-8" /> <span>{t('shop.title')}</span>
                         </Link>
 
                         {/* Search Bar */}
@@ -107,7 +109,7 @@ export default function ShopPage() {
                             <div className="relative group">
                                 <input
                                     type="text"
-                                    placeholder="Search in Jiudi Shop..."
+                                    placeholder={t('shop.searchPlaceholder')}
                                     className={`w-full pl-4 pr-12 py-2.5 rounded-sm outline-none transition-all ${isScrolled ? 'bg-gray-100 focus:bg-white text-gray-900 border border-transparent focus:border-primary' : 'bg-white text-gray-900 shadow-sm'}`}
                                     value={filters.search}
                                     onChange={e => setFilters({ ...filters, search: e.target.value })}
@@ -129,26 +131,26 @@ export default function ShopPage() {
                             )}
                         </Link>
                         <div className={`hidden md:flex flex-col text-xs font-medium cursor-pointer ${isScrolled ? 'text-gray-700 hover:text-primary' : 'text-white/90 hover:text-white'}`}>
-                            <span>Welcome!</span>
+                            <span>{t('shop.welcome')}!</span>
                             <span className="font-bold text-sm truncate max-w-[100px]">{user?.name || 'Guest'}</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div className="container mx-auto max-w-7xl px-4 py-6">
+            <div className="max-w-full">
                 <div className="flex flex-col lg:flex-row gap-6">
                     {/* Sidebar Filters */}
                     <div className="lg:w-64 flex-shrink-0 space-y-6 hidden lg:block">
                         {/* Categories */}
                         <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
                             <h3 className="flex items-center gap-2 font-bold mb-4 text-gray-800 pb-2 border-b">
-                                <List className="h-5 w-5" /> Categories
+                                <List className="h-5 w-5" /> {t('shop.categories')}
                             </h3>
                             <ul className="space-y-2 text-sm">
                                 <li className={`cursor-pointer p-2 rounded-md font-medium transition-colors ${filters.category === '' ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-50 hover:text-primary'}`}
                                     onClick={() => setFilters({ ...filters, category: '' })}>
-                                    All Products
+                                    {t('shop.allProducts')}
                                 </li>
                                 {categories.map((cat, i) => (
                                     <li key={i}
@@ -164,13 +166,13 @@ export default function ShopPage() {
                         {/* Improved Price Filter */}
                         <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
                             <h3 className="flex items-center gap-2 font-bold mb-4 text-gray-800 pb-2 border-b">
-                                <Filter className="h-4 w-4" /> Price Range
+                                <Filter className="h-4 w-4" /> {t('shop.priceRange')}
                             </h3>
                             <div className="space-y-4">
                                 <div className="flex items-center gap-2">
                                     <input
                                         type="number"
-                                        placeholder="Min"
+                                        placeholder={t('shop.min')}
                                         className="w-full px-3 py-2 border rounded-md text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all"
                                         value={filters.minPrice || ''}
                                         onChange={e => setFilters({ ...filters, minPrice: Number(e.target.value) || 0 })}
@@ -178,14 +180,14 @@ export default function ShopPage() {
                                     <span className="text-gray-400">-</span>
                                     <input
                                         type="number"
-                                        placeholder="Max"
+                                        placeholder={t('shop.max')}
                                         className="w-full px-3 py-2 border rounded-md text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all"
                                         value={filters.maxPrice || ''}
                                         onChange={e => setFilters({ ...filters, maxPrice: Number(e.target.value) || 0 })}
                                     />
                                 </div>
                                 <Button size="sm" className="w-full bg-primary hover:bg-primary/90">
-                                    Apply
+                                    {t('shop.apply')}
                                 </Button>
                             </div>
                         </div>
@@ -195,25 +197,25 @@ export default function ShopPage() {
                     <div className="flex-1">
                         {/* Sort Bar */}
                         <div className="bg-gray-100 p-3 rounded-md mb-4 flex flex-wrap items-center gap-4 text-sm sticky top-[75px] z-30 backdrop-blur-sm bg-gray-100/90 shadow-sm border border-white/50">
-                            <span className="text-gray-500 font-medium ml-1">Sort by</span>
+                            <span className="text-gray-500 font-medium ml-1">{t('shop.sortBy')}</span>
                             <div className="flex gap-2 items-center">
                                 <button
                                     className={`px-4 py-2 rounded-sm transition-all ${filters.sortBy === 'relevance' ? 'bg-primary text-white shadow-sm' : 'bg-white border hover:bg-gray-50 text-gray-700'}`}
                                     onClick={() => setFilters({ ...filters, sortBy: 'relevance' })}
                                 >
-                                    Relevance
+                                    {t('shop.relevance')}
                                 </button>
                                 <button
                                     className={`px-4 py-2 rounded-sm transition-all ${filters.sortBy === 'latest' ? 'bg-primary text-white shadow-sm' : 'bg-white border hover:bg-gray-50 text-gray-700'}`}
                                     onClick={() => setFilters({ ...filters, sortBy: 'latest' })}
                                 >
-                                    Latest
+                                    {t('shop.latest')}
                                 </button>
                                 <button
                                     className={`px-4 py-2 rounded-sm transition-all ${filters.sortBy === 'sales' ? 'bg-primary text-white shadow-sm' : 'bg-white border hover:bg-gray-50 text-gray-700'}`}
                                     onClick={() => setFilters({ ...filters, sortBy: 'sales' })}
                                 >
-                                    Top Sales
+                                    {t('shop.topSales')}
                                 </button>
 
                                 {/* PRICE SELECT DROPDOWN FIX */}
@@ -222,11 +224,11 @@ export default function ShopPage() {
                                     onValueChange={(val) => setFilters({ ...filters, sortBy: val })}
                                 >
                                     <SelectTrigger className={`w-[180px] h-[38px] transition-all rounded-sm ${filters.sortBy.includes('price') ? 'bg-primary text-white border-primary' : 'bg-white border-input hover:bg-gray-50 text-gray-700'}`}>
-                                        <SelectValue placeholder="Price" />
+                                        <SelectValue placeholder={t('shop.price')} />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="price_asc">Price: Low to High</SelectItem>
-                                        <SelectItem value="price_desc">Price: High to Low</SelectItem>
+                                        <SelectItem value="price_asc">{t('shop.priceLowToHigh')}</SelectItem>
+                                        <SelectItem value="price_desc">{t('shop.priceHighToLow')}</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -244,8 +246,8 @@ export default function ShopPage() {
                                 <div className="w-32 h-32 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
                                     <ShoppingBag className="h-12 w-12 text-gray-300" />
                                 </div>
-                                <h3 className="text-xl font-medium text-gray-900">No products found</h3>
-                                <p className="text-gray-500 mt-2 mb-6">Try adjusting your search or filters to find what you're looking for.</p>
+                                <h3 className="text-xl font-medium text-gray-900">{t('shop.noProductsFound')}</h3>
+                                <p className="text-gray-500 mt-2 mb-6">{t('shop.adjustFilters')}</p>
                                 <Button variant="outline" onClick={() => setFilters({ category: '', search: '', minPrice: 0, maxPrice: 0, sortBy: 'relevance' })}>
                                     Clear All Filters
                                 </Button>
@@ -263,11 +265,11 @@ export default function ShopPage() {
                                             {/* Badges */}
                                             {product.stock <= 0 && (
                                                 <div className="absolute inset-0 bg-white/60 flex items-center justify-center backdrop-blur-[1px]">
-                                                    <span className="bg-black/70 text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide">Out of Stock</span>
+                                                    <span className="bg-black/70 text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide">{t('shop.outOfStock')}</span>
                                                 </div>
                                             )}
                                             <div className="absolute top-2 left-2 flex flex-col gap-1">
-                                                <span className="bg-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded-[2px] shadow-sm">Official</span>
+                                                <span className="bg-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded-[2px] shadow-sm">{t('shop.official')}</span>
                                                 {product.originalPrice > product.price && (
                                                     <span className="bg-yellow-400 text-yellow-900 text-[10px] font-bold px-1.5 py-0.5 rounded-[2px] shadow-sm">
                                                         -{Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%
@@ -277,7 +279,7 @@ export default function ShopPage() {
 
                                             {/* Quick Actions (Hover) */}
                                             <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex justify-center translate-y-2 group-hover:translate-y-0 duration-300">
-                                                <span className="text-white text-xs font-medium">View Details</span>
+                                                <span className="text-white text-xs font-medium">{t('shop.viewDetails')}</span>
                                             </div>
                                         </div>
 
@@ -292,9 +294,9 @@ export default function ShopPage() {
                                                 <div className="flex items-center justify-between text-[10px] text-gray-500">
                                                     <div className="flex items-center gap-0.5">
                                                         <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                                                        <span>4.9</span>
+                                                        <span>{product.averageRating ? Number(product.averageRating).toFixed(1) : '0.0'}</span>
                                                     </div>
-                                                    <span>{product.stock < 100 ? '9.8k' : '500+'} sold</span>
+                                                    <span>{new Intl.NumberFormat('en-US', { notation: "compact", maximumFractionDigits: 1 }).format(product.purchaseCount || 0)} {t('shop.sold')}</span>
                                                 </div>
                                             </div>
                                         </div>

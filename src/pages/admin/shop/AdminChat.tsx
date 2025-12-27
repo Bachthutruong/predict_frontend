@@ -5,6 +5,10 @@ import { Input } from '../../../components/ui/input';
 import { MessageCircle, Send, Search, User, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { formatDistanceToNow } from 'date-fns';
+import { useLanguage } from '../../../hooks/useLanguage';
+import { vi, zhTW, enUS } from 'date-fns/locale';
+
+const locales: any = { vi, 'zh-TW': zhTW, en: enUS };
 
 interface Conversation {
     _id: string;
@@ -30,6 +34,7 @@ interface Message {
 }
 
 export default function AdminChat() {
+    const { t, currentLanguage } = useLanguage();
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [selectedUser, setSelectedUser] = useState<Conversation | null>(null);
     const [messages, setMessages] = useState<Message[]>([]);
@@ -87,8 +92,9 @@ export default function AdminChat() {
             setInput('');
             await fetchMessages(selectedUser._id);
             await fetchConversations();
+            await fetchConversations();
         } catch (error) {
-            toast.error('Failed to send message');
+            toast.error(t('common.error') || 'Failed to send message');
         } finally {
             setIsSending(false);
         }
@@ -100,13 +106,13 @@ export default function AdminChat() {
     );
 
     return (
-        <div className="p-6">
+        <div className="">
             <div className="mb-6">
                 <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                     <MessageCircle className="h-7 w-7 text-primary" />
-                    Customer Support Chat
+                    {t('admin.shop.chat.title')}
                 </h1>
-                <p className="text-gray-500 mt-1">Manage conversations with customers</p>
+                <p className="text-gray-500 mt-1">{t('admin.shop.chat.desc')}</p>
             </div>
 
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden" style={{ height: 'calc(100vh - 200px)' }}>
@@ -117,7 +123,7 @@ export default function AdminChat() {
                             <div className="relative">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                                 <Input
-                                    placeholder="Search conversations..."
+                                    placeholder={t('admin.shop.chat.search')}
                                     value={searchTerm}
                                     onChange={e => setSearchTerm(e.target.value)}
                                     className="pl-9"
@@ -129,7 +135,7 @@ export default function AdminChat() {
                             {filteredConversations.length === 0 ? (
                                 <div className="p-8 text-center text-gray-400">
                                     <MessageCircle className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                                    <p className="text-sm">No conversations yet</p>
+                                    <p className="text-sm">{t('admin.shop.chat.noConvo')}</p>
                                 </div>
                             ) : (
                                 filteredConversations.map(conv => (
@@ -152,14 +158,14 @@ export default function AdminChat() {
                                                     {conv.lastMessage && (
                                                         <span className="text-[10px] text-gray-400 flex items-center gap-1">
                                                             <Clock className="h-3 w-3" />
-                                                            {formatDistanceToNow(new Date(conv.lastMessage.createdAt), { addSuffix: true })}
+                                                            {formatDistanceToNow(new Date(conv.lastMessage.createdAt), { addSuffix: true, locale: locales[currentLanguage] || enUS })}
                                                         </span>
                                                     )}
                                                 </div>
                                                 <p className="text-xs text-gray-500 truncate">{conv.email}</p>
                                                 {conv.lastMessage && (
                                                     <p className={`text-xs mt-1 truncate ${!conv.lastMessage.read && !conv.lastMessage.isAdmin ? 'font-semibold text-gray-900' : 'text-gray-500'}`}>
-                                                        {conv.lastMessage.isAdmin && <span className="text-primary">You: </span>}
+                                                        {conv.lastMessage.isAdmin && <span className="text-primary">{t('admin.shop.chat.you')}: </span>}
                                                         {conv.lastMessage.content}
                                                     </p>
                                                 )}
@@ -196,7 +202,7 @@ export default function AdminChat() {
                                         {messages.length === 0 && (
                                             <div className="text-center text-gray-400 py-10">
                                                 <MessageCircle className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                                                <p className="text-sm">No messages yet</p>
+                                                <p className="text-sm">{t('admin.shop.chat.noMsg')}</p>
                                             </div>
                                         )}
                                         {messages.map((msg, i) => {
@@ -222,7 +228,7 @@ export default function AdminChat() {
                                         <Input
                                             value={input}
                                             onChange={e => setInput(e.target.value)}
-                                            placeholder="Type your reply..."
+                                            placeholder={t('admin.shop.chat.placeholder')}
                                             className="flex-1"
                                             onKeyDown={e => {
                                                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -242,8 +248,8 @@ export default function AdminChat() {
                             <div className="flex-1 flex items-center justify-center text-gray-400">
                                 <div className="text-center">
                                     <MessageCircle className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                                    <p className="text-lg font-medium">Select a conversation</p>
-                                    <p className="text-sm mt-1">Choose a customer to start chatting</p>
+                                    <p className="text-lg font-medium">{t('admin.shop.chat.select')}</p>
+                                    <p className="text-sm mt-1">{t('admin.shop.chat.choose')}</p>
                                 </div>
                             </div>
                         )}
