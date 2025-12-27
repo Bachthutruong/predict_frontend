@@ -6,14 +6,14 @@ import { useLanguage } from '../../hooks/useLanguage';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '../ui/dropdown-menu';
-import { 
-  Trophy, 
-  Home, 
-  Target, 
-  User, 
-  Calendar, 
-  MessageSquare, 
-  Settings, 
+import {
+  Trophy,
+  Home,
+  Target,
+  User,
+  Calendar,
+  MessageSquare,
+  Settings,
   LogOut,
   Coins,
   Gift,
@@ -24,8 +24,13 @@ import {
   X,
   Package,
   ListChecks,
+  List,
   Vote,
-  Award
+  Award,
+  MapPin,
+  CreditCard,
+  ShoppingBag,
+  Store
 } from 'lucide-react';
 
 interface MainLayoutProps {
@@ -37,9 +42,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const location = useLocation();
   const { t } = useLanguage();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
 
   const guestNavigation = useMemo(() => [
+    { name: 'Shop', href: '/shop', icon: Store },
     { name: t('navigation.predictions'), href: '/predictions', icon: Target },
     { name: t('navigation.contests'), href: '/contests', icon: Award },
     { name: t('navigation.voting'), href: '/voting', icon: Vote },
@@ -49,6 +54,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   const userNavigation = useMemo(() => [
     { name: t('navigation.dashboard'), href: '/dashboard', icon: Home },
+    { name: 'Shop', href: '/shop', icon: Store },
     { name: t('navigation.predictions'), href: '/predictions', icon: Target },
     { name: t('navigation.contests'), href: '/contests', icon: Award },
     { name: t('navigation.voting'), href: '/voting', icon: Vote },
@@ -75,6 +81,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     { name: t('admin.manageStaff'), href: '/admin/staff', icon: Shield },
     { name: t('admin.manageUsers'), href: '/admin/users', icon: User },
     { name: t('admin.grantPoints'), href: '/admin/grant-points', icon: Coins },
+    // Shop Management
+    { name: 'Products', href: '/admin/shop/products', icon: Store },
+    { name: 'Categories', href: '/admin/shop/categories', icon: List },
+    { name: 'Orders', href: '/admin/shop/orders', icon: ShoppingBag },
+    { name: 'Branches', href: '/admin/shop/branches', icon: MapPin },
+    { name: 'Payment Settings', href: '/admin/shop/settings', icon: CreditCard },
     { name: t('navigation.feedback'), href: '/admin/feedback', icon: MessageSquare },
   ], [t]);
 
@@ -89,312 +101,295 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const isAdminOrStaff = user?.role === 'admin' || user?.role === 'staff';
 
   const getInitials = (name: string) => {
+    if (!name) return 'U';
     return name.split(' ').map(part => part[0]).join('').toUpperCase().slice(0, 2);
   };
 
   const closeAllMenus = () => {
     setIsMobileMenuOpen(false);
-    setIsAdminMenuOpen(false);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Top Navigation */}
-      <nav className="bg-white shadow-sm border-b relative z-40">
-        <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            {/* Left side - Logo and Navigation */}
-            <div className="flex items-center">
-              <Link to="/predictions" className="flex items-center space-x-2 mr-8">
-                <Trophy className="h-8 w-8 text-blue-600" />
-                <span className="text-xl sm:text-2xl font-bold text-blue-600">PredictWin</span>
-              </Link>
-              
-              {/* Desktop Navigation */}
-              <div className="hidden md:flex space-x-1 items-center">
-                {mainMenu.map((item) => {
+    <div className="min-h-screen bg-[#f8f9fa] flex flex-col">
+      {/* Top Navigation - Google style AppBar */}
+      <nav className="bg-white border-b border-gray-200 fixed w-full z-50 h-16 flex items-center px-4 transition-all duration-200">
+        <div className="flex items-center justify-between w-full max-w-[1920px] mx-auto">
+          {/* Left: Logo & Menu Toggle */}
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="md:hidden p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+            <Link to="/predictions" className="flex items-center space-x-2">
+              <div className="bg-blue-600 p-1.5 rounded-lg">
+                <Trophy className="h-5 w-5 text-white" />
+              </div>
+              <span className="text-xl font-normal text-gray-700 hidden sm:block" style={{ fontFamily: 'Product Sans, Roboto, sans-serif' }}>Predict<span className="font-bold text-blue-600">Win</span></span>
+            </Link>
+          </div>
+
+          {/* Center: Desktop Navigation (Horizontal) */}
+          <div className="hidden md:flex items-center space-x-1 lg:space-x-2 mx-4">
+            {mainMenu.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  to={item.href}
+                  className={`flex items-center px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${isActive(item.href)
+                    ? 'bg-blue-50 text-blue-700'
+                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                    }`}
+                >
+                  <Icon className={`h-4 w-4 mr-2 ${isActive(item.href) ? 'text-blue-700' : 'text-gray-500'}`} />
+                  {item.name}
+                </Link>
+              );
+            })}
+            {moreMenu.length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-100 text-gray-600">
+                    {t('navigation.more')}
+                    <span className="ml-1 text-xs">▼</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 mt-2 p-2 shadow-google rounded-xl border-gray-100">
+                  {moreMenu.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <DropdownMenuItem asChild key={item.href}>
+                        <Link
+                          to={item.href}
+                          className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-50 cursor-pointer"
+                        >
+                          <Icon className="h-4 w-4 text-gray-500" />
+                          {item.name}
+                        </Link>
+                      </DropdownMenuItem>
+                    );
+                  })}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
+
+          {/* Right: User Actions */}
+          <div className="flex items-center space-x-2 sm:space-x-4">
+            {user ? (
+              <>
+                {/* Points Pill */}
+                <div className="hidden sm:flex items-center space-x-2 bg-white border border-gray-200 px-3 py-1.5 rounded-full shadow-sm hover:shadow-md transition-shadow">
+                  <Coins className="h-4 w-4 text-yellow-500" />
+                  <span className="font-medium text-gray-700 text-sm">{user?.points || 0}</span>
+                </div>
+
+                {/* Profile Dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="flex items-center space-x-2 p-1 hover:bg-gray-100 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                      {user?.avatarUrl ? (
+                        <img
+                          src={user.avatarUrl}
+                          alt={user.name}
+                          className="h-9 w-9 rounded-full border border-gray-200 object-cover"
+                        />
+                      ) : (
+                        <div className="h-9 w-9 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold shadow-sm">
+                          {user ? getInitials(user.name) : 'U'}
+                        </div>
+                      )}
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-72 mt-2 p-2 shadow-google-hover rounded-2xl border-gray-100">
+                    <div className="px-4 py-3 border-b border-gray-50 mb-2">
+                      <p className="text-sm font-semibold text-gray-800">{user?.name}</p>
+                      <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                      <Badge variant="secondary" className="mt-2 text-xs font-normal">
+                        {user?.role?.toUpperCase()}
+                      </Badge>
+                    </div>
+
+                    {/* Admin Links in Profile Menu for convenience on all screens */}
+                    {(isAdminOrStaff) && (
+                      <div className="mb-2 pb-2 border-b border-gray-50">
+                        <p className="px-3 py-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wider">Management</p>
+                        {user.role === 'admin' && (
+                          <DropdownMenuItem asChild>
+                            <Link to="/admin/dashboard" className="cursor-pointer rounded-lg mx-1">
+                              <Settings className="h-4 w-4 mr-2" />
+                              Admin Dashboard
+                            </Link>
+                          </DropdownMenuItem>
+                        )}
+                        {user.role === 'staff' && (
+                          <DropdownMenuItem asChild>
+                            <Link to="/staff" className="cursor-pointer rounded-lg mx-1">
+                              <Settings className="h-4 w-4 mr-2" />
+                              Staff Dashboard
+                            </Link>
+                          </DropdownMenuItem>
+                        )}
+                      </div>
+                    )}
+
+                    <DropdownMenuItem onClick={logout} className="text-red-600 focus:text-red-600 cursor-pointer rounded-lg mx-1 hover:bg-red-50">
+                      <LogOut className="h-4 w-4 mr-2" />
+                      {t('auth.logout')}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <Button asChild variant="ghost" className="text-gray-600 hover:text-gray-900 hover:bg-gray-100">
+                  <Link to="/login">{t('auth.login')}</Link>
+                </Button>
+                <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm rounded-md px-6">
+                  <Link to="/register">{t('auth.signUp')}</Link>
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      </nav>
+
+      {/* Main Layout Area */}
+      <div className="flex pt-16 min-h-screen">
+
+        {/* Sidebar for Admin/Staff - Google Cloud Console style */}
+        {isAdminOrStaff && (
+          <aside className="hidden lg:block w-72 bg-white border-r border-gray-200 fixed h-full overflow-y-auto z-40 pb-20">
+            <div className="p-4">
+              <h2 className="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 mt-2">
+                {user?.role === 'admin' ? 'Admin Console' : 'Staff Workspace'}
+              </h2>
+              <nav className="space-y-1">
+                {user?.role === 'admin' && adminNavigation.map((item) => {
+                  const Icon = item.icon;
+                  const active = isActive(item.href);
+                  return (
+                    <Link
+                      key={item.href}
+                      to={item.href}
+                      className={`flex items-center px-4 py-3 text-sm font-medium rounded-r-full mr-4 transition-colors ${active
+                        ? 'bg-blue-50 text-blue-700'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                        }`}
+                    >
+                      <Icon className={`h-5 w-5 mr-3 ${active ? 'text-blue-700' : 'text-gray-500'}`} />
+                      {item.name}
+                    </Link>
+                  );
+                })}
+
+                {user?.role === 'staff' && staffNavigation.map((item) => {
+                  const Icon = item.icon;
+                  const active = isActive(item.href);
+                  return (
+                    <Link
+                      key={item.href}
+                      to={item.href}
+                      className={`flex items-center px-4 py-3 text-sm font-medium rounded-r-full mr-4 transition-colors ${active
+                        ? 'bg-blue-50 text-blue-700'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                        }`}
+                    >
+                      <Icon className={`h-5 w-5 mr-3 ${active ? 'text-blue-700' : 'text-gray-500'}`} />
+                      {item.name}
+                    </Link>
+                  );
+                })}
+              </nav>
+            </div>
+          </aside>
+        )}
+
+        {/* Content Area */}
+        <main className={`flex-1 transition-all duration-300 ${isAdminOrStaff ? 'lg:ml-72' : ''} bg-[#f8f9fa] p-4 sm:p-6 lg:p-8 overflow-x-hidden w-full`}>
+          <div className="max-w-[1600px] mx-auto animate-fade-in-up">
+            {children}
+          </div>
+        </main>
+      </div>
+
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity" onClick={closeAllMenus} />
+          <div className="fixed inset-y-0 left-0 w-80 bg-white shadow-xl transform transition-transform duration-300 ease-in-out overflow-y-auto">
+            <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+              <span className="text-xl font-bold text-gray-800">Menu</span>
+              <button onClick={closeAllMenus} className="p-2 hover:bg-gray-100 rounded-full">
+                <X className="h-5 w-5 text-gray-500" />
+              </button>
+            </div>
+            <div className="p-4 space-y-6">
+
+              {/* Main Navigation */}
+              <div className="space-y-1">
+                <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Navigation</h3>
+                {[...mainMenu, ...moreMenu].map((item) => {
                   const Icon = item.icon;
                   return (
                     <Link
                       key={item.href}
                       to={item.href}
-                      className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
-                        isActive(item.href)
-                          ? 'bg-blue-100 text-blue-700'
-                          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                      }`}
+                      onClick={closeAllMenus}
+                      className={`flex items-center px-3 py-2.5 rounded-lg text-sm font-medium ${isActive(item.href)
+                        ? 'bg-blue-50 text-blue-700'
+                        : 'text-gray-700 hover:bg-gray-50'
+                        }`}
                     >
-                      <Icon className="h-4 w-4 mr-2" />
+                      <Icon className={`h-5 w-5 mr-3 ${isActive(item.href) ? 'text-blue-700' : 'text-gray-400'}`} />
                       {item.name}
                     </Link>
                   );
                 })}
-                {moreMenu.length > 0 && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="flex items-center px-3 py-2 text-sm font-medium">
-                        {t('navigation.more')}
-                        <span className="ml-1">▼</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start">
-                      {moreMenu.map((item) => {
-                        const Icon = item.icon;
-                        return (
-                          <DropdownMenuItem asChild key={item.href}>
-                            <Link
-                              to={item.href}
-                              className="flex items-center gap-2 px-2 py-1 text-sm"
-                            >
-                              <Icon className="h-4 w-4" />
-                              {item.name}
-                            </Link>
-                          </DropdownMenuItem>
-                        );
-                      })}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
               </div>
-            </div>
-            
-            {/* Right side - User info and actions */}
-            <div className="flex items-center space-x-2 sm:space-x-4">
-              {user ? (
-                <>
-                  {/* Points Display */}
-                  <div className="hidden sm:flex items-center space-x-2 bg-blue-100 px-3 py-1 rounded-full">
-                    <Coins className="h-4 w-4 text-blue-600" />
-                    <span className="font-medium text-blue-600">{user?.points || 0}</span>
-                  </div>
 
-                  {/* User Info */}
-                  <div className="flex items-center space-x-2 sm:space-x-3">
-                    {user?.avatarUrl ? (
-                      <img
-                        src={user.avatarUrl}
-                        alt={user.name}
-                        className="h-8 w-8 rounded-full"
-                      />
-                    ) : (
-                      <div className="h-8 w-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-medium">
-                        {user ? getInitials(user.name) : 'U'}
-                      </div>
-                    )}
-                    <div className="hidden lg:flex items-center space-x-2">
-                      <span className="text-sm font-medium text-gray-900 whitespace-nowrap">{user?.name}</span>
-                      <Badge variant="outline" className="text-xs">
-                        {user?.role?.toUpperCase()}
-                      </Badge>
-                    </div>
-                  </div>
-
-                  {/* Admin/Staff Menu Toggle (Mobile) */}
-                  {isAdminOrStaff && (
-                    <button
-                      onClick={() => setIsAdminMenuOpen(!isAdminMenuOpen)}
-                      className="lg:hidden p-2 text-gray-600 hover:text-gray-900 border rounded-md"
-                    >
-                      <Settings className="h-5 w-5" />
-                    </button>
-                  )}
-
-                  {/* Mobile menu button */}
-                  <button
-                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                    className="md:hidden p-2 text-gray-600 hover:text-gray-900"
-                  >
-                    {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-                  </button>
-
-                  {/* Logout Button */}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={logout}
-                    className="hidden md:flex text-gray-500 hover:text-gray-700"
-                    title={t('auth.logout')}
-                  >
-                    <LogOut className="h-4 w-4" />
-                  </Button>
-                </>
-              ) : (
-                <div className="flex items-center space-x-2">
-                  <Button asChild variant="ghost">
-                    <Link to="/login">{t('auth.login')}</Link>
-                  </Button>
-                  <Button asChild>
-                    <Link to="/register">{t('auth.signUp')}</Link>
-                  </Button>
+              {/* Admin/Staff Mobile Links */}
+              {isAdminOrStaff && (
+                <div className="space-y-1 pt-4 border-t border-gray-100">
+                  <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Management</h3>
+                  {(user?.role === 'admin' ? adminNavigation : staffNavigation).map((item) => {
+                    const Icon = item.icon;
+                    const active = isActive(item.href);
+                    return (
+                      <Link
+                        key={item.href}
+                        to={item.href}
+                        onClick={closeAllMenus}
+                        className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium ${active
+                          ? 'bg-blue-50 text-blue-700'
+                          : 'text-gray-700 hover:bg-gray-50'
+                          }`}
+                      >
+                        <Icon className={`h-5 w-5 mr-3 ${active ? 'text-blue-700' : 'text-gray-400'}`} />
+                        {item.name}
+                      </Link>
+                    );
+                  })}
                 </div>
               )}
-            </div>
-          </div>
-        </div>
 
-        {/* Mobile Navigation Menu */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden bg-white border-t shadow-lg relative z-50">
-            <div className="px-2 pt-2 pb-3 space-y-1 max-h-96 overflow-y-auto">
-              {navigation.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.href}
-                    to={item.href}
-                    onClick={closeAllMenus}
-                    className={`flex items-center px-3 py-2 rounded-md text-base font-medium ${
-                      isActive(item.href)
-                        ? 'bg-blue-100 text-blue-700'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                    }`}
-                  >
-                    <Icon className="h-5 w-5 mr-3" />
-                    {item.name}
-                  </Link>
-                );
-              })}
-              
               {user && (
-                <>
-                  {/* Mobile Points Display */}
-                  <div className="flex items-center px-3 py-2 space-x-2 bg-blue-50 rounded-md">
-                    <Coins className="h-5 w-5 text-blue-600" />
-                    <span className="font-medium text-blue-600">{user?.points || 0} Points</span>
-                  </div>
-                  
-                  {/* Mobile Logout */}
+                <div className="pt-4 border-t border-gray-100">
                   <button
                     onClick={() => {
                       logout();
                       closeAllMenus();
                     }}
-                    className="flex items-center w-full px-3 py-2 text-base font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md"
+                    className="flex items-center w-full px-3 py-2.5 text-red-600 hover:bg-red-50 rounded-lg text-sm font-medium transition-colors"
                   >
                     <LogOut className="h-5 w-5 mr-3" />
                     {t('auth.logout')}
                   </button>
-                </>
+                </div>
               )}
-            </div>
-          </div>
-        )}
-      </nav>
 
-      <div className="flex">
-        {/* Admin/Staff Sidebar (Desktop) */}
-        {isAdminOrStaff && (
-          <div className="hidden lg:block w-64 bg-white shadow-sm min-h-screen">
-            <div className="p-4">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                {user?.role?.toUpperCase()} MANAGEMENT
-              </h2>
-              <nav className="space-y-1">
-                {user?.role === 'admin' && adminNavigation.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <Link
-                      key={item.href}
-                      to={item.href}
-                      className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                        isActive(item.href)
-                          ? 'bg-blue-100 text-blue-700'
-                          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                      }`}
-                    >
-                      <Icon className="h-4 w-4 mr-3" />
-                      {item.name}
-                    </Link>
-                  );
-                })}
-                
-                {user?.role === 'staff' && staffNavigation.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <Link
-                      key={item.href}
-                      to={item.href}
-                      className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                        isActive(item.href)
-                          ? 'bg-blue-100 text-blue-700'
-                          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                      }`}
-                    >
-                      <Icon className="h-4 w-4 mr-3" />
-                      {item.name}
-                    </Link>
-                  );
-                })}
-              </nav>
-            </div>
-          </div>
-        )}
-
-        {/* Main Content */}
-        <div className={`flex-1 ${isAdminOrStaff ? 'lg:ml-0' : ''}`}>
-          <div className="p-4 lg:p-8">
-            <div className="max-w-7xl mx-auto">
-              {children}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile Admin/Staff Menu Overlay */}
-      {isAdminOrStaff && isAdminMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50" onClick={closeAllMenus}>
-          <div className="absolute right-0 top-0 h-full w-80 max-w-full bg-white shadow-xl overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="p-4">
-              <div className="flex justify-between items-center mb-4 pb-2 border-b">
-                <h2 className="text-lg font-semibold text-gray-900">
-                  {user?.role?.toUpperCase()} MANAGEMENT
-                </h2>
-                <button 
-                  onClick={closeAllMenus}
-                  className="p-2 hover:bg-gray-100 rounded-md"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-              <nav className="space-y-1">
-                {user?.role === 'admin' && adminNavigation.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <Link
-                      key={item.href}
-                      to={item.href}
-                      onClick={closeAllMenus}
-                      className={`flex items-center px-3 py-3 text-base font-medium rounded-md transition-colors ${
-                        isActive(item.href)
-                          ? 'bg-blue-100 text-blue-700'
-                          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                      }`}
-                    >
-                      <Icon className="h-5 w-5 mr-3" />
-                      {item.name}
-                    </Link>
-                  );
-                })}
-                
-                {user?.role === 'staff' && staffNavigation.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <Link
-                      key={item.href}
-                      to={item.href}
-                      onClick={closeAllMenus}
-                      className={`flex items-center px-3 py-3 text-base font-medium rounded-md transition-colors ${
-                        isActive(item.href)
-                          ? 'bg-blue-100 text-blue-700'
-                          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                      }`}
-                    >
-                      <Icon className="h-5 w-5 mr-3" />
-                      {item.name}
-                    </Link>
-                  );
-                })}
-              </nav>
             </div>
           </div>
         </div>

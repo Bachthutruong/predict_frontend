@@ -83,36 +83,34 @@ const DashboardPage: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
+    <div className="space-y-8 max-w-6xl mx-auto">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            {t('dashboard.welcomeBack', { name: user?.name })}
+          <h1 className="text-2xl sm:text-3xl font-regular text-gray-800 tracking-tight">
+            {t('dashboard.welcomeBack', { name: user?.name?.split(' ')[0] })}
           </h1>
-          <p className="text-gray-600 mt-2">
+          <p className="text-gray-500 mt-1 text-sm sm:text-base">
             {t('dashboard.happeningToday')}
           </p>
         </div>
-        <Button onClick={handleRefresh} variant="outline" size="sm" disabled={refreshing}>
-          <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+        <Button onClick={handleRefresh} variant="outline" size="sm" className="rounded-full px-4 border-gray-200 text-gray-600 hover:bg-gray-50" disabled={refreshing}>
+          <RefreshCw className={`h-4 w-4 mr-2 text-gray-500 ${refreshing ? 'animate-spin' : ''}`} />
           {t('common.refresh')}
         </Button>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:gap-6 md:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
-            <Card key={stat.title}>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                    <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                  </div>
-                  <div className={`p-3 rounded-full ${stat.bgColor}`}>
-                    <Icon className={`h-6 w-6 ${stat.color}`} />
-                  </div>
+            <Card key={stat.title} className="border-none shadow-google hover:shadow-google-hover transition-all duration-200 bg-white">
+              <CardContent className="p-5 flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">{stat.title}</p>
+                  <p className="text-2xl font-light text-gray-900 mt-1">{stat.value}</p>
+                </div>
+                <div className={`p-2.5 rounded-full bg-gray-50 border border-gray-100`}>
+                  <Icon className={`h-5 w-5 text-gray-700`} />
                 </div>
               </CardContent>
             </Card>
@@ -121,18 +119,18 @@ const DashboardPage: React.FC = () => {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <Card>
+        <Card className="border-none shadow-google">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 text-lg font-medium text-gray-800">
+              <Calendar className="h-5 w-5 text-blue-600" />
               {t('dashboard.dailyCheckIn')}
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-gray-500">
               {t('dashboard.checkInDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button asChild className="w-full">
+            <Button asChild className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm font-medium h-10">
               <Link to="/check-in">
                 {t('dashboard.completeCheckIn')}
               </Link>
@@ -140,18 +138,18 @@ const DashboardPage: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-none shadow-google">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Target className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 text-lg font-medium text-gray-800">
+              <Target className="h-5 w-5 text-blue-600" />
               {t('dashboard.activePredictions')}
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-gray-500">
               {t('dashboard.activePredictionsDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button asChild variant="outline" className="w-full">
+            <Button asChild variant="outline" className="w-full border-gray-200 text-blue-600 hover:bg-blue-50 rounded-lg h-10 font-medium">
               <Link to="/predictions">
                 {t('dashboard.viewAllPredictions')}
               </Link>
@@ -160,77 +158,85 @@ const DashboardPage: React.FC = () => {
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
+      <Card className="border-none shadow-google overflow-hidden">
+        <CardHeader className="border-b border-gray-50 bg-white">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="flex items-center gap-2">
-                <Trophy className="h-5 w-5" />
+              <CardTitle className="flex items-center gap-2 text-lg font-medium text-gray-800">
+                <Trophy className="h-5 w-5 text-blue-600" />
                 {t('dashboard.recentPredictions')}
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="mt-1 text-gray-500">
                 {t('dashboard.latestPredictionChallenges')}
               </CardDescription>
             </div>
-            <Button asChild variant="outline" size="sm">
+            <Button asChild variant="ghost" size="sm" className="text-blue-600 hover:bg-blue-50 hover:text-blue-700 font-medium">
               <Link to="/predictions">
                 {t('dashboard.viewAll')}
               </Link>
             </Button>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           {isLoading ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-              <p className="text-muted-foreground mt-2">{t('dashboard.loadingPredictions')}</p>
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="text-gray-400 mt-4 text-sm">{t('dashboard.loadingPredictions')}</p>
             </div>
           ) : predictions.length > 0 ? (
-            <div className="space-y-4">
+            <div className="divide-y divide-gray-50">
               {predictions.map((prediction) => (
                 <div
                   key={prediction.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                  className="flex items-center justify-between p-4 sm:p-5 hover:bg-gray-50/50 transition-colors group"
                 >
                   <div className="flex items-center space-x-4">
-                    {prediction.imageUrl && (
-                      <img
-                        src={prediction.imageUrl}
-                        alt={prediction.title}
-                        className="w-12 h-12 rounded-md object-cover"
-                      />
+                    {prediction.imageUrl ? (
+                      <div className="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0 border border-gray-100">
+                        <img
+                          src={prediction.imageUrl}
+                          alt={prediction.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-12 h-12 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0 text-blue-600 font-bold text-lg">
+                        {prediction.title.charAt(0)}
+                      </div>
                     )}
                     <div>
-                      <h3 className="font-medium text-gray-900">{prediction.title}</h3>
-                      <p className="text-sm text-gray-500 line-clamp-1">
+                      <h3 className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors">{prediction.title}</h3>
+                      <p className="text-sm text-gray-500 line-clamp-1 mt-0.5">
                         {prediction.description}
                       </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge variant="outline" className="text-xs">
+                      <div className="flex items-center gap-2 mt-2">
+                        <Badge variant="secondary" className="text-xs font-normal bg-gray-100 text-gray-600 hover:bg-gray-200">
                           {prediction.pointsCost} {t('dashboard.points')}
                         </Badge>
-                        <Badge 
+                        <Badge
                           variant={prediction.status === 'active' ? 'default' : 'secondary'}
-                          className="text-xs"
+                          className={`text-xs font-normal ${prediction.status === 'active' ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-gray-100 text-gray-600'}`}
                         >
                           {t(`predictions.${prediction.status}`)}
                         </Badge>
                       </div>
                     </div>
                   </div>
-                  <Button asChild size="sm">
+                  <Button asChild size="sm" variant="ghost" className="text-gray-400 group-hover:text-blue-600">
                     <Link to={`/predictions/${prediction.id}`}>
-                      {t('dashboard.viewDetails')}
+                      {t('dashboard.viewDetails')} &rarr;
                     </Link>
                   </Button>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="text-center py-8">
-              <Trophy className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">{t('dashboard.noPredictions')}</p>
-              <p className="text-sm text-gray-400">{t('dashboard.checkBackLater')}</p>
+            <div className="text-center py-12">
+              <div className="bg-gray-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Trophy className="h-8 w-8 text-gray-300" />
+              </div>
+              <p className="text-gray-900 font-medium">{t('dashboard.noPredictions')}</p>
+              <p className="text-sm text-gray-500 mt-1">{t('dashboard.checkBackLater')}</p>
             </div>
           )}
         </CardContent>

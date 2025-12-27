@@ -3,21 +3,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../..
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
-// import { Alert, AlertDescription } from '../../components/ui/alert';
 import { Badge } from '../../components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../../components/ui/dialog';
-import { 
-  Users, 
-  Plus, 
-  Edit2, 
-  Trash2, 
-  Mail, 
-  Eye, 
+import {
+  Users,
+  Plus,
+  Edit2,
+  Trash2,
+  Mail,
+  Eye,
   EyeOff,
   UserCheck,
   Shield,
   RefreshCw,
+  Lock,
+  User as UserIcon,
+  ImageIcon
 } from 'lucide-react';
 import { useToast } from '../../hooks/use-toast';
 import { useLanguage } from '../../hooks/useLanguage';
@@ -42,11 +44,11 @@ const AdminStaff: React.FC = () => {
   const [editingStaff, setEditingStaff] = useState<User | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  
+
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-  
+
   const [newStaff, setNewStaff] = useState<StaffFormData>({
     name: '',
     email: '',
@@ -69,15 +71,14 @@ const AdminStaff: React.FC = () => {
     setIsLoading(true);
     try {
       const response = await apiService.get('/admin/staff');
-      // Handle API response structure: { success: true, data: [...] }
       const staffData = response.data?.data || response.data || [];
       setStaff(Array.isArray(staffData) ? staffData : []);
     } catch (error) {
       console.error('Failed to load staff:', error);
-      setStaff([]); // Set empty array on error
+      setStaff([]);
       toast({
-        title: "Error",
-        description: "Failed to load staff members. Please try again.",
+        title: t('common.error'),
+        description: t('admin.failedToLoadData'),
         variant: "destructive"
       });
     } finally {
@@ -90,8 +91,8 @@ const AdminStaff: React.FC = () => {
     await loadStaff();
     setRefreshing(false);
     toast({
-      title: "Staff Updated",
-      description: "Staff list has been refreshed successfully.",
+      title: t('common.success'),
+      description: t('admin.staffRefreshed'),
       variant: "default"
     });
   };
@@ -103,8 +104,8 @@ const AdminStaff: React.FC = () => {
     try {
       await apiService.post('/admin/staff', newStaff);
       toast({
-        title: "Staff Created",
-        description: "Staff account created successfully!",
+        title: t('common.success'),
+        description: t('adminStaff.staffCreated'),
         variant: "default"
       });
       setNewStaff({
@@ -118,8 +119,8 @@ const AdminStaff: React.FC = () => {
     } catch (error: any) {
       console.error('Create staff error:', error);
       toast({
-        title: "Error",
-        description: error.response?.data?.message || 'Failed to create staff account. Please try again.',
+        title: t('common.error'),
+        description: error.response?.data?.message || t('adminStaff.failedCreate'),
         variant: "destructive"
       });
     } finally {
@@ -143,8 +144,8 @@ const AdminStaff: React.FC = () => {
 
       await apiService.put(`/admin/staff/${editingStaff.id}`, updateData);
       toast({
-        title: "Staff Updated",
-        description: "Staff account updated successfully!",
+        title: t('common.success'),
+        description: t('adminStaff.staffUpdated'),
         variant: "default"
       });
       setEditingStaff(null);
@@ -152,8 +153,8 @@ const AdminStaff: React.FC = () => {
     } catch (error: any) {
       console.error('Update staff error:', error);
       toast({
-        title: "Error",
-        description: error.response?.data?.message || 'Failed to update staff account. Please try again.',
+        title: t('common.error'),
+        description: error.response?.data?.message || t('adminStaff.failedUpdate'),
         variant: "destructive"
       });
     } finally {
@@ -169,16 +170,16 @@ const AdminStaff: React.FC = () => {
     try {
       await apiService.delete(`/admin/staff/${staffId}`);
       toast({
-        title: "Staff Deleted",
-        description: `${staffName} has been deleted successfully!`,
+        title: t('common.success'),
+        description: `${staffName} ${t('adminStaff.deletedSuccessfully')}`,
         variant: "default"
       });
       loadStaff();
     } catch (error: any) {
       console.error('Delete staff error:', error);
       toast({
-        title: "Error",
-        description: error.response?.data?.message || 'Failed to delete staff account. Please try again.',
+        title: t('common.error'),
+        description: error.response?.data?.message || t('adminStaff.failedDelete'),
         variant: "destructive"
       });
     }
@@ -211,66 +212,28 @@ const AdminStaff: React.FC = () => {
     totalPages: number;
     onPageChange: (page: number) => void;
   }> = ({ currentPage, totalPages, onPageChange }) => {
-    if (totalPages < 1) return null;
-
-    const pages = [];
-    const maxVisiblePages = 5;
-    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-
-    if (endPage - startPage < maxVisiblePages - 1) {
-      startPage = Math.max(1, endPage - maxVisiblePages + 1);
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
-    }
+    if (totalPages <= 1) return null;
 
     return (
-      <div className="flex items-center justify-center gap-2 mt-4">
+      <div className="flex items-center justify-center gap-2 mt-4 pt-4 border-t border-gray-100">
         <Button
           variant="outline"
           size="sm"
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage <= 1}
         >
-          {t('adminUsers.previous')}
+          {t('common.previous')}
         </Button>
-        
-        {startPage > 1 && (
-          <>
-            <Button variant="outline" size="sm" onClick={() => onPageChange(1)}>1</Button>
-            {startPage > 2 && <span className="px-2">...</span>}
-          </>
-        )}
-        
-        {pages.map((page) => (
-          <Button
-            key={page}
-            variant={currentPage === page ? "default" : "outline"}
-            size="sm"
-            onClick={() => onPageChange(page)}
-          >
-            {page}
-          </Button>
-        ))}
-        
-        {endPage < totalPages && (
-          <>
-            {endPage < totalPages - 1 && <span className="px-2">...</span>}
-            <Button variant="outline" size="sm" onClick={() => onPageChange(totalPages)}>
-              {totalPages}
-            </Button>
-          </>
-        )}
-        
+        <span className="text-sm text-gray-600">
+          {t('admin.page')} {currentPage} {t('admin.of')} {totalPages}
+        </span>
         <Button
           variant="outline"
           size="sm"
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage >= totalPages}
         >
-          {t('adminUsers.next')}
+          {t('common.next')}
         </Button>
       </div>
     );
@@ -278,96 +241,101 @@ const AdminStaff: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <div className="h-8 bg-gray-200 rounded w-1/3 animate-pulse"></div>
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-24 bg-gray-200 rounded animate-pulse"></div>
-          ))}
-        </div>
-        <div className="h-64 bg-gray-200 rounded animate-pulse"></div>
+      <div className="container mx-auto p-6 flex flex-col items-center justify-center min-h-[50vh]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+        <div className="text-lg text-gray-600">{t('adminStaff.loadingStaff')}</div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 pb-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
-            <Shield className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+            <Shield className="h-8 w-8 text-blue-600" />
             {t('adminUsers.staffMembers')}
           </h1>
-          <p className="text-gray-600 mt-2">
+          <p className="text-gray-500 text-lg max-w-2xl">
             {t('adminUsers.createAndManageStaff')}
           </p>
         </div>
-        
+
         <div className="flex items-center gap-2">
-          <Button onClick={handleRefresh} variant="outline" size="sm" disabled={refreshing}>
+          <Button onClick={handleRefresh} variant="outline" size="sm" disabled={refreshing} className="shadow-sm border-gray-200 bg-white hover:bg-gray-50 text-gray-700 rounded-full px-4">
             <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''} sm:mr-2`} />
             <span className="hidden sm:inline">{t('adminUsers.refresh')}</span>
           </Button>
-          
+
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="sm">
-                <Plus className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">{t('adminUsers.addStaff')}</span>
+              <Button className="gap-2 shadow-md bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6">
+                <Plus className="h-5 w-5" />
+                <span className="hidden sm:inline font-medium">{t('adminUsers.addStaff')}</span>
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md sm:max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-md sm:max-w-xl mx-4 max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{t('adminStaff.createNewStaff')}</DialogTitle>
                 <DialogDescription>
                   {t('adminStaff.fillInStaffDetails')}
                 </DialogDescription>
               </DialogHeader>
-              
-              <form onSubmit={handleCreateSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">{t('formFields.staffName')} *</Label>
-                  <Input
-                    id="name"
-                    value={newStaff.name}
-                    onChange={(e) => setNewStaff(prev => ({...prev, name: e.target.value}))}
-                    placeholder={t('formFields.staffName')}
-                    required
-                    disabled={isSubmitting}
-                  />
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="email">{t('formFields.staffEmail')} *</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={newStaff.email}
-                    onChange={(e) => setNewStaff(prev => ({...prev, email: e.target.value}))}
-                    placeholder={t('formFields.staffEmail')}
-                    required
-                    disabled={isSubmitting}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="password">{t('formFields.password')} *</Label>
+              <form onSubmit={handleCreateSubmit} className="space-y-6 py-4">
+                <div className="space-y-3">
+                  <Label htmlFor="name" className="text-sm font-semibold text-gray-700">{t('formFields.staffName')} <span className="text-red-500">*</span></Label>
                   <div className="relative">
+                    <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="name"
+                      value={newStaff.name}
+                      onChange={(e) => setNewStaff(prev => ({ ...prev, name: e.target.value }))}
+                      placeholder={t('formFields.staffName')}
+                      required
+                      disabled={isSubmitting}
+                      className="pl-9 h-11"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <Label htmlFor="email" className="text-sm font-semibold text-gray-700">{t('formFields.staffEmail')} <span className="text-red-500">*</span></Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="email"
+                      type="email"
+                      value={newStaff.email}
+                      onChange={(e) => setNewStaff(prev => ({ ...prev, email: e.target.value }))}
+                      placeholder={t('formFields.staffEmail')}
+                      required
+                      disabled={isSubmitting}
+                      className="pl-9 h-11"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <Label htmlFor="password" className="text-sm font-semibold text-gray-700">{t('formFields.password')} <span className="text-red-500">*</span></Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <Input
                       id="password"
                       type={showPassword ? "text" : "password"}
                       value={newStaff.password}
-                      onChange={(e) => setNewStaff(prev => ({...prev, password: e.target.value}))}
+                      onChange={(e) => setNewStaff(prev => ({ ...prev, password: e.target.value }))}
                       placeholder={t('formFields.password')}
                       required
                       disabled={isSubmitting}
+                      className="pl-9 h-11"
                     />
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      className="absolute right-1 top-1 h-9 px-3 hover:bg-transparent text-gray-400 hover:text-gray-600"
                       onClick={() => setShowPassword(!showPassword)}
                     >
                       {showPassword ? (
@@ -379,27 +347,31 @@ const AdminStaff: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>{t('formFields.avatarUrl')}</Label>
+                <div className="space-y-3">
+                  <Label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <ImageIcon className="h-4 w-4 text-gray-500" />
+                    {t('formFields.avatarUrl')}
+                  </Label>
                   <ImageUpload
                     value={newStaff.avatarUrl}
-                    onChange={(url) => setNewStaff(prev => ({...prev, avatarUrl: url}))}
+                    onChange={(url) => setNewStaff(prev => ({ ...prev, avatarUrl: url }))}
                     disabled={isSubmitting}
-                    placeholder={t('formFields.avatarUrl')}
+                    placeholder={t('formFields.avatarUrlPlaceholder')}
+                    className="w-full"
                   />
                 </div>
 
-                <div className="flex flex-col sm:flex-row justify-end gap-2 pt-4">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
+                <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-gray-100 mt-2">
+                  <Button
+                    type="button"
+                    variant="outline"
                     onClick={() => setIsCreateDialogOpen(false)}
                     disabled={isSubmitting}
                     className="w-full sm:w-auto"
                   >
-                    {t('formFields.cancelButton')}
+                    {t('formFields.cancel')}
                   </Button>
-                  <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
+                  <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white shadow-md">
                     {isSubmitting ? t('formFields.saving') : t('formFields.saveStaff')}
                   </Button>
                 </div>
@@ -409,129 +381,143 @@ const AdminStaff: React.FC = () => {
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="flex flex-wrap gap-3">
-        <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-white border-gray-200">
-          <Users className="h-3 w-3 text-gray-500" />
-          <span className="text-sm font-medium">{staff.length} {t('formFields.totalStaffLabel')}</span>
-        </Badge>
-
-        <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-green-50 border-green-200 text-green-700">
-          <UserCheck className="h-3 w-3" />
-          <span className="text-sm font-medium">{staff.filter(s => s.isEmailVerified).length} {t('formFields.verifiedLabel')}</span>
-        </Badge>
-
-        <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-blue-50 border-blue-200 text-blue-700">
-          <Plus className="h-3 w-3" />
-          <span className="text-sm font-medium">
-            {staff.filter(s => {
-              const created = new Date(s.createdAt);
-              const now = new Date();
-              return created.getMonth() === now.getMonth() && created.getFullYear() === now.getFullYear();
-            }).length} {t('formFields.thisMonthLabel')}
-          </span>
-        </Badge>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+        <Card className="border-0 shadow-google bg-white">
+          <CardContent className="p-4 flex flex-col items-center justify-center text-center">
+            <div className="h-10 w-10 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-2">
+              <Users className="h-5 w-5" />
+            </div>
+            <div className="text-2xl font-bold text-gray-900">{staff.length}</div>
+            <div className="text-xs text-gray-500 font-medium uppercase tracking-wider mt-1">{t('formFields.totalStaffLabel')}</div>
+          </CardContent>
+        </Card>
+        <Card className="border-0 shadow-google bg-white">
+          <CardContent className="p-4 flex flex-col items-center justify-center text-center">
+            <div className="h-10 w-10 bg-green-50 text-green-600 rounded-full flex items-center justify-center mb-2">
+              <UserCheck className="h-5 w-5" />
+            </div>
+            <div className="text-2xl font-bold text-gray-900">{staff.filter(s => s.isEmailVerified).length}</div>
+            <div className="text-xs text-gray-500 font-medium uppercase tracking-wider mt-1">{t('formFields.verifiedLabel')}</div>
+          </CardContent>
+        </Card>
+        <Card className="border-0 shadow-google bg-white">
+          <CardContent className="p-4 flex flex-col items-center justify-center text-center">
+            <div className="h-10 w-10 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center mb-2">
+              <Plus className="h-5 w-5" />
+            </div>
+            <div className="text-2xl font-bold text-gray-900">
+              {staff.filter(s => {
+                const created = new Date(s.createdAt);
+                const now = new Date();
+                return created.getMonth() === now.getMonth() && created.getFullYear() === now.getFullYear();
+              }).length}
+            </div>
+            <div className="text-xs text-gray-500 font-medium uppercase tracking-wider mt-1">{t('formFields.thisMonthLabel')}</div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Staff List */}
-      <Card className=" max-w-[350px] md:max-w-full">
-        <CardHeader>
-                  <CardTitle>{t('formFields.staffMembersLabel')} ({staff.length})</CardTitle>
-        <CardDescription>
-          {t('formFields.manageStaffAccountsLabel')}
-        </CardDescription>
+      <Card className="border-0 shadow-google bg-white overflow-hidden rounded-xl">
+        <CardHeader className="border-b border-gray-100 bg-white pb-6 pt-6 px-6">
+          <CardTitle className="text-xl text-gray-800">{t('formFields.staffMembersLabel')} ({staff.length})</CardTitle>
+          <CardDescription className="text-gray-500 mt-1">
+            {t('formFields.manageStaffAccountsLabel')}
+          </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           {staff.length > 0 ? (
             <>
-              <div className="w-full overflow-x-auto -mx-4 sm:mx-0">
-                <div className="min-w-full inline-block align-middle">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px]">{t('formFields.staffMemberLabel')}</th>
-                        <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('formFields.roleLabel')}</th>
-                        <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('formFields.statusLabel')}</th>
-                        <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('formFields.joinedLabel')}</th>
-                        <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">{t('formFields.actions')}</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {paginatedStaff.map((member) => (
-                        <tr key={member.id} className="hover:bg-gray-50">
-                          <td className="px-2 sm:px-4 py-3">
-                            <div className="flex items-center gap-3">
-                              <Avatar className="h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0">
-                                <AvatarImage src={member.avatarUrl} />
-                                <AvatarFallback className="text-xs sm:text-sm">{getInitials(member.name)}</AvatarFallback>
-                              </Avatar>
-                              <div className="min-w-0 flex-1">
-                                <p className="font-medium truncate text-xs sm:text-sm">{member.name}</p>
-                                <div className="flex items-center gap-1 text-xs text-gray-500 hidden sm:flex">
-                                  <Mail className="h-3 w-3" />
-                                  <span className="truncate">{member.email}</span>
-                                </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50/50 border-b border-gray-100">
+                    <tr>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('formFields.staffMemberLabel')}</th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('formFields.roleLabel')}</th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('formFields.statusLabel')}</th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('formFields.joinedLabel')}</th>
+                      <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('formFields.actions')}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 bg-white">
+                    {paginatedStaff.map((member) => (
+                      <tr key={member.id} className="hover:bg-gray-50/80 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10 border border-gray-100">
+                              <AvatarImage src={member.avatarUrl} />
+                              <AvatarFallback className="bg-blue-50 text-blue-600 font-medium text-xs">{getInitials(member.name)}</AvatarFallback>
+                            </Avatar>
+                            <div className="min-w-0">
+                              <p className="font-medium text-gray-900 truncate">{member.name}</p>
+                              <div className="flex items-center gap-1 text-xs text-gray-500 mt-0.5">
+                                <Mail className="h-3 w-3" />
+                                <span className="truncate">{member.email}</span>
                               </div>
                             </div>
-                          </td>
-                          <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
-                            <Badge variant="secondary" className="text-xs">
-                              {t('adminUsers.staff')}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <Badge variant="secondary" className="font-normal capitalize border-gray-200 bg-purple-50 text-purple-700 hover:bg-purple-100">
+                            <Shield className="h-3 w-3 mr-1" />
+                            {t('adminUsers.staff')}
+                          </Badge>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {member.isEmailVerified ? (
+                            <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200 hover:bg-green-100 gap-1 pl-1.5">
+                              <UserCheck className="h-3 w-3" />
+                              <span className="hidden sm:inline">{t('formFields.verifiedLabel')}</span>
                             </Badge>
-                          </td>
-                          <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
-                            {member.isEmailVerified ? (
-                              <Badge variant="default" className="text-xs">
-                                <UserCheck className="h-3 w-3 mr-1" />
-                                <span className="hidden sm:inline">{t('formFields.verifiedLabel')}</span>
-                              </Badge>
-                            ) : (
-                              <Badge variant="outline" className="text-xs">
-                                <span className="hidden sm:inline">{t('adminUsers.suspended')}</span>
-                              </Badge>
-                            )}
-                          </td>
-                          <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
-                            <span className="text-xs sm:text-sm">{new Date(member.createdAt).toLocaleDateString()}</span>
-                          </td>
-                          <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
-                            <div className="flex gap-1">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => openEditDialog(member)}
-                                className="text-xs p-2"
-                              >
-                                <Edit2 className="h-3 w-3 sm:h-4 sm:w-4" />
-                              </Button>
-                              
-                              <Button 
-                                variant="destructive" 
-                                size="sm"
-                                onClick={() => handleDelete(member.id, member.name)}
-                                className="text-xs p-2"
-                              >
-                                <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
-                              </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                          ) : (
+                            <Badge variant="outline" className="text-xs bg-red-50 text-red-700 border-red-200 hover:bg-red-100">
+                              <span className="hidden sm:inline">{t('adminUsers.suspended')}</span>
+                            </Badge>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {new Date(member.createdAt).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openEditDialog(member)}
+                              className="h-8 w-8 p-0 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDelete(member.id, member.name)}
+                              className="h-8 w-8 p-0 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-              <PaginationControls
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-              />
+              <div className="p-4 border-t border-gray-100 bg-gray-50/50">
+                <PaginationControls
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                />
+              </div>
             </>
           ) : (
-            <div className="text-center py-8">
-              <Users className="h-12 w-12 mx-auto text-gray-400 mb-3" />
-              <p className="text-gray-500">{t('adminStaff.noStaffFound')}</p>
-              <Button onClick={() => setIsCreateDialogOpen(true)} className="mt-4">
+            <div className="text-center py-12">
+              <Users className="h-12 w-12 mx-auto text-gray-300 mb-3" />
+              <p className="text-gray-500 font-medium">{t('adminStaff.noStaffFound')}</p>
+              <Button onClick={() => setIsCreateDialogOpen(true)} className="mt-4 shadow-md bg-blue-600 hover:bg-blue-700 text-white rounded-full">
                 <Plus className="h-4 w-4 mr-2" />
                 {t('adminStaff.createFirstStaff')}
               </Button>
@@ -542,56 +528,66 @@ const AdminStaff: React.FC = () => {
 
       {/* Edit Dialog */}
       <Dialog open={!!editingStaff} onOpenChange={(open) => !open && setEditingStaff(null)}>
-        <DialogContent className="max-w-md sm:max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-md sm:max-w-xl mx-4 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{t('formFields.editStaff')}</DialogTitle>
             <DialogDescription>
               {t('adminStaff.fillInStaffDetails')}
             </DialogDescription>
           </DialogHeader>
-          
-          <form onSubmit={handleEditSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="edit-name">{t('formFields.staffName')} *</Label>
-              <Input
-                id="edit-name"
-                value={editStaff.name}
-                onChange={(e) => setEditStaff(prev => ({...prev, name: e.target.value}))}
-                placeholder={t('formFields.staffName')}
-                required
-                disabled={isSubmitting}
-              />
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="edit-email">{t('formFields.staffEmail')} *</Label>
-              <Input
-                id="edit-email"
-                type="email"
-                value={editStaff.email}
-                onChange={(e) => setEditStaff(prev => ({...prev, email: e.target.value}))}
-                placeholder={t('formFields.staffEmail')}
-                required
-                disabled={isSubmitting}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit-password">{t('formFields.password')} (leave empty to keep current)</Label>
+          <form onSubmit={handleEditSubmit} className="space-y-6 py-4">
+            <div className="space-y-3">
+              <Label htmlFor="edit-name" className="text-sm font-semibold text-gray-700">{t('formFields.staffName')} <span className="text-red-500">*</span></Label>
               <div className="relative">
+                <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  id="edit-name"
+                  value={editStaff.name}
+                  onChange={(e) => setEditStaff(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder={t('formFields.staffName')}
+                  required
+                  disabled={isSubmitting}
+                  className="pl-9 h-11"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <Label htmlFor="edit-email" className="text-sm font-semibold text-gray-700">{t('formFields.staffEmail')} <span className="text-red-500">*</span></Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  id="edit-email"
+                  type="email"
+                  value={editStaff.email}
+                  onChange={(e) => setEditStaff(prev => ({ ...prev, email: e.target.value }))}
+                  placeholder={t('formFields.staffEmail')}
+                  required
+                  disabled={isSubmitting}
+                  className="pl-9 h-11"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <Label htmlFor="edit-password" className="text-sm font-semibold text-gray-700">{t('formFields.password')} <span className="text-gray-400 font-normal ml-1">({t('admin.leaveEmptyToKeep')})</span></Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
                   id="edit-password"
                   type={showPassword ? "text" : "password"}
                   value={editStaff.password}
-                  onChange={(e) => setEditStaff(prev => ({...prev, password: e.target.value}))}
-                  placeholder={t('formFields.password')}
+                  onChange={(e) => setEditStaff(prev => ({ ...prev, password: e.target.value }))}
+                  placeholder={t('formFields.passwordPlaceholder')}
                   disabled={isSubmitting}
+                  className="pl-9 h-11"
                 />
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  className="absolute right-1 top-1 h-9 px-3 hover:bg-transparent text-gray-400 hover:text-gray-600"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
@@ -603,28 +599,32 @@ const AdminStaff: React.FC = () => {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label>Avatar Image</Label>
+            <div className="space-y-3">
+              <Label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                <ImageIcon className="h-4 w-4 text-gray-500" />
+                {t('formFields.avatarUrl')}
+              </Label>
               <ImageUpload
                 value={editStaff.avatarUrl}
-                onChange={(url) => setEditStaff(prev => ({...prev, avatarUrl: url}))}
+                onChange={(url) => setEditStaff(prev => ({ ...prev, avatarUrl: url }))}
                 disabled={isSubmitting}
-                placeholder="Upload avatar image"
+                placeholder={t('formFields.avatarUrlPlaceholder')}
+                className="w-full"
               />
             </div>
 
-            <div className="flex flex-col sm:flex-row justify-end gap-2 pt-4">
-              <Button 
-                type="button" 
-                variant="outline" 
+            <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-gray-100 mt-2">
+              <Button
+                type="button"
+                variant="outline"
                 onClick={() => setEditingStaff(null)}
                 disabled={isSubmitting}
                 className="w-full sm:w-auto"
               >
-                Cancel
+                {t('formFields.cancel')}
               </Button>
-              <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
-                {isSubmitting ? 'Updating...' : 'Update Staff Account'}
+              <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white shadow-md">
+                {isSubmitting ? t('formFields.saving') : t('formFields.updateStaff')}
               </Button>
             </div>
           </form>
@@ -634,4 +634,4 @@ const AdminStaff: React.FC = () => {
   );
 };
 
-export default AdminStaff; 
+export default AdminStaff;

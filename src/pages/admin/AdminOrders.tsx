@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Alert, AlertDescription } from '../../components/ui/alert';
 // import { Separator } from '../../components/ui/separator';
 
-import { 
+import {
   Package,
   Search,
   // Eye,
@@ -52,7 +52,7 @@ import { useLanguage } from '../../hooks/useLanguage';
 const AdminOrders: React.FC = () => {
   const { toast } = useToast();
   const { t } = useLanguage();
-  
+
   // State management
   const [orders, setOrders] = useState<Order[]>([]);
   const [stats, setStats] = useState<OrderStats | null>(null);
@@ -60,7 +60,7 @@ const AdminOrders: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
-  
+
   // Pagination and filtering
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -82,11 +82,29 @@ const AdminOrders: React.FC = () => {
         }
       });
 
-      const orderData = ordersResponse.data?.data;
-      if (orderData) {
-        setOrders(orderData.orders || []);
-        setTotalPages(orderData.pagination?.pages || 1);
-        setTotalItems(orderData.pagination?.total || 0);
+      const responseData = ordersResponse.data;
+      if (responseData && responseData.success) {
+        // Handle both response formats: 
+        // 1. data is an array of orders (current format)
+        // 2. data is an object with an 'orders' property (previous/alternative format)
+        if (Array.isArray(responseData.data)) {
+          setOrders(responseData.data);
+        } else if (responseData.data?.orders && Array.isArray(responseData.data.orders)) {
+          setOrders(responseData.data.orders);
+        } else {
+          setOrders([]);
+        }
+
+        // Handle pagination - usually at the root level in the new format or inside data in old format
+        const pagination = responseData.pagination || responseData.data?.pagination;
+
+        if (pagination) {
+          setTotalPages(pagination.pages || 1);
+          setTotalItems(pagination.total || 0);
+        } else {
+          setTotalPages(1);
+          setTotalItems(0);
+        }
       } else {
         setOrders([]);
         setTotalPages(1);
@@ -234,7 +252,7 @@ const AdminOrders: React.FC = () => {
           >
             {t('adminOrders.first')}
           </Button>
-          
+
           <Button
             variant="outline"
             size="sm"
@@ -243,14 +261,14 @@ const AdminOrders: React.FC = () => {
           >
             {t('adminOrders.previous')}
           </Button>
-          
+
           {startPage >= 1 && (
             <>
               <Button variant="outline" size="sm" onClick={() => setCurrentPage(1)}>1</Button>
               {startPage > 2 && <span className="px-2 text-gray-400">...</span>}
             </>
           )}
-          
+
           {pages.map((page) => (
             <Button
               key={page}
@@ -262,7 +280,7 @@ const AdminOrders: React.FC = () => {
               {page}
             </Button>
           ))}
-          
+
           {endPage < totalPages && (
             <>
               {endPage < totalPages - 1 && <span className="px-2 text-gray-400">...</span>}
@@ -271,7 +289,7 @@ const AdminOrders: React.FC = () => {
               </Button>
             </>
           )}
-          
+
           <Button
             variant="outline"
             size="sm"
@@ -294,8 +312,8 @@ const AdminOrders: React.FC = () => {
         {/* Items per page selector */}
         <div className="flex items-center justify-center gap-2">
           <span className="text-sm text-gray-600">{t('adminOrders.itemsPerPage')}:</span>
-          <Select 
-            value={itemsPerPage.toString()} 
+          <Select
+            value={itemsPerPage.toString()}
             onValueChange={(value) => {
               setItemsPerPage(parseInt(value));
             }}
@@ -469,7 +487,7 @@ const AdminOrders: React.FC = () => {
                 <SelectItem value="ecpay">{t('adminOrders.ecpay')}</SelectItem>
               </SelectContent>
             </Select>
-        
+
           </div>
         </CardContent>
       </Card>
@@ -527,7 +545,7 @@ const AdminOrders: React.FC = () => {
               ))}
             </div>
           )}
-          
+
           <PaginationControls />
         </CardContent>
       </Card>

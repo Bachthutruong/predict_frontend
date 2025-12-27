@@ -8,7 +8,7 @@ import { Badge } from '../../components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
 import ProfileEditForm from '../../components/forms/ProfileEditForm';
-import { 
+import {
   Table,
   TableBody,
   TableCell,
@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { 
+import {
   History,
   Users,
   Gift,
@@ -52,7 +52,7 @@ const ProfilePage: React.FC = () => {
   const [copiedReferralCode, setCopiedReferralCode] = useState(false);
   const [referralCodeInput, setReferralCodeInput] = useState('');
   const [isSettingReferral, setIsSettingReferral] = useState(false);
-  
+
   // State for pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -78,15 +78,15 @@ const ProfilePage: React.FC = () => {
       ]);
 
       if (transactionsResponse.success && transactionsResponse.data) {
-        const transactionData = Array.isArray(transactionsResponse.data) 
-          ? transactionsResponse.data 
+        const transactionData = Array.isArray(transactionsResponse.data)
+          ? transactionsResponse.data
           : [];
         setTransactions(transactionData);
       }
 
       if (referralsResponse.success && referralsResponse.data) {
-        const referralData = Array.isArray(referralsResponse.data) 
-          ? referralsResponse.data 
+        const referralData = Array.isArray(referralsResponse.data)
+          ? referralsResponse.data
           : [];
         setReferrals(referralData);
       }
@@ -111,7 +111,7 @@ const ProfilePage: React.FC = () => {
       await navigator.clipboard.writeText(referralUrl);
       setCopiedReferralCode(true);
       setTimeout(() => setCopiedReferralCode(false), 2000);
-      
+
       toast({
         title: t('profile.copied'),
         description: t('profile.referralLinkCopied')
@@ -147,7 +147,7 @@ const ProfilePage: React.FC = () => {
       console.log('Setting referral code:', referralCodeInput.trim());
       const response = await apiService.post('/users/set-referral-code', { referralCode: referralCodeInput.trim() });
       console.log('Set referral response:', response.data);
-      
+
       if (response.data?.success) {
         await refreshUser(); // Cập nhật lại user context
         setReferralCodeInput(''); // Clear input after success
@@ -171,7 +171,7 @@ const ProfilePage: React.FC = () => {
   // Safe array operations with fallback
   const completedReferrals = Array.isArray(referrals) ? referrals.filter(r => r.status === 'completed').length : 0;
   const pendingReferrals = Array.isArray(referrals) ? referrals.filter(r => r.status === 'pending').length : 0;
-  
+
   const paginatedTransactions = useMemo(() => {
     if (!Array.isArray(transactions)) return [];
     const startIndex = (currentPage - 1) * rowsPerPage;
@@ -193,49 +193,55 @@ const ProfilePage: React.FC = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-3 sm:p-6 space-y-4 sm:space-y-8">
+    <div className="max-w-5xl mx-auto p-4 sm:p-8 space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
-          <User className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+        <h1 className="text-2xl sm:text-3xl font-regular tracking-tight text-gray-900 flex items-center gap-3">
+          <User className="h-8 w-8 text-blue-600" />
           {t('profile.title')}
         </h1>
-        <p className="text-sm sm:text-base text-muted-foreground mt-2">
+        <p className="text-gray-500 mt-2 text-base">
           {t('profile.manageAccount')}
         </p>
       </div>
 
       {/* User Info Card */}
-      <Card>
-        <CardContent className="p-3 sm:p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
-            <Avatar className="h-16 w-16 sm:h-20 sm:w-20 mx-auto sm:mx-0">
-              <AvatarImage src={user.avatarUrl} alt={user.name} />
-              <AvatarFallback className="text-base sm:text-lg">
-                {getInitials(user.name)}
-              </AvatarFallback>
-            </Avatar>
-            
-            <div className="flex-1 text-center sm:text-left">
-              <h2 className="text-xl sm:text-2xl font-bold">{user.name}</h2>
-              <p className="text-sm sm:text-base text-muted-foreground">{user.email}</p>
-              <Badge variant="outline" className="mt-2">
-                {user.role}
-              </Badge>
+      <Card className="border-none shadow-google bg-white overflow-hidden">
+        <CardContent className="p-0">
+          <div className="flex flex-col md:flex-row">
+            <div className="p-6 md:p-8 flex-1 flex flex-col sm:flex-row items-center sm:items-start gap-6">
+              <Avatar className="h-20 w-20 sm:h-24 sm:w-24 border-4 border-white shadow-sm flex-shrink-0">
+                <AvatarImage src={user.avatarUrl} alt={user.name} />
+                <AvatarFallback className="text-xl sm:text-2xl bg-blue-100 text-blue-700">
+                  {getInitials(user.name)}
+                </AvatarFallback>
+              </Avatar>
+
+              <div className="text-center sm:text-left space-y-2">
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900">{user.name}</h2>
+                  <p className="text-gray-500">{user.email}</p>
+                </div>
+                <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
+                  <Badge variant="secondary" className="font-normal capitalize bg-gray-100 text-gray-700">
+                    {user.role}
+                  </Badge>
+                  <Badge variant="outline" className="font-normal border-green-200 text-green-700 bg-green-50 flex items-center gap-1">
+                    <Activity className="h-3 w-3" />
+                    {user.consecutiveCheckIns || 0} {t('profile.dayStreak')}
+                  </Badge>
+                </div>
+              </div>
             </div>
 
-            <div className="text-center sm:text-right space-y-2">
-              <div className="flex items-center justify-center sm:justify-end gap-2">
-                <Coins className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-                <span className="text-xl sm:text-2xl font-bold text-primary">{user.points}</span>
-              </div>
-              <p className="text-xs sm:text-sm text-muted-foreground">{t('profile.totalPoints')}</p>
-              
-              <div className="flex items-center justify-center sm:justify-end gap-2 mt-4">
-                <Activity className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
-                <span className="text-xs sm:text-sm text-green-600 font-medium">
-                  {user.consecutiveCheckIns || 0} {t('profile.dayStreak')}
-                </span>
+            <div className="bg-gray-50 p-6 md:p-8 md:w-72 flex flex-col justify-center border-t md:border-t-0 md:border-l border-gray-100">
+              <div className="text-center">
+                <p className="text-sm font-medium text-gray-500 uppercase tracking-wide mb-1">{t('profile.totalPoints')}</p>
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Coins className="h-6 w-6 text-yellow-500" />
+                  <span className="text-3xl font-bold text-gray-900">{user.points}</span>
+                </div>
+                <p className="text-xs text-gray-400">{t('profile.pointsDescription')}</p>
               </div>
             </div>
           </div>
@@ -243,41 +249,41 @@ const ProfilePage: React.FC = () => {
       </Card>
 
       {/* Stats Cards */}
-      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-3">
-        <Card>
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Card className="border-none shadow-google bg-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">{t('profile.totalReferrals')}</CardTitle>
-            <Users className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-gray-500 uppercase">{t('profile.totalReferrals')}</CardTitle>
+            <Users className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-lg sm:text-2xl font-bold">{Array.isArray(referrals) ? referrals.length : 0}</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-2xl font-light text-gray-900">{Array.isArray(referrals) ? referrals.length : 0}</div>
+            <p className="text-xs text-gray-500 mt-1">
               {completedReferrals} {t('profile.completed')}, {pendingReferrals} {t('profile.pending')}
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-none shadow-google bg-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">{t('profile.recentTransactions')}</CardTitle>
-            <History className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-gray-500 uppercase">{t('profile.recentTransactions')}</CardTitle>
+            <History className="h-4 w-4 text-purple-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-lg sm:text-2xl font-bold">{Array.isArray(transactions) ? transactions.length : 0}</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-2xl font-light text-gray-900">{Array.isArray(transactions) ? transactions.length : 0}</div>
+            <p className="text-xs text-gray-500 mt-1">
               {t('profile.pointTransactionsThisMonth')}
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-none shadow-google bg-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">{t('profile.accountStatus')}</CardTitle>
-            <Trophy className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-gray-500 uppercase">{t('profile.accountStatus')}</CardTitle>
+            <Trophy className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-lg sm:text-2xl font-bold text-green-600">{t('profile.active')}</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-2xl font-medium text-green-600">{t('profile.active')}</div>
+            <p className="text-xs text-gray-500 mt-1">
               {t('profile.memberSince')} {new Date(user.createdAt).toLocaleDateString()}
             </p>
           </CardContent>
@@ -340,7 +346,7 @@ const ProfilePage: React.FC = () => {
                         ))}
                       </TableBody>
                     </Table>
-                    
+
                     {/* Pagination Controls */}
                     {totalPages > 1 && (
                       <div className="flex items-center justify-between pt-4">
@@ -414,9 +420,9 @@ const ProfilePage: React.FC = () => {
                   <label className="text-sm font-medium">{t('profile.referralCode')}</label>
                   <div className="flex items-center gap-2">
                     {user?.referralCode ? (
-                      <Input 
-                        value={user.referralCode} 
-                        readOnly 
+                      <Input
+                        value={user.referralCode}
+                        readOnly
                         className="font-mono text-sm"
                       />
                     ) : (
@@ -458,7 +464,7 @@ const ProfilePage: React.FC = () => {
                 <div className="space-y-2">
                   <label className="text-sm font-medium">{t('profile.referralLink')}</label>
                   <div className="flex items-center gap-2">
-                    <Input 
+                    <Input
                       value={
                         user.referralCode
                           ? `${window.location.origin}/register?ref=${user.referralCode}`
@@ -466,7 +472,7 @@ const ProfilePage: React.FC = () => {
                             ? `${window.location.origin}/register?ref=${referralCodeInput.trim().toUpperCase()}`
                             : ''
                       }
-                      readOnly 
+                      readOnly
                       className="text-xs"
                       placeholder={t('profile.setReferralCodeFirst')}
                     />
@@ -518,7 +524,7 @@ const ProfilePage: React.FC = () => {
                       const nextMilestone = Math.ceil(completedReferrals / 10) * 10;
                       const pointsToNextMilestone = nextMilestone - completedReferrals;
                       const progressPercentage = (completedReferrals % 10) * 10;
-                      
+
                       return (
                         <>
                           <div className="flex items-center justify-between">
@@ -526,7 +532,7 @@ const ProfilePage: React.FC = () => {
                             <span className="text-xs sm:text-sm text-muted-foreground">{completedReferrals}/{nextMilestone}</span>
                           </div>
                           <div className="w-full bg-secondary rounded-full h-2">
-                            <div 
+                            <div
                               className="bg-primary h-2 rounded-full transition-all duration-300"
                               style={{ width: `${progressPercentage}%` }}
                             />
@@ -568,9 +574,9 @@ const ProfilePage: React.FC = () => {
                       <div key={referral.id} className="flex items-center justify-between p-3 sm:p-4 border rounded-lg">
                         <div className="flex items-center gap-3 flex-1 min-w-0">
                           <Avatar className="h-8 w-8 sm:h-10 sm:w-10 shrink-0">
-                            <AvatarImage 
-                              src={referral.referredUser?.avatarUrl || `https://api.dicebear.com/6.x/initials/svg?seed=${encodeURIComponent(referral.referredUser?.name || 'Unknown')}`} 
-                              alt={referral.referredUser?.name} 
+                            <AvatarImage
+                              src={referral.referredUser?.avatarUrl || `https://api.dicebear.com/6.x/initials/svg?seed=${encodeURIComponent(referral.referredUser?.name || 'Unknown')}`}
+                              alt={referral.referredUser?.name}
                             />
                             <AvatarFallback>
                               {getInitials(referral.referredUser?.name || 'Unknown')}

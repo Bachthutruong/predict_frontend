@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '../../components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Card, CardContent } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Textarea } from '../../components/ui/textarea';
@@ -9,6 +9,8 @@ import { useToast } from '../../hooks/use-toast';
 import { adminContestAPI } from '../../services/api';
 import { useLanguage } from '../../hooks/useLanguage';
 import { ImageUpload } from '../../components/ui/image-upload';
+
+import { ArrowLeft, Save } from 'lucide-react';
 
 const AdminContestEdit: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -37,7 +39,7 @@ const AdminContestEdit: React.FC = () => {
       setLoading(true);
       const response = await adminContestAPI.getContestById(id!);
       // @ts-ignore
-      if (response && response.data && response.data.contest ) {
+      if (response && response.data && response.data.contest) {
         setForm({
           // @ts-ignore
           title: response.data.contest?.title || '',
@@ -100,53 +102,117 @@ const AdminContestEdit: React.FC = () => {
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center h-64 text-lg">{t('contests.loading')}</div>;
+    return (
+      <div className="container mx-auto p-6 flex flex-col items-center justify-center min-h-[50vh]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+        <div className="text-lg text-gray-600">{t('contests.loading')}</div>
+      </div>
+    );
   }
 
   return (
-    <div className="container mx-auto p-6">
-      <Card className="max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle>{t('contests.editContest')}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="grid gap-4">
+    <div className="max-w-full mx-auto space-y-0 pb-12">
+      {/* Header */}
+      <div>
+        <Button
+          variant="ghost"
+          onClick={() => navigate(-1)}
+          className="mb-4 pl-0 hover:pl-2 transition-all gap-2 text-gray-500 hover:text-gray-900"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          {t('common.back')}
+        </Button>
+        <h1 className="text-3xl font-bold text-gray-900">{t('contests.editContest')}</h1>
+      </div>
+
+      <Card className="border-0 shadow-google bg-white rounded-xl overflow-hidden">
+        <CardContent className="p-8">
+          <form onSubmit={handleSubmit} className="grid gap-6">
             <div>
-              <Label htmlFor="title">{t('contests.title')}</Label>
-              <Input id="title" value={form.title} onChange={e => handleChange('title', e.target.value)} placeholder={t('contests.enterTitlePlaceholder')} required />
-            </div>
-            <div>
-              <Label htmlFor="description">{t('contests.description')}</Label>
-              <Textarea id="description" value={form.description} onChange={e => handleChange('description', e.target.value)} placeholder={t('contests.enterDescriptionPlaceholder')} required />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="startDate">{t('contests.startDate')}</Label>
-                <Input id="startDate" type="datetime-local" value={form.startDate} onChange={e => handleChange('startDate', e.target.value)} required />
-              </div>
-              <div>
-                <Label htmlFor="endDate">{t('contests.endDate')}</Label>
-                <Input id="endDate" type="datetime-local" value={form.endDate} onChange={e => handleChange('endDate', e.target.value)} required />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="pointsPerAnswer">{t('contests.pointsPerAnswer')}</Label>
-                <Input id="pointsPerAnswer" type="number" value={form.pointsPerAnswer} onChange={e => handleChange('pointsPerAnswer', parseInt(e.target.value))} placeholder={t('contests.pointsPerAnswerPlaceholder')} required />
-              </div>
-              <div>
-                <Label htmlFor="rewardPoints">{t('contests.rewardPoints')}</Label>
-                <Input id="rewardPoints" type="number" value={form.rewardPoints} onChange={e => handleChange('rewardPoints', parseInt(e.target.value))} placeholder={t('contests.rewardPointsPlaceholder')} required />
-              </div>
+              <Label htmlFor="title" className="text-sm font-medium text-gray-700">{t('contests.title')}</Label>
+              <Input
+                id="title"
+                value={form.title}
+                onChange={e => handleChange('title', e.target.value)}
+                placeholder={t('contests.enterTitlePlaceholder')}
+                className="mt-1.5 h-10"
+                required
+              />
             </div>
             <div>
-              <Label htmlFor="imageUrl">{t('contests.contestImage')}</Label>
-              <ImageUpload value={form.imageUrl} onChange={url => handleChange('imageUrl', url)} placeholder={t('contests.uploadContestImagePlaceholder')} />
-              <p className="text-xs text-gray-500">{t('contests.optionalImageHint')}</p>
+              <Label htmlFor="description" className="text-sm font-medium text-gray-700">{t('contests.description')}</Label>
+              <Textarea
+                id="description"
+                value={form.description}
+                onChange={e => handleChange('description', e.target.value)}
+                placeholder={t('contests.enterDescriptionPlaceholder')}
+                className="mt-1.5 min-h-[120px]"
+                required
+              />
             </div>
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" type="button" onClick={() => navigate(-1)}>{t('common.cancel')}</Button>
-              <Button type="submit">{t('contests.saveChanges')}</Button>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div>
+                <Label htmlFor="startDate" className="text-sm font-medium text-gray-700">{t('contests.startDate')}</Label>
+                <Input
+                  id="startDate"
+                  type="datetime-local"
+                  value={form.startDate}
+                  onChange={e => handleChange('startDate', e.target.value)}
+                  className="mt-1.5 h-10"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="endDate" className="text-sm font-medium text-gray-700">{t('contests.endDate')}</Label>
+                <Input
+                  id="endDate"
+                  type="datetime-local"
+                  value={form.endDate}
+                  onChange={e => handleChange('endDate', e.target.value)}
+                  className="mt-1.5 h-10"
+                  required
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div>
+                <Label htmlFor="pointsPerAnswer" className="text-sm font-medium text-gray-700">{t('contests.pointsPerAnswer')}</Label>
+                <Input
+                  id="pointsPerAnswer"
+                  type="number"
+                  value={form.pointsPerAnswer}
+                  onChange={e => handleChange('pointsPerAnswer', parseInt(e.target.value))}
+                  placeholder={t('contests.pointsPerAnswerPlaceholder')}
+                  className="mt-1.5 h-10"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="rewardPoints" className="text-sm font-medium text-gray-700">{t('contests.rewardPoints')}</Label>
+                <Input
+                  id="rewardPoints"
+                  type="number"
+                  value={form.rewardPoints}
+                  onChange={e => handleChange('rewardPoints', parseInt(e.target.value))}
+                  placeholder={t('contests.rewardPointsPlaceholder')}
+                  className="mt-1.5 h-10"
+                  required
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="imageUrl" className="text-sm font-medium text-gray-700">{t('contests.contestImage')}</Label>
+              <div className="mt-1.5">
+                <ImageUpload value={form.imageUrl} onChange={url => handleChange('imageUrl', url)} placeholder={t('contests.uploadContestImagePlaceholder')} />
+              </div>
+              <p className="text-xs text-gray-500 mt-2">{t('contests.optionalImageHint')}</p>
+            </div>
+            <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 mt-2">
+              <Button type="button" variant="ghost" onClick={() => navigate(-1)} className="h-10 px-6">{t('common.cancel')}</Button>
+              <Button type="submit" className="h-10 px-6 bg-blue-600 hover:bg-blue-700 text-white gap-2 shadow-md">
+                <Save className="h-4 w-4" />
+                {t('contests.saveChanges')}
+              </Button>
             </div>
           </form>
         </CardContent>

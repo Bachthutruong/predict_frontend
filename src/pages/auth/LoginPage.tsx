@@ -5,7 +5,6 @@ import { useToast } from '../../hooks/use-toast';
 import { useLanguage } from '../../hooks/useLanguage';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Alert, AlertDescription } from '../../components/ui/alert';
 import { LogIn, Loader2, Mail } from 'lucide-react';
 
@@ -16,7 +15,7 @@ const LoginPage: React.FC = () => {
   const [error, setError] = useState('');
   const [showRegistrationMessage, setShowRegistrationMessage] = useState(false);
   const [registrationMessage, setRegistrationMessage] = useState('');
-  
+
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -28,12 +27,12 @@ const LoginPage: React.FC = () => {
     if (location.state?.message && !showRegistrationMessage) {
       setRegistrationMessage(location.state.message);
       setShowRegistrationMessage(true);
-      
+
       // Pre-fill email if provided
       if (location.state?.email) {
         setEmail(location.state.email);
       }
-      
+
       // Clear the location state to prevent re-showing
       navigate(location.pathname, { replace: true });
     }
@@ -84,36 +83,37 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader className="text-center">
-        <CardTitle className="text-2xl flex items-center justify-center gap-2">
-          <LogIn className="h-6 w-6" />
+    <div className="w-full space-y-6">
+      <div className="text-center space-y-2">
+        <h1 className="text-2xl font-medium tracking-tight flex items-center justify-center gap-2 text-gray-900">
+          <LogIn className="h-6 w-6 text-blue-600" />
           {t('auth.signIn')}
-        </CardTitle>
-        <CardDescription>
+        </h1>
+        <p className="text-gray-500 text-sm">
           {t('auth.login')}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+        </p>
+      </div>
+
+      <div>
         {/* Show registration success message */}
         {showRegistrationMessage && registrationMessage && (
-          <Alert className="mb-4">
+          <Alert className="mb-4 bg-green-50 text-green-700 border-green-200">
             <Mail className="h-4 w-4" />
             <AlertDescription>
               {registrationMessage}
             </AlertDescription>
           </Alert>
         )}
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
+
+        <form onSubmit={handleSubmit} className="space-y-5">
           {error && (
             <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
               {error}
             </div>
           )}
-          
-          <div className="space-y-2">
-            <label htmlFor="email" className="text-sm font-medium">
+
+          <div className="space-y-1.5">
+            <label htmlFor="email" className="text-sm font-medium text-gray-700">
               {t('auth.email')}
             </label>
             <Input
@@ -123,11 +123,12 @@ const LoginPage: React.FC = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              className="h-11 border-gray-200 focus-visible:ring-blue-500"
             />
           </div>
 
-          <div className="space-y-2">
-            <label htmlFor="password" className="text-sm font-medium">
+          <div className="space-y-1.5">
+            <label htmlFor="password" className="text-sm font-medium text-gray-700">
               {t('auth.password')}
             </label>
             <Input
@@ -137,10 +138,11 @@ const LoginPage: React.FC = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              className="h-11 border-gray-200 focus-visible:ring-blue-500"
             />
           </div>
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button type="submit" className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-sm transition-colors" disabled={isLoading}>
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -153,15 +155,15 @@ const LoginPage: React.FC = () => {
         </form>
 
         <div className="mt-6 text-center">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-gray-500">
             {t('auth.dontHaveAccount')}{' '}
-            <Link to="/register" className="text-primary hover:underline font-medium">
+            <Link to="/register" className="text-blue-600 hover:text-blue-700 font-medium hover:underline">
               {t('auth.signUp')}
             </Link>
           </p>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 

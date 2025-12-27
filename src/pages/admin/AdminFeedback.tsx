@@ -7,11 +7,11 @@ import { Badge } from '../../components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../../components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
-import { 
-  Lightbulb, 
-  CheckCircle, 
-  XCircle, 
-  Clock, 
+import {
+  Lightbulb,
+  CheckCircle,
+  XCircle,
+  Clock,
   RefreshCw,
   Coins,
   MessageSquare,
@@ -50,7 +50,7 @@ const AdminFeedback: React.FC = () => {
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [pointsToAward, setPointsToAward] = useState(10);
   const [rejectionReason, setRejectionReason] = useState('');
-  
+
   // Pagination states
   const [pendingCurrentPage, setPendingCurrentPage] = useState(1);
   const [approvedCurrentPage, setApprovedCurrentPage] = useState(1);
@@ -83,19 +83,19 @@ const AdminFeedback: React.FC = () => {
 
   const handleApprove = async () => {
     if (!selectedFeedback) return;
-    
+
     setProcessingId(selectedFeedback.id);
     try {
       await apiService.patch(`/admin/feedback/${selectedFeedback.id}/approve`, {
         pointsAwarded: pointsToAward
       });
-      
+
       toast({
         title: t('admin.feedbackApproved'),
         description: t('admin.pointsAwarded', { points: pointsToAward }),
         variant: "default"
       });
-      
+
       setApproveDialogOpen(false);
       setSelectedFeedback(null);
       setPointsToAward(10);
@@ -114,19 +114,19 @@ const AdminFeedback: React.FC = () => {
 
   const handleReject = async () => {
     if (!selectedFeedback) return;
-    
+
     setProcessingId(selectedFeedback.id);
     try {
       await apiService.patch(`/admin/feedback/${selectedFeedback.id}/reject`, {
         reason: rejectionReason
       });
-      
+
       toast({
         title: t('admin.feedbackRejected'),
         description: t('admin.feedbackRejectedSuccessfully'),
         variant: "default"
       });
-      
+
       setRejectDialogOpen(false);
       setSelectedFeedback(null);
       setRejectionReason('');
@@ -160,7 +160,7 @@ const AdminFeedback: React.FC = () => {
   const pendingFeedback = feedback.filter(f => f.status === 'pending');
   const approvedFeedback = feedback.filter(f => f.status === 'approved');
   const rejectedFeedback = feedback.filter(f => f.status === 'rejected');
-  
+
   const totalPointsAwarded = approvedFeedback.reduce((sum, f) => sum + (f.pointsAwarded || 0), 0);
 
   // Pagination calculations
@@ -168,7 +168,7 @@ const AdminFeedback: React.FC = () => {
   const approvedTotalPages = Math.ceil(approvedFeedback.length / itemsPerPage);
   const rejectedTotalPages = Math.ceil(rejectedFeedback.length / itemsPerPage);
   const allTotalPages = Math.ceil(feedback.length / itemsPerPage);
-  
+
   const paginatedPendingFeedback = pendingFeedback.slice(
     (pendingCurrentPage - 1) * itemsPerPage,
     pendingCurrentPage * itemsPerPage
@@ -195,7 +195,7 @@ const AdminFeedback: React.FC = () => {
     if (totalPages <= 1) return null;
 
     return (
-      <div className="flex items-center justify-center gap-2 mt-4">
+      <div className="flex items-center justify-center gap-2 mt-4 pt-4 border-t border-gray-100">
         <Button
           variant="outline"
           size="sm"
@@ -204,11 +204,11 @@ const AdminFeedback: React.FC = () => {
         >
           {t('common.previous')}
         </Button>
-        
-        <span className="text-sm">
+
+        <span className="text-sm text-gray-600">
           {t('admin.page')} {currentPage} {t('admin.of')} {totalPages}
         </span>
-        
+
         <Button
           variant="outline"
           size="sm"
@@ -228,12 +228,12 @@ const AdminFeedback: React.FC = () => {
     onReject?: (feedback: FeedbackWithUser) => void;
     processingId: string | null;
     showActions?: boolean;
-  }> = ({ feedbackList, processingId, showActions = false }) => {
+  }> = ({ feedbackList, processingId, showActions = false, onApprove, onReject }) => {
     if (feedbackList.length === 0) {
       return (
-        <div className="text-center py-8">
-          <MessageSquare className="h-12 w-12 mx-auto text-gray-400 mb-3" />
-          <p className="text-gray-500">{t('admin.noFeedbackFound')}</p>
+        <div className="text-center py-12">
+          <MessageSquare className="h-12 w-12 mx-auto text-gray-300 mb-3" />
+          <p className="text-gray-500 font-medium">{t('admin.noFeedbackFound')}</p>
         </div>
       );
     }
@@ -241,49 +241,55 @@ const AdminFeedback: React.FC = () => {
     return (
       <div className="space-y-4">
         {feedbackList.map((item) => (
-          <div key={item.id} className="border rounded-lg p-4">
-            <div className="flex items-start justify-between">
-              <div className="flex items-start gap-3 flex-1">
-                <Avatar className="h-10 w-10">
+          <div key={item.id} className="group border border-gray-100 rounded-xl p-4 hover:bg-gray-50/50 transition-all hover:shadow-sm bg-white">
+            <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+              <div className="flex items-start gap-4 flex-1">
+                <Avatar className="h-10 w-10 border border-gray-100">
                   <AvatarImage src={item.user?.avatar} />
-                  <AvatarFallback>{getInitials(item.user?.name || '')}</AvatarFallback>
+                  <AvatarFallback className="bg-blue-50 text-blue-600 font-medium text-xs">{getInitials(item.user?.name || '')}</AvatarFallback>
                 </Avatar>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h4 className="font-medium">{item.user?.name}</h4>
-                    <Badge variant={getStatusVariant(item.status)}>
-                      {t(`admin.${item.status}`)}
-                    </Badge>
-                    {item.pointsAwarded && (
-                      <Badge variant="outline" className="text-green-600">
-                        <Coins className="h-3 w-3 mr-1" />
-                        +{item.pointsAwarded}
-                      </Badge>
-                    )}
-                  </div>
-                  <p className="text-sm text-gray-600 mb-2">{item.content}</p>
-                  <div className="flex items-center gap-4 text-xs text-gray-500">
-                    <span className="flex items-center gap-1">
+                <div className="flex-1 min-w-0 space-y-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h4 className="font-semibold text-gray-900">{item.user?.name}</h4>
+                    <span className="text-gray-300 hidden sm:inline">•</span>
+                    <span className="text-xs text-gray-500 flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
                       {new Date(item.createdAt).toLocaleDateString()}
                     </span>
-                    {item.rejectionReason && (
-                      <span className="text-red-600">
-                        {t('admin.rejectionReason')}: {item.rejectionReason}
-                      </span>
-                    )}
+                    <Badge variant={getStatusVariant(item.status)} className={`capitalize ${item.status === 'approved' ? 'bg-green-100 text-green-700 hover:bg-green-200' : item.status === 'rejected' ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-orange-100 text-orange-700 hover:bg-orange-200'}`}>
+                      {t(`admin.${item.status}`)}
+                    </Badge>
                   </div>
+
+                  <p className="text-gray-700 text-sm leading-relaxed">{item.content}</p>
+
+                  {(item.pointsAwarded || item.rejectionReason) && (
+                    <div className="flex items-center gap-3 pt-2">
+                      {item.pointsAwarded && (
+                        <Badge variant="outline" className="text-green-700 bg-green-50 border-green-200 flex items-center gap-1">
+                          <Coins className="h-3 w-3" />
+                          +{item.pointsAwarded} points
+                        </Badge>
+                      )}
+                      {item.rejectionReason && (
+                        <div className="text-xs text-red-600 bg-red-50 px-2 py-1 rounded border border-red-100">
+                          <span className="font-medium">{t('admin.rejectionReason')}:</span> {item.rejectionReason}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                 </div>
               </div>
-              
+
               {showActions && item.status === 'pending' && (
-                <div className="flex gap-2 ml-4">
+                <div className="flex gap-2 sm:self-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                   <Button
                     variant="outline"
                     size="sm"
+                    className="h-8 bg-white hover:bg-green-50 hover:text-green-700 hover:border-green-200"
                     onClick={() => {
-                      setSelectedFeedback(item);
-                      setApproveDialogOpen(true);
+                      if (onApprove) onApprove(item);
                     }}
                     disabled={processingId === item.id}
                   >
@@ -293,9 +299,9 @@ const AdminFeedback: React.FC = () => {
                   <Button
                     variant="outline"
                     size="sm"
+                    className="h-8 bg-white hover:bg-red-50 hover:text-red-700 hover:border-red-200"
                     onClick={() => {
-                      setSelectedFeedback(item);
-                      setRejectDialogOpen(true);
+                      if (onReject) onReject(item);
                     }}
                     disabled={processingId === item.id}
                   >
@@ -313,96 +319,111 @@ const AdminFeedback: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <div className="h-8 bg-gray-200 rounded w-1/3 animate-pulse"></div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-24 bg-gray-200 rounded animate-pulse"></div>
-          ))}
-        </div>
-        <div className="h-64 bg-gray-200 rounded animate-pulse"></div>
+      <div className="container mx-auto p-6 flex flex-col items-center justify-center min-h-[50vh]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+        <div className="text-lg text-gray-600">{t('admin.loading')}</div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-3 sm:p-6 space-y-4 sm:space-y-8">
+    <div className="space-y-8 pb-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
-            <Lightbulb className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+            <Lightbulb className="h-8 w-8 text-yellow-500" />
             {t('admin.reviewFeedback')}
           </h1>
-          <p className="text-sm sm:text-base text-gray-600 mt-2">
+          <p className="text-gray-500 text-lg max-w-2xl">
             {t('admin.reviewFeedbackDescription')}
           </p>
         </div>
-        <Button onClick={loadFeedback} variant="outline" size="sm" className="w-full sm:w-auto">
-          <RefreshCw className="h-4 w-4 mr-2" />
+        <Button onClick={loadFeedback} variant="outline" className="gap-2 bg-white hover:bg-gray-50 shadow-sm border-gray-200">
+          <RefreshCw className="h-4 w-4" />
           {t('common.refresh')}
         </Button>
       </div>
 
       {/* Stats Cards */}
-      <div className="flex flex-wrap gap-3">
-        <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-white border-gray-200">
-          <MessageSquare className="h-3 w-3 text-gray-500" />
-          <span className="text-sm font-medium">{feedback.length} {t('admin.totalFeedback')}</span>
-        </Badge>
-
-        <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-orange-50 border-orange-200 text-orange-700">
-          <Clock className="h-3 w-3" />
-          <span className="text-sm font-medium">{pendingFeedback.length} {t('admin.pendingReview')}</span>
-        </Badge>
-
-        <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-green-50 border-green-200 text-green-700">
-          <CheckCircle className="h-3 w-3" />
-          <span className="text-sm font-medium">{approvedFeedback.length} {t('admin.approved')}</span>
-        </Badge>
-
-        <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 bg-blue-50 border-blue-200 text-blue-700">
-          <Coins className="h-3 w-3" />
-          <span className="text-sm font-medium">{totalPointsAwarded} {t('admin.pointsAwarded')}</span>
-        </Badge>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card className="border-0 shadow-google bg-white">
+          <CardContent className="p-4 flex flex-col items-center justify-center text-center">
+            <div className="h-10 w-10 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-2">
+              <MessageSquare className="h-5 w-5" />
+            </div>
+            <div className="text-2xl font-bold text-gray-900">{feedback.length}</div>
+            <div className="text-xs text-gray-500 font-medium uppercase tracking-wider mt-1">{t('admin.totalFeedback')}</div>
+          </CardContent>
+        </Card>
+        <Card className="border-0 shadow-google bg-white">
+          <CardContent className="p-4 flex flex-col items-center justify-center text-center">
+            <div className="h-10 w-10 bg-orange-50 text-orange-600 rounded-full flex items-center justify-center mb-2">
+              <Clock className="h-5 w-5" />
+            </div>
+            <div className="text-2xl font-bold text-gray-900">{pendingFeedback.length}</div>
+            <div className="text-xs text-gray-500 font-medium uppercase tracking-wider mt-1">{t('admin.pendingReview')}</div>
+          </CardContent>
+        </Card>
+        <Card className="border-0 shadow-google bg-white">
+          <CardContent className="p-4 flex flex-col items-center justify-center text-center">
+            <div className="h-10 w-10 bg-green-50 text-green-600 rounded-full flex items-center justify-center mb-2">
+              <CheckCircle className="h-5 w-5" />
+            </div>
+            <div className="text-2xl font-bold text-gray-900">{approvedFeedback.length}</div>
+            <div className="text-xs text-gray-500 font-medium uppercase tracking-wider mt-1">{t('admin.approved')}</div>
+          </CardContent>
+        </Card>
+        <Card className="border-0 shadow-google bg-white">
+          <CardContent className="p-4 flex flex-col items-center justify-center text-center">
+            <div className="h-10 w-10 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center mb-2">
+              <Coins className="h-5 w-5" />
+            </div>
+            <div className="text-2xl font-bold text-gray-900">{totalPointsAwarded}</div>
+            <div className="text-xs text-gray-500 font-medium uppercase tracking-wider mt-1">{t('admin.pointsAwarded')}</div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Feedback Lists */}
-      <Tabs defaultValue="pending" className="space-y-4 sm:space-y-6">
-        <TabsList className="grid w-full grid-cols-2 grid-rows-2 h-auto gap-1">
-          <TabsTrigger value="pending" className="text-xs sm:text-sm h-12">
-            {t('admin.pending')} ({pendingFeedback.length})
+      <Tabs defaultValue="pending" className="space-y-6">
+        <TabsList className="bg-gray-100/50 p-1 border border-gray-100 rounded-full w-full sm:w-auto inline-flex h-auto">
+          <TabsTrigger value="pending" className="rounded-full px-6 py-2.5 data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm transition-all h-auto">
+            {t('admin.pending')} <span className="ml-2 py-0.5 px-2 bg-gray-100 text-gray-600 rounded-full text-xs font-semibold group-data-[state=active]:bg-blue-50 group-data-[state=active]:text-blue-600">{pendingFeedback.length}</span>
           </TabsTrigger>
-          <TabsTrigger value="approved" className="text-xs sm:text-sm h-12">
-            {t('admin.approved')} ({approvedFeedback.length})
+          <TabsTrigger value="approved" className="rounded-full px-6 py-2.5 data-[state=active]:bg-white data-[state=active]:text-green-600 data-[state=active]:shadow-sm transition-all h-auto">
+            {t('admin.approved')} <span className="ml-2 py-0.5 px-2 bg-gray-100 text-gray-600 rounded-full text-xs font-semibold group-data-[state=active]:bg-green-50 group-data-[state=active]:text-green-600">{approvedFeedback.length}</span>
           </TabsTrigger>
-          <TabsTrigger value="rejected" className="text-xs sm:text-sm h-12">
-            {t('admin.rejected')} ({rejectedFeedback.length})
+          <TabsTrigger value="rejected" className="rounded-full px-6 py-2.5 data-[state=active]:bg-white data-[state=active]:text-red-600 data-[state=active]:shadow-sm transition-all h-auto">
+            {t('admin.rejected')} <span className="ml-2 py-0.5 px-2 bg-gray-100 text-gray-600 rounded-full text-xs font-semibold group-data-[state=active]:bg-red-50 group-data-[state=active]:text-red-600">{rejectedFeedback.length}</span>
           </TabsTrigger>
-          <TabsTrigger value="all" className="text-xs sm:text-sm h-12">
-            {t('admin.all')} ({feedback.length})
+          <TabsTrigger value="all" className="rounded-full px-6 py-2.5 data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm transition-all h-auto">
+            {t('admin.all')} <span className="ml-2 py-0.5 px-2 bg-gray-100 text-gray-600 rounded-full text-xs font-semibold group-data-[state=active]:bg-gray-50 group-data-[state=active]:text-gray-900">{feedback.length}</span>
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="pending">
-          <Card className="max-w-[350px] md:max-w-full">
-            <CardHeader>
-              <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
-                <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-orange-500" />
+        <TabsContent value="pending" className="mt-0">
+          <Card className="border-0 shadow-google bg-white overflow-hidden rounded-xl">
+            <CardHeader className="border-b border-gray-100 bg-white pb-6 pt-6 px-6">
+              <CardTitle className="text-xl text-gray-800 flex items-center gap-2">
+                <Clock className="h-5 w-5 text-orange-500" />
                 {t('admin.pendingFeedback')}
               </CardTitle>
-              <CardDescription className="text-sm">
+              <CardDescription className="text-gray-500 mt-1">
                 {t('admin.pendingFeedbackDescription')}
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <FeedbackTable 
+            <CardContent className="p-6">
+              <FeedbackTable
                 feedbackList={paginatedPendingFeedback}
                 onApprove={(feedback) => {
                   setSelectedFeedback(feedback);
                   setApproveDialogOpen(true);
                 }}
-                onReject={handleReject}
+                onReject={(feedback) => {
+                  setSelectedFeedback(feedback);
+                  setRejectDialogOpen(true);
+                }}
                 processingId={processingId}
                 showActions={true}
               />
@@ -415,19 +436,19 @@ const AdminFeedback: React.FC = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="approved">
-          <Card className="max-w-[350px] md:max-w-full">
-            <CardHeader>
-              <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />
+        <TabsContent value="approved" className="mt-0">
+          <Card className="border-0 shadow-google bg-white overflow-hidden rounded-xl">
+            <CardHeader className="border-b border-gray-100 bg-white pb-6 pt-6 px-6">
+              <CardTitle className="text-xl text-gray-800 flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 text-green-500" />
                 {t('admin.approvedFeedback')}
               </CardTitle>
-              <CardDescription className="text-sm">
+              <CardDescription className="text-gray-500 mt-1">
                 {t('admin.approvedFeedbackDescription')}
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <FeedbackTable 
+            <CardContent className="p-6">
+              <FeedbackTable
                 feedbackList={paginatedApprovedFeedback}
                 processingId={processingId}
                 showActions={false}
@@ -441,19 +462,19 @@ const AdminFeedback: React.FC = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="rejected">
-          <Card className="max-w-[350px] md:max-w-full">
-            <CardHeader>
-              <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
-                <XCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-500" />
+        <TabsContent value="rejected" className="mt-0">
+          <Card className="border-0 shadow-google bg-white overflow-hidden rounded-xl">
+            <CardHeader className="border-b border-gray-100 bg-white pb-6 pt-6 px-6">
+              <CardTitle className="text-xl text-gray-800 flex items-center gap-2">
+                <XCircle className="h-5 w-5 text-red-500" />
                 {t('admin.rejectedFeedback')}
               </CardTitle>
-              <CardDescription className="text-sm">
+              <CardDescription className="text-gray-500 mt-1">
                 {t('admin.rejectedFeedbackDescription')}
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <FeedbackTable 
+            <CardContent className="p-6">
+              <FeedbackTable
                 feedbackList={paginatedRejectedFeedback}
                 processingId={processingId}
                 showActions={false}
@@ -467,19 +488,19 @@ const AdminFeedback: React.FC = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="all">
-          <Card className="max-w-[350px] md:max-w-full">
-            <CardHeader>
-              <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
-                <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500" />
+        <TabsContent value="all" className="mt-0">
+          <Card className="border-0 shadow-google bg-white overflow-hidden rounded-xl">
+            <CardHeader className="border-b border-gray-100 bg-white pb-6 pt-6 px-6">
+              <CardTitle className="text-xl text-gray-800 flex items-center gap-2">
+                <MessageSquare className="h-5 w-5 text-blue-500" />
                 {t('admin.allFeedback')}
               </CardTitle>
-              <CardDescription className="text-sm">
+              <CardDescription className="text-gray-500 mt-1">
                 {t('admin.allFeedbackDescription')}
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <FeedbackTable 
+            <CardContent className="p-6">
+              <FeedbackTable
                 feedbackList={paginatedAllFeedback}
                 processingId={processingId}
                 showActions={false}
@@ -496,27 +517,31 @@ const AdminFeedback: React.FC = () => {
 
       {/* Approve Dialog */}
       <Dialog open={approveDialogOpen} onOpenChange={setApproveDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{t('admin.approveFeedback')}</DialogTitle>
             <DialogDescription>
               {t('admin.approveFeedbackDescription')}
             </DialogDescription>
           </DialogHeader>
-          
-          <div className="space-y-4">
+
+          <div className="space-y-4 py-4">
             <div>
-              <label className="text-sm font-medium">{t('admin.pointsToAward')}</label>
-              <Input
-                type="number"
-                value={pointsToAward}
-                onChange={(e) => setPointsToAward(parseInt(e.target.value) || 0)}
-                min="1"
-                max="1000"
-              />
+              <label className="text-sm font-medium text-gray-700 block mb-2">{t('admin.pointsToAward')}</label>
+              <div className="relative">
+                <Coins className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                <Input
+                  type="number"
+                  value={pointsToAward}
+                  onChange={(e) => setPointsToAward(parseInt(e.target.value) || 0)}
+                  min="1"
+                  max="1000"
+                  className="pl-9"
+                />
+              </div>
             </div>
-            
-            <div className="flex justify-end gap-2">
+
+            <div className="flex justify-end gap-3 pt-2">
               <Button
                 variant="outline"
                 onClick={() => setApproveDialogOpen(false)}
@@ -526,6 +551,7 @@ const AdminFeedback: React.FC = () => {
               <Button
                 onClick={handleApprove}
                 disabled={processingId === selectedFeedback?.id}
+                className="bg-green-600 hover:bg-green-700 text-white"
               >
                 {processingId === selectedFeedback?.id ? t('admin.approving') : t('admin.approve')}
               </Button>
@@ -536,26 +562,27 @@ const AdminFeedback: React.FC = () => {
 
       {/* Reject Dialog */}
       <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{t('admin.rejectFeedback')}</DialogTitle>
             <DialogDescription>
               {t('admin.rejectFeedbackDescription')}
             </DialogDescription>
           </DialogHeader>
-          
-          <div className="space-y-4">
+
+          <div className="space-y-4 py-4">
             <div>
-              <label className="text-sm font-medium">{t('admin.rejectionReason')}</label>
+              <label className="text-sm font-medium text-gray-700 block mb-2">{t('admin.rejectionReason')}</label>
               <Textarea
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
                 placeholder={t('admin.enterRejectionReason')}
                 rows={3}
+                className="resize-none"
               />
             </div>
-            
-            <div className="flex justify-end gap-2">
+
+            <div className="flex justify-end gap-3 pt-2">
               <Button
                 variant="outline"
                 onClick={() => setRejectDialogOpen(false)}
@@ -577,4 +604,4 @@ const AdminFeedback: React.FC = () => {
   );
 };
 
-export default AdminFeedback; 
+export default AdminFeedback;

@@ -6,7 +6,7 @@ import { useLanguage } from '../../hooks/useLanguage';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
-import { 
+import {
   Table,
   TableBody,
   TableCell,
@@ -21,16 +21,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { 
-  ArrowLeft, 
-  BarChart3, 
-  Users, 
-  Trophy, 
+import {
+  ArrowLeft,
+  BarChart3,
+  Users,
+  Trophy,
   Calendar,
   TrendingUp,
-  Loader2,
+  // Loader2,
   Download,
-  Eye
+  Eye,
+  PieChart,
+  Target
 } from 'lucide-react';
 import type { VotingCampaign, VoteEntry } from '../../types';
 import * as XLSX from 'xlsx';
@@ -40,7 +42,7 @@ const AdminVotingStatistics: React.FC = () => {
   const { id } = useParams();
   const { toast } = useToast();
   const { t } = useLanguage();
-  
+
   const [campaign, setCampaign] = useState<VotingCampaign | null>(null);
   const [entries, setEntries] = useState<VoteEntry[]>([]);
   const [statistics, setStatistics] = useState<any>(null);
@@ -49,11 +51,11 @@ const AdminVotingStatistics: React.FC = () => {
 
   const loadStatistics = async () => {
     if (!id) return;
-    
+
     try {
       setIsLoading(true);
       const response = await votingAPI.admin.getCampaign(id);
-      
+
       if (response.success && response.data) {
         setCampaign(response.data.campaign);
         setEntries(response.data.entries || []);
@@ -127,25 +129,26 @@ const AdminVotingStatistics: React.FC = () => {
     }
   };
 
-  const getStatusLabel = (status: string) => {
-    return t(`voting.status.${status}`) || status;
-  };
-
   if (isLoading) {
     return (
-      <div className="container mx-auto p-6 space-y-6">
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin" />
-        </div>
+      <div className="container mx-auto p-6 flex flex-col items-center justify-center min-h-[50vh]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+        <div className="text-lg text-gray-600">{t('common.loading')}</div>
       </div>
     );
   }
 
   if (!campaign) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">{t('voting.campaignNotFound')}</p>
+      <div className="container mx-auto max-w-full text-center">
+        <div className="bg-white rounded-xl shadow-sm p-12 space-y-4">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{t('voting.campaignNotFound')}</h1>
+          <Button asChild variant="outline">
+            <div onClick={() => navigate('/admin/voting/campaigns')} className="cursor-pointer flex items-center gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              {t('adminVoting.backToCampaigns')}
+            </div>
+          </Button>
         </div>
       </div>
     );
@@ -154,42 +157,45 @@ const AdminVotingStatistics: React.FC = () => {
   const sortedEntries = [...entries].sort((a, b) => (b.voteCount || 0) - (a.voteCount || 0));
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto max-w-full space-y-8 pb-10">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-6 w-full">
-        <Button 
-          variant="ghost" 
-          onClick={() => navigate('/admin/voting/campaigns')}
-          className="flex items-center gap-2 w-fit"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          {t('adminVoting.backToCampaigns')}
-        </Button>
-        <div className="flex-1 min-w-0">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full">
-            <h1 className="text-lg md:text-2xl font-bold flex items-center gap-2 truncate break-words max-w-full">
-              <BarChart3 className="h-6 w-6 text-primary" />
-              <span className="truncate break-words max-w-full">{campaign.title} - {t('adminVoting.statistics')}</span>
-            </h1>
-            <Badge variant={getStatusBadgeVariant(campaign.status)} className="text-xs px-2 py-1 max-w-full truncate">
-              {getStatusLabel(campaign.status)}
-            </Badge>
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
+        <div className="space-y-4 max-w-2xl">
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/admin/voting/campaigns')}
+            className="pl-0 gap-2 text-gray-500 hover:text-gray-900 hover:bg-transparent transition-colors -ml-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            {t('adminVoting.backToCampaigns')}
+          </Button>
+          <div>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
+                <BarChart3 className="h-8 w-8 text-blue-600" />
+                {campaign.title}
+              </h1>
+              <Badge variant={getStatusBadgeVariant(campaign.status)} className="w-fit text-sm py-1 px-3">
+                {t(`voting.status.${campaign.status}`)}
+              </Badge>
+            </div>
+            <p className="text-gray-500 text-lg mt-2 line-clamp-2">{campaign.description}</p>
           </div>
-          <p className="text-muted-foreground mt-1 truncate break-words max-w-full">{campaign.description}</p>
         </div>
-        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-          <Button 
+
+        <div className="flex flex-wrap items-center gap-2 pt-4 md:pt-12">
+          <Button
             variant="outline"
             onClick={exportExcel}
-            className="flex items-center gap-2 w-full md:w-auto"
+            className="gap-2 bg-white text-gray-700 border-gray-200 hover:bg-gray-50 shadow-sm"
           >
             <Download className="h-4 w-4" />
             {t('adminVoting.exportExcel')}
           </Button>
-          <Button 
+          <Button
             variant="outline"
             onClick={() => navigate(`/admin/voting/campaigns/${id}`)}
-            className="flex items-center gap-2 w-full md:w-auto"
+            className="gap-2 bg-white text-gray-700 border-gray-200 hover:bg-gray-50 shadow-sm"
           >
             <Eye className="h-4 w-4" />
             {t('adminVoting.viewCampaign')}
@@ -198,102 +204,93 @@ const AdminVotingStatistics: React.FC = () => {
       </div>
 
       {/* Campaign Overview */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('adminVoting.totalEntries')}</CardTitle>
-            <Trophy className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{entries.length}</div>
-            <p className="text-xs text-muted-foreground">
-              {t('adminVoting.submittedForVoting')}
-            </p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="border-0 shadow-google bg-white">
+          <CardContent className="p-6 flex flex-col items-center justify-center text-center">
+            <div className="h-10 w-10 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-2">
+              <Trophy className="h-5 w-5" />
+            </div>
+            <div className="text-2xl font-bold text-gray-900">{entries.length}</div>
+            <div className="text-xs text-gray-500 font-medium uppercase tracking-wider mt-1">{t('adminVoting.totalEntries')}</div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('adminVoting.totalVotes')}</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{statistics?.totalVotes || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              {t('adminVoting.acrossAllEntries')}
-            </p>
+        <Card className="border-0 shadow-google bg-white">
+          <CardContent className="p-6 flex flex-col items-center justify-center text-center">
+            <div className="h-10 w-10 bg-green-50 text-green-600 rounded-full flex items-center justify-center mb-2">
+              <TrendingUp className="h-5 w-5" />
+            </div>
+            <div className="text-2xl font-bold text-gray-900">{statistics?.totalVotes || 0}</div>
+            <div className="text-xs text-gray-500 font-medium uppercase tracking-wider mt-1">{t('adminVoting.totalVotes')}</div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('adminVoting.uniqueVoters')}</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{statistics?.uniqueVoters || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              {t('adminVoting.participatedInVoting')}
-            </p>
+        <Card className="border-0 shadow-google bg-white">
+          <CardContent className="p-6 flex flex-col items-center justify-center text-center">
+            <div className="h-10 w-10 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center mb-2">
+              <Users className="h-5 w-5" />
+            </div>
+            <div className="text-2xl font-bold text-gray-900">{statistics?.uniqueVoters || 0}</div>
+            <div className="text-xs text-gray-500 font-medium uppercase tracking-wider mt-1">{t('adminVoting.uniqueVoters')}</div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('adminVoting.averageVotesPerEntry')}</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
+        <Card className="border-0 shadow-google bg-white">
+          <CardContent className="p-6 flex flex-col items-center justify-center text-center">
+            <div className="h-10 w-10 bg-orange-50 text-orange-600 rounded-full flex items-center justify-center mb-2">
+              <PieChart className="h-5 w-5" />
+            </div>
+            <div className="text-2xl font-bold text-gray-900">
               {entries.length > 0 ? Math.round((statistics?.totalVotes || 0) / entries.length) : 0}
             </div>
-            <p className="text-xs text-muted-foreground">
-              {t('adminVoting.averageVotesPerEntry')}
-            </p>
+            <div className="text-xs text-gray-500 font-medium uppercase tracking-wider mt-1">{t('adminVoting.averageVotesPerEntry')}</div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Campaign Timeline */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            {t('adminVoting.campaignTimeline')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <h4 className="font-medium mb-2">{t('adminVoting.start')}</h4>
-              <p className="text-muted-foreground">{formatDate(campaign.startDate)}</p>
-            </div>
-            <div>
-              <h4 className="font-medium mb-2">{t('adminVoting.end')}</h4>
-              <p className="text-muted-foreground">{formatDate(campaign.endDate)}</p>
-            </div>
-            <div>
-              <h4 className="font-medium mb-2">{t('adminVoting.pointsPerVote')}</h4>
-              <p className="text-muted-foreground">{campaign.pointsPerVote} {t('admin.points')}</p>
-            </div>
-            <div>
-              <h4 className="font-medium mb-2">{t('adminVoting.maxVotesPerUser')}</h4>
-              <p className="text-muted-foreground">{campaign.maxVotesPerUser} {t('adminVoting.votes')}</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Voting Results */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Trophy className="h-5 w-5" />
-              {t('adminVoting.finalVotingResults')}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Campaign Timeline */}
+        <Card className="border-0 shadow-google bg-white overflow-hidden rounded-xl lg:col-span-1 h-fit">
+          <CardHeader className="border-b border-gray-100 bg-white pb-6 pt-6 px-6">
+            <CardTitle className="text-lg text-gray-800 flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-gray-500" />
+              {t('adminVoting.campaignTimeline')}
             </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6 space-y-4">
+            <div className="flex justify-between items-center py-2 border-b border-gray-50">
+              <span className="text-sm text-gray-500">{t('adminVoting.start')}</span>
+              <span className="font-medium text-gray-900 text-sm">{formatDate(campaign.startDate)}</span>
+            </div>
+            <div className="flex justify-between items-center py-2 border-b border-gray-50">
+              <span className="text-sm text-gray-500">{t('adminVoting.end')}</span>
+              <span className="font-medium text-gray-900 text-sm">{formatDate(campaign.endDate)}</span>
+            </div>
+            <div className="flex justify-between items-center py-2 border-b border-gray-50">
+              <span className="text-sm text-gray-500">{t('adminVoting.pointsPerVote')}</span>
+              <span className="font-medium text-gray-900 text-sm flex items-center gap-1"><Target className="h-3 w-3 text-orange-500" /> {campaign.pointsPerVote}</span>
+            </div>
+            <div className="flex justify-between items-center py-2">
+              <span className="text-sm text-gray-500">{t('adminVoting.maxVotesPerUser')}</span>
+              <span className="font-medium text-gray-900 text-sm">{campaign.maxVotesPerUser}</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Voting Results */}
+        <Card className="border-0 shadow-google bg-white overflow-hidden rounded-xl lg:col-span-2">
+          <CardHeader className="border-b border-gray-100 bg-white pb-6 pt-6 px-6 flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-lg text-gray-800 flex items-center gap-2">
+                <Trophy className="h-5 w-5 text-gray-500" />
+                {t('adminVoting.finalVotingResults')}
+              </CardTitle>
+              <CardDescription className="text-gray-500 mt-1">
+                {t('adminVoting.rankedByVotes')}
+              </CardDescription>
+            </div>
             <Select value={timeRange} onValueChange={(value) => setTimeRange(value as any)}>
-              <SelectTrigger className="w-[150px]">
+              <SelectTrigger className="w-[140px] h-9 text-xs border-gray-200">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -303,81 +300,89 @@ const AdminVotingStatistics: React.FC = () => {
                 <SelectItem value="month">This Month</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-          <CardDescription>
-            {t('adminVoting.finalVotingResults')}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {sortedEntries.length > 0 ? (
-            <div className="overflow-x-auto w-full">
-              <Table className="min-w-[300px] md:min-w-0 w-full">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t('adminVoting.rank')}</TableHead>
-                    <TableHead>{t('adminVoting.entry')}</TableHead>
-                    <TableHead className="hidden md:table-cell">{t('adminVoting.description')}</TableHead>
-                    <TableHead className="text-right">{t('adminVoting.votes')}</TableHead>
-                    <TableHead className="text-right">{t('adminVoting.percentage')}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {sortedEntries.map((entry, index) => {
-                    const percentage = statistics?.totalVotes > 0 
-                      ? ((entry.voteCount || 0) / statistics.totalVotes * 100).toFixed(1)
-                      : '0.0';
-                    return (
-                      <TableRow key={entry.id}>
-                        <TableCell>
-                          <Badge variant={index < 3 ? 'default' : 'outline'} className="text-xs px-2 py-1">#{index + 1}</Badge>
-                          {index < 3 && (
-                            <Trophy className="h-4 w-4 text-yellow-500 inline ml-1" />
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            {entry.imageUrl && (
-                              <img 
-                                src={entry.imageUrl} 
-                                alt={entry.title}
-                                className="w-10 h-10 object-cover rounded"
-                              />
-                            )}
-                            <div>
-                              <p className="font-medium truncate max-w-[120px] md:max-w-none">{entry.title}</p>
-                              <p className="text-xs text-muted-foreground hidden md:block">
-                                {formatDate(entry.createdAt)}
-                              </p>
+          </CardHeader>
+          <CardContent className="p-0">
+            {sortedEntries.length > 0 ? (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader className="bg-gray-50/50">
+                    <TableRow>
+                      <TableHead className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('adminVoting.rank')}</TableHead>
+                      <TableHead className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('adminVoting.entry')}</TableHead>
+                      <TableHead className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">{t('adminVoting.votes')}</TableHead>
+                      <TableHead className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">{t('adminVoting.percentage')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody className="divide-y divide-gray-100">
+                    {sortedEntries.map((entry, index) => {
+                      const percentage = statistics?.totalVotes > 0
+                        ? ((entry.voteCount || 0) / statistics.totalVotes * 100).toFixed(1)
+                        : '0.0';
+                      return (
+                        <TableRow key={entry.id} className="hover:bg-gray-50/50">
+                          <TableCell className="px-6 py-4">
+                            <div className={`flex items-center justify-center w-8 h-8 rounded-full font-bold text-sm ${index === 0 ? 'bg-yellow-100 text-yellow-700' :
+                              index === 1 ? 'bg-gray-100 text-gray-700' :
+                                index === 2 ? 'bg-orange-100 text-orange-800' :
+                                  'bg-transparent text-gray-500'
+                              }`}>
+                              {index + 1}
                             </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="max-w-[200px] hidden md:table-cell">
-                          <p className="text-sm text-muted-foreground line-clamp-2 break-words">
-                            {entry.description}
-                          </p>
-                        </TableCell>
-                        <TableCell className="text-right font-bold">
-                          {entry.voteCount || 0}
-                        </TableCell>
-                        <TableCell className="text-right text-muted-foreground">
-                          {percentage}%
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <Trophy className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-              <p className="text-muted-foreground">{t('adminVoting.noEntriesFound')}</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                          </TableCell>
+                          <TableCell className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="h-10 w-10 rounded bg-gray-100 border border-gray-200 overflow-hidden flex-shrink-0">
+                                {entry.imageUrl ? (
+                                  <img
+                                    src={entry.imageUrl}
+                                    alt={entry.title}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                    <Trophy className="h-4 w-4" />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="max-w-[180px] sm:max-w-xs">
+                                <p className="font-medium text-gray-900 truncate">{entry.title}</p>
+                                <p className="text-xs text-gray-500 line-clamp-1 mt-0.5">
+                                  {entry.description}
+                                </p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="px-6 py-4 text-right">
+                            <span className="font-bold text-gray-900">{entry.voteCount || 0}</span>
+                          </TableCell>
+                          <TableCell className="px-6 py-4 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <div className="w-16 bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                                <div
+                                  className="bg-blue-600 h-1.5 rounded-full"
+                                  style={{ width: `${percentage}%` }}
+                                />
+                              </div>
+                              <span className="text-xs text-gray-500 w-9">{percentage}%</span>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <Trophy className="h-12 w-12 mx-auto text-gray-300 mb-3" />
+                <p className="text-gray-500">{t('adminVoting.noEntriesFound')}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
 
-export default AdminVotingStatistics; 
+export default AdminVotingStatistics;

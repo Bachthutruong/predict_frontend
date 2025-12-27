@@ -15,6 +15,11 @@ export default {
       screens: {
         "2xl": "1400px",
       },
+      extend: {
+        maxWidth: {
+          '8xl': '1440px',
+        }
+      }
     },
     extend: {
       colors: {
@@ -24,41 +29,56 @@ export default {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "#4169E1", // Royal Blue
-          foreground: "hsl(var(--primary-foreground))",
+          DEFAULT: "#1a73e8", // Google Blue
+          foreground: "#ffffff",
+          hover: "#1557b0",
         },
         secondary: {
-          DEFAULT: "#E6EFFF", // Light blue background
-          foreground: "hsl(var(--secondary-foreground))",
+          DEFAULT: "#e8f0fe", // Light blue background
+          foreground: "#1a73e8",
         },
         accent: {
-          DEFAULT: "#E6E6FA", // Lavender
-          foreground: "hsl(var(--accent-foreground))",
+          DEFAULT: "#f1f3f4", // Google Gray
+          foreground: "#202124",
         },
         destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
+          DEFAULT: "#d93025", // Google Red
+          foreground: "#ffffff",
         },
         muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
+          DEFAULT: "#f1f3f4",
+          foreground: "#5f6368",
         },
         popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
+          DEFAULT: "#ffffff",
+          foreground: "#202124",
         },
         card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
+          DEFAULT: "#ffffff",
+          foreground: "#202124",
+        },
+        success: {
+          DEFAULT: "#188038", // Google Green
+          foreground: "#ffffff",
+        },
+        warning: {
+          DEFAULT: "#f9ab00", // Google Yellow
+          foreground: "#ffffff",
         },
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        lg: "0.5rem", // 8px
+        md: "0.375rem", // 6px
+        sm: "0.25rem", // 4px
+        xl: "1rem", // 16px
+        "2xl": "1.5rem", // 24px
       },
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
+        sans: ['Inter', 'Roboto', 'sans-serif'],
+      },
+      boxShadow: {
+        'google': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1)', // Very subtle, like Tailwind shadow-sm but slightly tweaked
+        'google-hover': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)', // Like Tailwind shadow-md
       },
       keyframes: {
         "accordion-down": {

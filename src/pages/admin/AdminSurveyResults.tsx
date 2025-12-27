@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../..
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
-import { ArrowLeft, Download, Users, CheckCircle, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Download, Users, CheckCircle, AlertTriangle, FileText, Activity, PieChart } from 'lucide-react';
 import apiService from '../../services/api';
 import { useLanguage } from '../../hooks/useLanguage';
 
@@ -54,7 +54,7 @@ const AdminSurveyResults: React.FC = () => {
 
   const fetchSurveyResults = async () => {
     if (!id) return;
-    
+
     try {
       setLoading(true);
       const [surveyResponse, resultsResponse] = await Promise.all([
@@ -93,10 +93,10 @@ const AdminSurveyResults: React.FC = () => {
       const response = await apiService.get(`/surveys/admin/${id}/export`, {
         responseType: 'blob'
       });
-      
+
       // Create download link
-      const blob = new Blob([response.data], { 
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+      const blob = new Blob([response.data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -106,7 +106,7 @@ const AdminSurveyResults: React.FC = () => {
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-      
+
       toast({
         title: t('common.success'),
         description: t('adminSurveys.exportStartedSuccessfully'),
@@ -129,209 +129,228 @@ const AdminSurveyResults: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="text-muted-foreground mt-2">{t('common.loading')}</p>
-        </div>
+      <div className="container mx-auto p-6 flex flex-col items-center justify-center min-h-[50vh]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+        <div className="text-lg text-gray-600">{t('common.loading')}</div>
       </div>
     );
   }
 
   if (!survey) {
     return (
-      <div className="text-center py-8">
-        <p className="text-gray-500">{t('adminSurveys.surveyNotFound')}</p>
-        <Button asChild className="mt-4">
-          <Link to="/admin/surveys">
-            {t('adminSurveys.backToSurveys')}
-          </Link>
-        </Button>
+      <div className="container mx-auto p-6 sm:p-8 max-w-5xl text-center">
+        <div className="bg-white rounded-xl shadow-sm p-12 space-y-4">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{t('adminSurveys.surveyNotFound')}</h1>
+          <Button asChild variant="outline">
+            <Link to="/admin/surveys">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              {t('adminSurveys.backToSurveys')}
+            </Link>
+          </Button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button asChild variant="outline" size="sm">
+    <div className="container mx-auto max-w-full space-y-8 pb-10">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
+        <div className="space-y-2">
+          <Button asChild variant="ghost" className="pl-0 gap-2 text-gray-500 hover:text-gray-900 hover:bg-transparent transition-colors -ml-2">
             <Link to="/admin/surveys">
-              <ArrowLeft className="h-4 w-4 mr-2" />
+              <ArrowLeft className="h-4 w-4" />
               {t('common.back')}
             </Link>
           </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              {t('adminSurveys.surveyResults')}
-            </h1>
-            <p className="text-gray-600">
-              {t('adminSurveys.resultsFor')} {survey.title}
-            </p>
-          </div>
+
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+            <Activity className="h-8 w-8 text-blue-600" />
+            {t('adminSurveys.surveyResults')}
+          </h1>
+          <p className="text-gray-500 text-lg max-w-2xl">
+            {t('adminSurveys.resultsFor')} <span className="font-semibold text-gray-800">{survey.title}</span>
+          </p>
         </div>
-        <Button onClick={handleExport} disabled={exporting}>
-          <Download className="h-4 w-4 mr-2" />
-          {exporting ? t('common.loading') : t('adminSurveys.exportToExcel')}
-        </Button>
+        <div className="pt-8">
+          <Button onClick={handleExport} disabled={exporting} className="bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 shadow-sm">
+            <Download className="h-4 w-4 mr-2" />
+            {exporting ? t('common.loading') : t('adminSurveys.exportToExcel')}
+          </Button>
+        </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
-              {t('adminSurveys.totalSubmissions')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-blue-600" />
-              <span className="text-2xl font-bold">{results.length}</span>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="border-0 shadow-google bg-white">
+          <CardContent className="p-6 flex flex-col items-center justify-center text-center">
+            <div className="h-12 w-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-3">
+              <Users className="h-6 w-6" />
             </div>
+            <div className="text-3xl font-bold text-gray-900">{results.length}</div>
+            <div className="text-sm text-gray-500 font-medium uppercase tracking-wider mt-1">{t('adminSurveys.totalSubmissions')}</div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
-              {t('adminSurveys.validSubmissions')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-600" />
-              <span className="text-2xl font-bold">{validSubmissions.length}</span>
+        <Card className="border-0 shadow-google bg-white">
+          <CardContent className="p-6 flex flex-col items-center justify-center text-center">
+            <div className="h-12 w-12 bg-green-50 text-green-600 rounded-full flex items-center justify-center mb-3">
+              <CheckCircle className="h-6 w-6" />
             </div>
+            <div className="text-3xl font-bold text-gray-900">{validSubmissions.length}</div>
+            <div className="text-sm text-gray-500 font-medium uppercase tracking-wider mt-1">{t('adminSurveys.validSubmissions')}</div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
-              {t('adminSurveys.fraudulentSubmissions')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-red-600" />
-              <span className="text-2xl font-bold">{fraudulentSubmissions.length}</span>
+        <Card className="border-0 shadow-google bg-white">
+          <CardContent className="p-6 flex flex-col items-center justify-center text-center">
+            <div className="h-12 w-12 bg-red-50 text-red-600 rounded-full flex items-center justify-center mb-3">
+              <AlertTriangle className="h-6 w-6" />
             </div>
+            <div className="text-3xl font-bold text-gray-900">{fraudulentSubmissions.length}</div>
+            <div className="text-sm text-gray-500 font-medium uppercase tracking-wider mt-1">{t('adminSurveys.fraudulentSubmissions')}</div>
           </CardContent>
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('adminSurveys.individualSubmissions')}</CardTitle>
-          <CardDescription>
-            {results.length === 0 ? t('adminSurveys.noSubmissionsYet') : `${results.length} ${t('adminSurveys.submissions')}`}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {results.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t('adminSurveys.user')}</TableHead>
-                  <TableHead>{t('adminSurveys.email')}</TableHead>
-                  <TableHead>{t('adminSurveys.submittedAt')}</TableHead>
-                  <TableHead>{t('adminSurveys.fraudulent')}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {results.map((result) => (
-                  <TableRow key={result.id}>
-                    <TableCell className="font-medium">{result.user.name}</TableCell>
-                    <TableCell>{result.user.email}</TableCell>
-                    <TableCell>
-                      {new Date(result.submittedAt).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={result.isFraudulent ? 'destructive' : 'default'}>
-                        {result.isFraudulent ? t('adminSurveys.yes') : t('adminSurveys.no')}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <div className="text-center py-8">
-              <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">{t('adminSurveys.noSubmissionsYet')}</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Answer Stats */}
+        {survey.questions.some(q => q.type === 'single-choice' || q.type === 'multiple-choice') ? (
+          <Card className="border-0 shadow-google bg-white overflow-hidden rounded-xl lg:col-span-2">
+            <CardHeader className="border-b border-gray-100 bg-white pb-6 pt-6 px-6 sm:px-8">
+              <CardTitle className="text-xl text-gray-800 flex items-center gap-2">
+                <PieChart className="h-5 w-5 text-gray-500" />
+                {t('adminSurveys.answerStatistics')}
+              </CardTitle>
+              <CardDescription className="text-gray-500 mt-1">
+                {t('adminSurveys.visualSummary')}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6 sm:p-8">
+              <div className="grid hidden:grid-cols-1 md:grid-cols-2 gap-8">
+                {survey.questions
+                  .filter(q => q.type === 'single-choice' || q.type === 'multiple-choice')
+                  .map((question) => {
+                    const questionResults = validSubmissions.flatMap(result =>
+                      result.answers.filter(answer => answer.questionId === question.id)
+                    );
 
-      {survey.questions.some(q => q.type === 'singleChoice' || q.type === 'multipleChoice') && (
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('adminSurveys.answerStatistics')}</CardTitle>
-            <CardDescription>
-              {t('adminSurveys.visualSummary')}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              {survey.questions
-                .filter(q => q.type === 'singleChoice' || q.type === 'multipleChoice')
-                .map((question) => {
-                  const questionResults = validSubmissions.flatMap(result =>
-                    result.answers.filter(answer => answer.questionId === question.id)
-                  );
-
-                  const optionCounts: { [key: string]: number } = {};
-                  question.options?.forEach(option => {
-                    optionCounts[option.text] = 0;
-                  });
-
-                  questionResults.forEach(result => {
-                    const answers = result.answer.split(',').map(a => a.trim());
-                    answers.forEach(answer => {
-                      if (optionCounts.hasOwnProperty(answer)) {
-                        optionCounts[answer]++;
-                      }
+                    const optionCounts: { [key: string]: number } = {};
+                    question.options?.forEach(option => {
+                      optionCounts[option.text] = 0;
                     });
-                  });
 
-                  return (
-                    <div key={question.id} className="space-y-3">
-                      <h3 className="font-medium text-gray-900">{question.text}</h3>
-                      <div className="space-y-2">
-                        {question.options?.map((option) => {
-                          const count = optionCounts[option.text] || 0;
-                          const percentage = validSubmissions.length > 0 
-                            ? Math.round((count / validSubmissions.length) * 100) 
-                            : 0;
+                    questionResults.forEach(result => {
+                      const answers = result.answer.split(',').map(a => a.trim());
+                      answers.forEach(answer => {
+                        if (optionCounts.hasOwnProperty(answer)) {
+                          optionCounts[answer]++;
+                        }
+                      });
+                    });
 
-                          return (
-                            <div key={option.id} className="flex items-center gap-3">
-                              <div className="flex-1">
-                                <div className="flex justify-between text-sm mb-1">
-                                  <span>{option.text}</span>
-                                  <span>{count} ({percentage}%)</span>
+                    return (
+                      <div key={question.id} className="space-y-4 bg-gray-50/50 p-6 rounded-xl border border-gray-100">
+                        <h3 className="font-semibold text-gray-900 border-b border-gray-200 pb-2 mb-4">{question.text}</h3>
+                        <div className="space-y-4">
+                          {question.options?.map((option) => {
+                            const count = optionCounts[option.text] || 0;
+                            const percentage = validSubmissions.length > 0
+                              ? Math.round((count / validSubmissions.length) * 100)
+                              : 0;
+
+                            return (
+                              <div key={option.id} className="space-y-1">
+                                <div className="flex justify-between text-sm">
+                                  <span className="text-gray-700 font-medium">{option.text}</span>
+                                  <span className="text-gray-500">{count} ({percentage}%)</span>
                                 </div>
-                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
                                   <div
-                                    className="bg-blue-600 h-2 rounded-full transition-all"
+                                    className="bg-blue-600 h-2.5 rounded-full transition-all duration-500 ease-out"
                                     style={{ width: `${percentage}%` }}
                                   />
                                 </div>
                               </div>
-                            </div>
-                          );
-                        })}
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-            </div>
+                    );
+                  })}
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="lg:col-span-2 text-center p-8 bg-gray-50 rounded-xl border border-dashed border-gray-200 text-gray-500">
+            No statistical questions (choice-based) found in this survey.
+          </div>
+        )}
+
+        {/* Submissions List */}
+        <Card className="border-0 shadow-google bg-white overflow-hidden rounded-xl lg:col-span-2">
+          <CardHeader className="border-b border-gray-100 bg-white pb-6 pt-6 px-6 sm:px-8">
+            <CardTitle className="text-xl text-gray-800 flex items-center gap-2">
+              <FileText className="h-5 w-5 text-gray-500" />
+              {t('adminSurveys.individualSubmissions')}
+            </CardTitle>
+            <CardDescription className="text-gray-500 mt-1">
+              {results.length === 0 ? t('adminSurveys.noSubmissionsYet') : `${results.length} ${t('adminSurveys.submissions')}`}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            {results.length > 0 ? (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader className="bg-gray-50/50">
+                    <TableRow>
+                      <TableHead className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('adminSurveys.user')}</TableHead>
+                      <TableHead className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('adminSurveys.email')}</TableHead>
+                      <TableHead className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('adminSurveys.submittedAt')}</TableHead>
+                      <TableHead className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('adminSurveys.fraudulent')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {results.map((result) => (
+                      <TableRow key={result.id} className="hover:bg-gray-50/50">
+                        <TableCell className="px-6 py-4 font-medium text-gray-900">{result.user.name}</TableCell>
+                        <TableCell className="px-6 py-4 text-gray-600">{result.user.email}</TableCell>
+                        <TableCell className="px-6 py-4 text-gray-500">
+                          {new Date(result.submittedAt).toLocaleDateString()} {new Date(result.submittedAt).toLocaleTimeString()}
+                        </TableCell>
+                        <TableCell className="px-6 py-4">
+                          <Badge variant={result.isFraudulent ? 'destructive' : 'default'} className={`font-normal ${result.isFraudulent ? 'bg-red-50 text-red-600 border-red-100 hover:bg-red-100' : 'bg-green-50 text-green-600 border-green-100 hover:bg-green-100'}`}>
+                            {result.isFraudulent ? (
+                              <>
+                                <AlertTriangle className="h-3 w-3 mr-1" />
+                                {t('adminSurveys.yes')}
+                              </>
+                            ) : (
+                              <>
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                                {t('adminSurveys.no')}
+                              </>
+                            )}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500">{t('adminSurveys.noSubmissionsYet')}</p>
+              </div>
+            )}
           </CardContent>
         </Card>
-      )}
+      </div>
+
+
     </div>
   );
 };
 
-export default AdminSurveyResults; 
+export default AdminSurveyResults;

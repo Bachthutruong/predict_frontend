@@ -5,14 +5,14 @@ import { Input } from '../../components/ui/input';
 import { Alert, AlertDescription } from '../../components/ui/alert';
 import { Badge } from '../../components/ui/badge';
 import { Avatar, AvatarFallback } from '../../components/ui/avatar';
-import { 
-  Gift, 
-  Copy, 
-  CheckCircle, 
-  Clock, 
-  Share2, 
-  Users, 
-  Trophy, 
+import {
+  Gift,
+  Copy,
+  CheckCircle,
+  Clock,
+  Share2,
+  Users,
+  Trophy,
   Coins,
   Target,
   Flame
@@ -99,11 +99,11 @@ const ReferralsPage: React.FC = () => {
           description: t('referrals.referralLinkShared'),
           variant: "default"
         });
-              } catch (error: any) {
-          if (error.name !== 'AbortError') {
-            copyReferralLink();
-          }
+      } catch (error: any) {
+        if (error.name !== 'AbortError') {
+          copyReferralLink();
         }
+      }
     } else {
       copyReferralLink();
     }
@@ -150,61 +150,61 @@ const ReferralsPage: React.FC = () => {
   const pointsToNextMilestone = nextMilestone - completedReferrals;
 
   return (
-    <div className="max-w-full mx-auto p-6 space-y-8">
+    <div className="max-w-5xl mx-auto p-6 space-y-8">
       {/* Header */}
-      <div className="text-center">
-        <h1 className="text-3xl font-bold flex items-center justify-center gap-2">
+      <div className="text-center py-6">
+        <h1 className="text-3xl font-regular text-gray-900 flex items-center justify-center gap-3">
           <Gift className="h-8 w-8 text-blue-600" />
           {t('referrals.referralProgram')}
         </h1>
-        <p className="text-gray-600 mt-2">
+        <p className="text-gray-500 mt-2 max-w-xl mx-auto text-lg leading-relaxed">
           {t('referrals.inviteFriendsDescription')}
         </p>
       </div>
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-4">
-        <Card>
+        <Card className="border-none shadow-google bg-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('referrals.totalReferrals')}</CardTitle>
-            <Users className="h-4 w-4 text-gray-500" />
+            <CardTitle className="text-sm font-medium text-gray-500 uppercase">{t('referrals.totalReferrals')}</CardTitle>
+            <Users className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{referrals.length}</div>
-            <p className="text-xs text-gray-500">{t('referrals.friendsInvited')}</p>
+            <div className="text-2xl font-light text-gray-900">{referrals.length}</div>
+            <p className="text-xs text-gray-500 mt-1">{t('referrals.friendsInvited')}</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-none shadow-google bg-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('referrals.successful')}</CardTitle>
-            <CheckCircle className="h-4 w-4 text-gray-500" />
+            <CardTitle className="text-sm font-medium text-gray-500 uppercase">{t('referrals.successful')}</CardTitle>
+            <CheckCircle className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{completedReferrals}</div>
-            <p className="text-xs text-gray-500">{t('referrals.completedReferrals')}</p>
+            <div className="text-2xl font-light text-green-600">{completedReferrals}</div>
+            <p className="text-xs text-gray-500 mt-1">{t('referrals.completedReferrals')}</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-none shadow-google bg-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('referrals.pending')}</CardTitle>
-            <Clock className="h-4 w-4 text-gray-500" />
+            <CardTitle className="text-sm font-medium text-gray-500 uppercase">{t('referrals.pending')}</CardTitle>
+            <Clock className="h-4 w-4 text-orange-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-600">{pendingReferrals}</div>
-            <p className="text-xs text-gray-500">{t('referrals.awaitingCompletion')}</p>
+            <div className="text-2xl font-light text-orange-600">{pendingReferrals}</div>
+            <p className="text-xs text-gray-500 mt-1">{t('referrals.awaitingCompletion')}</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-none shadow-google bg-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('referrals.nextMilestone')}</CardTitle>
-            <Target className="h-4 w-4 text-gray-500" />
+            <CardTitle className="text-sm font-medium text-gray-500 uppercase">{t('referrals.nextMilestone')}</CardTitle>
+            <Target className="h-4 w-4 text-purple-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-purple-600">{pointsToNextMilestone}</div>
-            <p className="text-xs text-gray-500">{t('referrals.referralsTo', { count: nextMilestone })}</p>
+            <div className="text-2xl font-light text-purple-600">{pointsToNextMilestone}</div>
+            <p className="text-xs text-gray-500 mt-1">{t('referrals.referralsTo', { count: nextMilestone })}</p>
           </CardContent>
         </Card>
       </div>
@@ -305,7 +305,7 @@ const ReferralsPage: React.FC = () => {
                 <span className="text-sm text-gray-500">{completedReferrals}/{nextMilestone}</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
+                <div
                   className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                   style={{ width: `${(completedReferrals % 10) * 10}%` }}
                 />
@@ -342,7 +342,7 @@ const ReferralsPage: React.FC = () => {
             <div className="space-y-4">
               {referrals.map((referral) => {
                 if (!referral.referredUser) return null;
-                
+
                 return (
                   <div key={referral.id} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex items-center gap-3">

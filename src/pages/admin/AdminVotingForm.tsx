@@ -8,7 +8,7 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/textarea';
 import { Label } from '../../components/ui/label';
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -16,7 +16,16 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ImageUpload } from '../../components/ui/image-upload';
-import { ArrowLeft, Save, Loader2, Calendar, Settings, Image } from 'lucide-react';
+import {
+  ArrowLeft,
+  Save,
+  Loader2,
+  Calendar,
+  Settings,
+  Image as ImageIcon,
+  Vote,
+  FileText
+} from 'lucide-react';
 import type { CreateVotingCampaignData } from '../../types';
 
 const AdminVotingForm: React.FC = () => {
@@ -24,9 +33,9 @@ const AdminVotingForm: React.FC = () => {
   const { id } = useParams();
   const { toast } = useToast();
   const { t } = useLanguage();
-  
+
   const isEditing = Boolean(id);
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState<CreateVotingCampaignData>({
@@ -42,18 +51,17 @@ const AdminVotingForm: React.FC = () => {
 
   const loadCampaign = async () => {
     if (!isEditing || !id) return;
-    
+
     try {
       setIsLoading(true);
       const response = await votingAPI.admin.getCampaign(id);
-      
+
       if (response.success && response.data?.campaign) {
         const campaign = response.data.campaign;
-        
-        // Convert dates for datetime-local input
+
         const formatDateForInput = (dateString: string) => {
           const date = new Date(dateString);
-          return date.toISOString().slice(0, 16); // Remove seconds and timezone
+          return date.toISOString().slice(0, 16);
         };
 
         setFormData({
@@ -86,8 +94,7 @@ const AdminVotingForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validation
+
     if (!formData.title.trim()) {
       toast({
         title: t('adminVoting.validationError'),
@@ -138,14 +145,14 @@ const AdminVotingForm: React.FC = () => {
 
     try {
       setIsSaving(true);
-      
+
       const submitData = {
         ...formData,
         startDate: startDate.toISOString(),
         endDate: endDate.toISOString()
       };
 
-      const response = isEditing 
+      const response = isEditing
         ? await votingAPI.admin.updateCampaign(id!, submitData)
         : await votingAPI.admin.createCampaign(submitData);
 
@@ -154,7 +161,7 @@ const AdminVotingForm: React.FC = () => {
           title: t('common.success'),
           description: isEditing ? t('adminVoting.campaignUpdatedSuccessfully') : t('adminVoting.campaignCreatedSuccessfully')
         });
-        
+
         navigate('/admin/voting/campaigns');
       } else {
         toast({
@@ -184,63 +191,91 @@ const AdminVotingForm: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin" />
-        </div>
+      <div className="container mx-auto p-6 flex flex-col items-center justify-center min-h-[50vh]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+        <div className="text-lg text-gray-600">{t('common.loading')}</div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl">
+    <div className="container mx-auto p-4 sm:p-8 max-w-5xl space-y-8 pb-10">
       {/* Header */}
-      <div className="flex items-center gap-4 mb-6">
-        <Button 
-          variant="ghost" 
-          onClick={() => navigate('/admin/voting/campaigns')}
-          className="flex items-center gap-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          {t('adminVoting.backToCampaigns')}
-        </Button>
-        
-        <div>
-          <h1 className="text-3xl font-bold">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
+        <div className="space-y-2">
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/admin/voting/campaigns')}
+            className="pl-0 gap-2 text-gray-500 hover:text-gray-900 hover:bg-transparent transition-colors -ml-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            {t('adminVoting.backToCampaigns')}
+          </Button>
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+            <Vote className="h-8 w-8 text-blue-600" />
             {isEditing ? t('adminVoting.editCampaign') : t('adminVoting.createCampaign')}
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-gray-500 text-lg max-w-2xl">
             {isEditing ? t('adminVoting.updatePredictionInfo') : t('adminVoting.setVotingSchedule')}
           </p>
         </div>
+
+        <div className="flex gap-3 pt-8">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => navigate('/admin/voting/campaigns')}
+            className="h-11 px-6 border-gray-200 text-gray-700 hover:bg-gray-50"
+          >
+            {t('common.cancel')}
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={isSaving}
+            className="h-11 px-8 bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg transition-all"
+          >
+            {isSaving ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                {t('common.saving')}
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4 mr-2" />
+                {isEditing ? t('common.save') : t('adminVoting.createCampaign')}
+              </>
+            )}
+          </Button>
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-8">
         {/* Basic Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Image className="h-5 w-5" />
+        <Card className="border-0 shadow-google bg-white overflow-hidden rounded-xl">
+          <CardHeader className="border-b border-gray-100 bg-white pb-6 pt-6 px-6 sm:px-8">
+            <CardTitle className="text-xl text-gray-800 flex items-center gap-2">
+              <FileText className="h-5 w-5 text-gray-500" />
               {t('adminVoting.basicInformation')}
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-gray-500 mt-1">
               {t('adminVoting.campaignTitleDescription')}
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="title">{t('adminVoting.entryTitle')} *</Label>
+          <CardContent className="p-6 sm:p-8 space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="title" className="text-sm font-semibold text-gray-700">{t('adminVoting.entryTitle')} <span className="text-red-500">*</span></Label>
               <Input
                 id="title"
                 value={formData.title}
                 onChange={(e) => handleInputChange('title', e.target.value)}
                 placeholder={t('adminVoting.enterCampaignTitle')}
                 required
+                className="h-12 text-lg px-4 border-gray-200 focus:border-blue-500 focus:ring-blue-100 transition-all rounded-lg"
               />
             </div>
 
-            <div>
-              <Label htmlFor="description">{t('adminVoting.entryDescription')} *</Label>
+            <div className="space-y-2">
+              <Label htmlFor="description" className="text-sm font-semibold text-gray-700">{t('adminVoting.entryDescription')} <span className="text-red-500">*</span></Label>
               <Textarea
                 id="description"
                 value={formData.description}
@@ -248,149 +283,135 @@ const AdminVotingForm: React.FC = () => {
                 placeholder={t('adminVoting.describeVotingCampaign')}
                 rows={4}
                 required
+                className="resize-none border-gray-200 focus:border-blue-500 focus:ring-blue-100 transition-all rounded-lg p-4"
               />
             </div>
 
-            <div>
-              <Label htmlFor="imageUrl">{t('adminVoting.featuredImage')}</Label>
+            <div className="space-y-3 p-6 bg-gray-50/50 rounded-xl border border-gray-100">
+              <Label htmlFor="imageUrl" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                <ImageIcon className="h-4 w-4 text-gray-500" />
+                {t('adminVoting.featuredImage')}
+              </Label>
               <ImageUpload
                 value={formData.imageUrl}
                 onChange={(url) => handleInputChange('imageUrl', url)}
-                className="mt-2"
+                className="w-full bg-white border-2 border-dashed border-gray-200 hover:border-blue-400 transition-colors rounded-xl"
               />
             </div>
           </CardContent>
         </Card>
 
-        {/* Schedule */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              {t('adminVoting.schedule')}
-            </CardTitle>
-            <CardDescription>
-              {t('adminVoting.setVotingSchedule')}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="startDate">{t('adminVoting.startDateTime')} *</Label>
-                <Input
-                  id="startDate"
-                  type="datetime-local"
-                  value={formData.startDate}
-                  onChange={(e) => handleInputChange('startDate', e.target.value)}
-                  required
-                />
-              </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Schedule */}
+          <Card className="border-0 shadow-google bg-white overflow-hidden rounded-xl h-full">
+            <CardHeader className="border-b border-gray-100 bg-white pb-6 pt-6 px-6 sm:px-8">
+              <CardTitle className="text-xl text-gray-800 flex items-center gap-2">
+                <Calendar className="h-5 w-5 text-gray-500" />
+                {t('adminVoting.schedule')}
+              </CardTitle>
+              <CardDescription className="text-gray-500 mt-1">
+                {t('adminVoting.setVotingSchedule')}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6 sm:p-8 space-y-6">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="startDate" className="text-sm font-semibold text-gray-700">{t('adminVoting.startDateTime')} <span className="text-red-500">*</span></Label>
+                  <Input
+                    id="startDate"
+                    type="datetime-local"
+                    value={formData.startDate}
+                    onChange={(e) => handleInputChange('startDate', e.target.value)}
+                    required
+                    className="h-11 border-gray-200"
+                  />
+                </div>
 
-              <div>
-                <Label htmlFor="endDate">{t('adminVoting.endDateTime')} *</Label>
-                <Input
-                  id="endDate"
-                  type="datetime-local"
-                  value={formData.endDate}
-                  onChange={(e) => handleInputChange('endDate', e.target.value)}
-                  required
-                />
+                <div className="space-y-2">
+                  <Label htmlFor="endDate" className="text-sm font-semibold text-gray-700">{t('adminVoting.endDateTime')} <span className="text-red-500">*</span></Label>
+                  <Input
+                    id="endDate"
+                    type="datetime-local"
+                    value={formData.endDate}
+                    onChange={(e) => handleInputChange('endDate', e.target.value)}
+                    required
+                    className="h-11 border-gray-200"
+                  />
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        {/* Voting Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Settings className="h-5 w-5" />
-              {t('adminVoting.votingSettings')}
-            </CardTitle>
-            <CardDescription>
-              {t('adminVoting.configureVotingRules')}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="pointsPerVote">{t('adminVoting.pointsPerVote')}</Label>
-                <Input
-                  id="pointsPerVote"
-                  type="number"
-                  min="0"
-                  max="1000"
-                  value={formData.pointsPerVote}
-                  onChange={(e) => handleInputChange('pointsPerVote', parseInt(e.target.value) || 0)}
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  {t('adminVoting.pointsAwardedPerVote')}
-                </p>
+          {/* Voting Settings */}
+          <Card className="border-0 shadow-google bg-white overflow-hidden rounded-xl h-full">
+            <CardHeader className="border-b border-gray-100 bg-white pb-6 pt-6 px-6 sm:px-8">
+              <CardTitle className="text-xl text-gray-800 flex items-center gap-2">
+                <Settings className="h-5 w-5 text-gray-500" />
+                {t('adminVoting.votingSettings')}
+              </CardTitle>
+              <CardDescription className="text-gray-500 mt-1">
+                {t('adminVoting.configureVotingRules')}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6 sm:p-8 space-y-6">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="pointsPerVote" className="text-sm font-semibold text-gray-700">{t('adminVoting.pointsPerVote')}</Label>
+                  <Input
+                    id="pointsPerVote"
+                    type="number"
+                    min="0"
+                    max="1000"
+                    value={formData.pointsPerVote}
+                    onChange={(e) => handleInputChange('pointsPerVote', parseInt(e.target.value) || 0)}
+                    className="h-11 border-gray-200"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    {t('adminVoting.pointsAwardedPerVote')}
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="maxVotesPerUser" className="text-sm font-semibold text-gray-700">{t('adminVoting.maxVotesPerUser')}</Label>
+                  <Input
+                    id="maxVotesPerUser"
+                    type="number"
+                    min="1"
+                    max="100"
+                    value={formData.maxVotesPerUser}
+                    onChange={(e) => handleInputChange('maxVotesPerUser', parseInt(e.target.value) || 1)}
+                    className="h-11 border-gray-200"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    {t('adminVoting.maximumEntriesPerUser')}
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="votingFrequency" className="text-sm font-semibold text-gray-700">{t('adminVoting.frequency')}</Label>
+                  <Select
+                    value={formData.votingFrequency}
+                    onValueChange={(value) => handleInputChange('votingFrequency', value)}
+                  >
+                    <SelectTrigger className="h-11 border-gray-200 bg-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="once">{t('adminVoting.oncePerCampaign')}</SelectItem>
+                      <SelectItem value="daily">{t('adminVoting.oncePerDay')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {t('adminVoting.howOftenUsersCanVote')}
+                  </p>
+                </div>
               </div>
-
-              <div>
-                <Label htmlFor="maxVotesPerUser">{t('adminVoting.maxVotesPerUser')}</Label>
-                <Input
-                  id="maxVotesPerUser"
-                  type="number"
-                  min="1"
-                  max="100"
-                  value={formData.maxVotesPerUser}
-                  onChange={(e) => handleInputChange('maxVotesPerUser', parseInt(e.target.value) || 1)}
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  {t('adminVoting.maximumEntriesPerUser')}
-                </p>
-              </div>
-
-              <div>
-                <Label htmlFor="votingFrequency">{t('adminVoting.frequency')}</Label>
-                <Select
-                  value={formData.votingFrequency}
-                  onValueChange={(value) => handleInputChange('votingFrequency', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="once">{t('adminVoting.oncePerCampaign')}</SelectItem>
-                    <SelectItem value="daily">{t('adminVoting.oncePerDay')}</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {t('adminVoting.howOftenUsersCanVote')}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Actions */}
-        <div className="flex items-center gap-4">
-          <Button 
-            type="submit" 
-            disabled={isSaving}
-            className="flex items-center gap-2"
-          >
-            {isSaving ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Save className="h-4 w-4" />
-            )}
-            {isSaving ? t('common.saving') : (isEditing ? t('common.save') : t('adminVoting.createCampaign'))}
-          </Button>
-          
-          <Button 
-            type="button" 
-            variant="outline"
-            onClick={() => navigate('/admin/voting/campaigns')}
-          >
-            {t('common.cancel')}
-          </Button>
+            </CardContent>
+          </Card>
         </div>
       </form>
     </div>
   );
 };
 
-export default AdminVotingForm; 
+export default AdminVotingForm;

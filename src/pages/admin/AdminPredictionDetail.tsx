@@ -5,11 +5,11 @@ import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar';
 import { ConfirmDialog } from '../../components/ui/confirm-dialog';
-import { 
+import {
   ArrowLeft,
-  Trophy, 
-  Coins, 
-  Users, 
+  Trophy,
+  Coins,
+  Users,
   Target,
   Edit,
   Trash2
@@ -40,7 +40,7 @@ const AdminPredictionDetail: React.FC = () => {
     totalPointsAwarded: 0
   });
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -49,11 +49,11 @@ const AdminPredictionDetail: React.FC = () => {
 
   const loadPredictionDetails = async () => {
     if (!id) return;
-    
+
     try {
       setIsLoading(true);
       const response = await apiService.get(`/admin/predictions/${id}`);
-      
+
       if (response.data?.success && response.data?.data) {
         const data = response.data.data;
         setPrediction(data);
@@ -147,7 +147,7 @@ const AdminPredictionDetail: React.FC = () => {
             <option value={50}>50</option>
           </select>
         </div>
-        
+
         <div className="flex items-center gap-2 justify-center">
           <Button
             variant="outline"
@@ -157,11 +157,11 @@ const AdminPredictionDetail: React.FC = () => {
           >
             {t('common.previous')}
           </Button>
-          
+
           <span className="text-sm">
             {t('admin.page')} {currentPage} {t('admin.of')} {totalPages}
           </span>
-          
+
           <Button
             variant="outline"
             size="sm"
@@ -208,39 +208,39 @@ const AdminPredictionDetail: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 space-y-6">
+    <div className="space-y-8 pb-8">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4 flex-1 min-w-0">
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             onClick={() => navigate('/admin/predictions')}
-            className="flex items-center gap-2 flex-shrink-0"
+            className="flex items-center gap-2 flex-shrink-0 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-full h-10 w-10 p-0"
           >
-            <ArrowLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">{t('common.back')}</span>
+            <ArrowLeft className="h-5 w-5" />
+            <span className="sr-only">{t('common.back')}</span>
           </Button>
-          
+
           <div className="flex-1 min-w-0">
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold truncate">{prediction.title}</h1>
-            <p className="text-muted-foreground mt-1 text-sm sm:text-base line-clamp-2">{prediction.description}</p>
+            <h1 className="text-3xl font-bold truncate text-gray-800">{prediction.title}</h1>
+            <p className="text-gray-500 mt-1 text-lg line-clamp-1">{prediction.description}</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-3 flex-shrink-0">
           <Button
             variant="outline"
             onClick={handleEditPrediction}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 bg-white hover:bg-gray-50 border-gray-200"
             size="sm"
           >
             <Edit className="h-4 w-4" />
             <span className="hidden sm:inline">{t('common.edit')}</span>
           </Button>
           <Button
-            variant="outline"
+            variant="destructive"
             onClick={handleDeletePrediction}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 shadow-sm"
             size="sm"
           >
             <Trash2 className="h-4 w-4" />
@@ -251,56 +251,65 @@ const AdminPredictionDetail: React.FC = () => {
 
       {/* Prediction Image */}
       {prediction.imageUrl && (
-        <Card>
-          <CardContent className="p-0">
-            <img 
-              src={prediction.imageUrl} 
-              alt={prediction.title}
-              className="w-full h-48 sm:h-64 object-cover rounded-lg"
-            />
-          </CardContent>
-        </Card>
+        <div className="rounded-xl overflow-hidden shadow-google border border-gray-100 bg-white">
+          <img
+            src={prediction.imageUrl}
+            alt={prediction.title}
+            className="w-full h-64 object-cover"
+          />
+        </div>
       )}
 
       {/* Stats Cards */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
-        <Card>
-          <CardContent className="p-4 sm:p-6">
+        <Card className="border border-gray-100 shadow-google bg-white">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-600">{t('admin.totalPredictions')}</p>
-                <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.totalPredictions}</p>
+                <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t('admin.totalPredictions')}</p>
+                <div className="flex items-baseline gap-2 mt-1">
+                  <p className="text-3xl font-bold text-gray-900">{stats.totalPredictions}</p>
+                  <span className="text-sm text-gray-500">entries</span>
+                </div>
               </div>
-              <div className="p-2 sm:p-3 rounded-full bg-blue-50 flex-shrink-0">
-                <Target className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
+              <div className="h-12 w-12 rounded-full bg-blue-50 flex items-center justify-center">
+                <Target className="h-6 w-6 text-blue-600" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4 sm:p-6">
+        <Card className="border border-gray-100 shadow-google bg-white">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-600">{t('admin.correctPredictions')}</p>
-                <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.correctPredictions}</p>
+                <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t('admin.correctPredictions')}</p>
+                <div className="flex items-baseline gap-2 mt-1">
+                  <p className="text-3xl font-bold text-gray-900">{stats.correctPredictions}</p>
+                  <span className="text-sm text-green-600 font-medium">
+                    {stats.totalPredictions > 0 ? Math.round((stats.correctPredictions / stats.totalPredictions) * 100) : 0}% success
+                  </span>
+                </div>
               </div>
-              <div className="p-2 sm:p-3 rounded-full bg-green-50 flex-shrink-0">
-                <Trophy className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
+              <div className="h-12 w-12 rounded-full bg-green-50 flex items-center justify-center">
+                <Trophy className="h-6 w-6 text-green-600" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4 sm:p-6">
+        <Card className="border border-gray-100 shadow-google bg-white">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-600">{t('admin.totalPointsAwarded')}</p>
-                <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.totalPointsAwarded}</p>
+                <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">{t('admin.totalPointsAwarded')}</p>
+                <div className="flex items-baseline gap-2 mt-1">
+                  <p className="text-3xl font-bold text-gray-900">{stats.totalPointsAwarded.toLocaleString()}</p>
+                  <span className="text-sm text-yellow-600 font-medium">pts</span>
+                </div>
               </div>
-              <div className="p-2 sm:p-3 rounded-full bg-yellow-50 flex-shrink-0">
-                <Coins className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-600" />
+              <div className="h-12 w-12 rounded-full bg-yellow-50 flex items-center justify-center">
+                <Coins className="h-6 w-6 text-yellow-600" />
               </div>
             </div>
           </CardContent>
@@ -309,136 +318,161 @@ const AdminPredictionDetail: React.FC = () => {
 
       {/* Prediction Details */}
       <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('admin.predictionDetails')}</CardTitle>
+        <Card className="border-0 shadow-google bg-white h-full">
+          <CardHeader className="border-b border-gray-100 pb-4">
+            <CardTitle className="text-xl text-gray-800">{t('admin.predictionDetails')}</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:justify-between gap-2">
-              <span className="text-sm font-medium text-gray-600">{t('admin.status')}:</span>
-              <Badge variant={getStatusVariant(prediction.status)}>
-                {t(`admin.${prediction.status}`)}
-              </Badge>
-            </div>
-            <div className="flex flex-col sm:flex-row sm:justify-between gap-2">
-              <span className="text-sm font-medium text-gray-600">{t('admin.pointsCost')}:</span>
-              <span className="text-sm">{prediction.pointsCost} {t('admin.points')}</span>
-            </div>
-            <div className="flex flex-col sm:flex-row sm:justify-between gap-2">
-              <span className="text-sm font-medium text-gray-600">{t('admin.createdAt')}:</span>
-              <span className="text-sm">{new Date(prediction.createdAt).toLocaleDateString()}</span>
-            </div>
-            {prediction.answer && (
-              <div className="flex flex-col sm:flex-row sm:justify-between gap-2">
-                <span className="text-sm font-medium text-gray-600">{t('admin.correctAnswer')}:</span>
-                <span className={`text-sm font-medium ${prediction.answer === '***ENCRYPTED***' ? 'text-red-500' : 'text-green-600'}`}>
-                  {prediction.answer === '***ENCRYPTED***' ? t('admin.encryptedAnswer') : prediction.answer}
-                </span>
+          <CardContent className="p-6 space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm font-medium text-gray-500 mb-1">{t('admin.status')}</p>
+                <Badge variant={getStatusVariant(prediction.status)} className="text-sm py-1 px-3">
+                  {t(`admin.${prediction.status}`)}
+                </Badge>
               </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('admin.participants')}</CardTitle>
-            <CardDescription>
-              {t('admin.totalParticipants')}: {userPredictions.length}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {paginatedUserPredictions.slice(0, 5).map((userPrediction) => (
-                <div key={userPrediction.id} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <Avatar className="h-8 w-8 flex-shrink-0">
-                      <AvatarImage src={userPrediction.user?.avatarUrl} />
-                      <AvatarFallback>
-                        {getInitials(userPrediction.user?.name || 'User')}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{userPrediction.user?.name}</p>
-                      <p className="text-xs text-gray-500">
-                        {new Date(userPrediction.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <Badge variant={userPrediction.isCorrect ? 'default' : 'secondary'} className="text-xs">
-                      {userPrediction.isCorrect ? t('admin.correct') : t('admin.incorrect')}
-                    </Badge>
-                    <span className="text-sm text-gray-600 truncate max-w-20">
-                      {userPrediction.guess}
+              <div>
+                <p className="text-sm font-medium text-gray-500 mb-1">{t('admin.pointsCost')}</p>
+                <div className="flex items-center gap-2">
+                  <Coins className="h-4 w-4 text-yellow-500" />
+                  <span className="text-lg font-semibold text-gray-900">{prediction.pointsCost}</span>
+                </div>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500 mb-1">{t('admin.createdAt')}</p>
+                <div className="flex items-center gap-2 text-gray-900">
+                  <span className="font-medium">{new Date(prediction.createdAt).toLocaleDateString()}</span>
+                </div>
+              </div>
+              {prediction.answer && (
+                <div>
+                  <p className="text-sm font-medium text-gray-500 mb-1">{t('admin.correctAnswer')}</p>
+                  <div className={`p-2 rounded-lg inline-block ${prediction.answer === '***ENCRYPTED***' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-700'}`}>
+                    <span className="font-medium">
+                      {prediction.answer === '***ENCRYPTED***' ? t('admin.encryptedAnswer') : prediction.answer}
                     </span>
                   </div>
-                </div>
-              ))}
-              {userPredictions.length > 5 && (
-                <div className="text-center pt-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => setShowAllParticipants(!showAllParticipants)}
-                    className="w-full sm:w-auto"
-                  >
-                    {showAllParticipants ? t('admin.hideParticipants') : t('admin.viewAllParticipants')}
-                  </Button>
                 </div>
               )}
             </div>
           </CardContent>
         </Card>
+
+        <Card className="border-0 shadow-google bg-white h-full">
+          <CardHeader className="border-b border-gray-100 pb-4">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-xl text-gray-800">{t('admin.participants')}</CardTitle>
+              <Badge variant="secondary" className="bg-gray-100 text-gray-600">
+                {userPredictions.length} {t('admin.users')}
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="divide-y divide-gray-100">
+              {paginatedUserPredictions.slice(0, 5).map((userPrediction) => (
+                <div key={userPrediction.id} className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors">
+                  <div className="flex items-center gap-4 flex-1 min-w-0">
+                    <Avatar className="h-10 w-10 border border-gray-100">
+                      <AvatarImage src={userPrediction.user?.avatarUrl} />
+                      <AvatarFallback className="bg-blue-50 text-blue-600 font-medium">
+                        {getInitials(userPrediction.user?.name || 'User')}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-gray-900 truncate">{userPrediction.user?.name}</p>
+                      <p className="text-xs text-gray-500">
+                        {new Date(userPrediction.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-medium text-gray-700">"{userPrediction.guess}"</span>
+                    <Badge variant={userPrediction.isCorrect ? 'default' : 'secondary'} className={`text-xs ${userPrediction.isCorrect ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
+                      {userPrediction.isCorrect ? t('admin.correct') : t('admin.incorrect')}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+              {userPredictions.length === 0 && (
+                <div className="p-8 text-center text-gray-500">
+                  {t('admin.noParticipantsYet')}
+                </div>
+              )}
+            </div>
+            {userPredictions.length > 5 && (
+              <div className="p-4 border-t border-gray-100 text-center">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowAllParticipants(!showAllParticipants)}
+                  className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                >
+                  {showAllParticipants ? t('admin.hideParticipants') : t('admin.viewAllParticipants')}
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
-      {/* User Predictions List */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('admin.allPredictions')}</CardTitle>
-          <CardDescription>
+      {/* User Predictions List (Full Table) */}
+      <Card className="border-0 shadow-google bg-white overflow-hidden rounded-xl">
+        <CardHeader className="border-b border-gray-100 bg-white pb-6">
+          <CardTitle className="text-xl text-gray-800">{t('admin.allPredictions')}</CardTitle>
+          <CardDescription className="text-gray-500 mt-1">
             {t('admin.allUserPredictions')}
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
+        <CardContent className="p-0">
+          <div className="divide-y divide-gray-100">
             {paginatedUserPredictions.map((userPrediction) => (
-              <div key={userPrediction.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border rounded-lg gap-4">
+              <div key={userPrediction.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 sm:p-6 hover:bg-gray-50 transition-colors">
                 <div className="flex items-center gap-4 flex-1 min-w-0">
-                  <Avatar className="h-10 w-10 flex-shrink-0">
+                  <Avatar className="h-10 w-10 border border-gray-100">
                     <AvatarImage src={userPrediction.user?.avatarUrl} />
-                    <AvatarFallback>
+                    <AvatarFallback className="bg-blue-50 text-blue-600 font-medium">
                       {getInitials(userPrediction.user?.name || 'User')}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-medium truncate">{userPrediction.user?.name}</h3>
+                    <h3 className="font-medium text-gray-900 truncate">{userPrediction.user?.name}</h3>
                     <p className="text-sm text-gray-500">
                       {new Date(userPrediction.createdAt).toLocaleString()}
                     </p>
                   </div>
                 </div>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4 flex-shrink-0">
-                  <div className="text-right">
-                    <p className="font-medium truncate max-w-32">{userPrediction.guess}</p>
-                    <p className="text-sm text-gray-500">
-                      {userPrediction.pointsSpent} {t('admin.points')}
-                    </p>
+
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8 mt-4 sm:mt-0 flex-shrink-0">
+                  <div className="text-left sm:text-right">
+                    <p className="text-sm text-gray-500 mb-1">{t('admin.predicted')}</p>
+                    <p className="font-medium text-gray-900 text-lg">"{userPrediction.guess}"</p>
                   </div>
-                  <Badge variant={userPrediction.isCorrect ? 'default' : 'secondary'}>
+                  <div className="text-left sm:text-right">
+                    <p className="text-sm text-gray-500 mb-1">{t('admin.wager')}</p>
+                    <div className="flex items-center gap-1 sm:justify-end">
+                      <Coins className="h-4 w-4 text-yellow-500" />
+                      <span className="font-medium text-gray-900">{userPrediction.pointsSpent}</span>
+                    </div>
+                  </div>
+                  <Badge variant={userPrediction.isCorrect ? 'default' : 'secondary'} className={`h-8 px-3 rounded-full flex items-center justify-center min-w-[100px] ${userPrediction.isCorrect ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
                     {userPrediction.isCorrect ? t('admin.correct') : t('admin.incorrect')}
                   </Badge>
                 </div>
               </div>
             ))}
             {userPredictions.length === 0 && (
-              <div className="text-center py-8">
-                <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500">{t('admin.noPredictionsYet')}</p>
+              <div className="p-12 text-center">
+                <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 mb-4">
+                  <Users className="h-6 w-6 text-gray-400" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-900">{t('admin.noPredictionsYet')}</h3>
+                <p className="mt-1 text-sm text-gray-500">Wait for users to participate.</p>
               </div>
             )}
           </div>
-          
-          <PaginationControls />
+
+          <div className="py-4 border-t border-gray-100">
+            <PaginationControls />
+          </div>
         </CardContent>
       </Card>
 

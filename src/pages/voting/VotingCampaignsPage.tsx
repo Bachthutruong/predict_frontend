@@ -8,9 +8,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../..
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Badge } from '../../components/ui/badge';
-import { 
-  Vote, 
-  Search, 
+import {
+  Vote,
+  Search,
   Calendar,
   Users,
   Trophy,
@@ -25,13 +25,13 @@ const VotingCampaignsPage: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { t } = useLanguage();
-  
+
   const [campaigns, setCampaigns] = useState<VotingCampaign[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  
+
   const limit = 12;
 
   useEffect(() => {
@@ -50,10 +50,10 @@ const VotingCampaignsPage: React.FC = () => {
       if (response.success && response.data) {
         // API trả về data trực tiếp trong response.data array
         const allCampaigns = Array.isArray(response.data) ? response.data : [];
-        
+
         // Chỉ lấy những campaign có status "active"
         const activeCampaigns = allCampaigns.filter(campaign => campaign.status === 'active');
-        
+
         setCampaigns(activeCampaigns);
         // Pagination nằm ở cùng cấp với data trong response
         setTotalPages((response as any).pagination?.pages || 1);
@@ -82,11 +82,11 @@ const VotingCampaignsPage: React.FC = () => {
 
   const formatTimeRemaining = (remainingTime: number) => {
     if (remainingTime <= 0) return t('voting.ended');
-    
+
     const days = Math.floor(remainingTime / (1000 * 60 * 60 * 24));
     const hours = Math.floor((remainingTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
-    
+
     if (days > 0) return `${days}d ${hours}h`;
     if (hours > 0) return `${hours}h ${minutes}m`;
     return `${minutes}m`;
@@ -117,29 +117,29 @@ const VotingCampaignsPage: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="max-w-7xl mx-auto p-4 sm:p-8 space-y-8">
       {/* Header */}
-      <div className="text-center space-y-4">
-        <div className="flex items-center justify-center gap-2">
-          <Vote className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl sm:text-4xl font-bold">{t('voting.activeCampaigns')}</h1>
-        </div>
-        <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+      <div className="text-center space-y-4 max-w-2xl mx-auto">
+        <h1 className="text-3xl sm:text-4xl font-regular tracking-tight text-gray-900 flex items-center justify-center gap-3">
+          <Vote className="h-10 w-10 text-blue-600" />
+          {t('voting.activeCampaigns')}
+        </h1>
+        <p className="text-gray-500 text-lg">
           {t('voting.participateDescription')}
           {!user && ` ${t('voting.signInToVote')}`}
         </p>
       </div>
 
       {/* Search */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="relative max-w-md mx-auto">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+      <Card className="max-w-md mx-auto border-none shadow-google bg-white overflow-hidden">
+        <CardContent className="p-2">
+          <div className="relative flex items-center">
+            <Search className="absolute left-3 h-5 w-5 text-gray-400" />
             <Input
               placeholder={t('voting.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
-              className="pl-10"
+              className="pl-10 border-none shadow-none focus-visible:ring-0 text-base"
             />
           </div>
         </CardContent>
@@ -147,15 +147,15 @@ const VotingCampaignsPage: React.FC = () => {
 
       {/* Campaigns Grid */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin" />
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
         </div>
       ) : campaigns.length === 0 ? (
-        <div className="text-center py-12">
-          <Vote className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-          <h3 className="text-xl font-medium mb-2">{t('voting.noActiveCampaigns')}</h3>
-          <p className="text-muted-foreground">
-            {searchTerm 
+        <div className="text-center py-16">
+          <Vote className="h-16 w-16 mx-auto text-gray-300 mb-4" />
+          <h3 className="text-xl font-medium text-gray-900 mb-2">{t('voting.noActiveCampaigns')}</h3>
+          <p className="text-gray-500">
+            {searchTerm
               ? t('voting.noMatchingCampaigns')
               : t('voting.noCampaignsAvailable')}
           </p>
@@ -165,96 +165,99 @@ const VotingCampaignsPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {campaigns.map((campaign) => {
               const statusInfo = getStatusInfo(campaign);
-              
+
               return (
-                <Card 
-                  key={campaign.id} 
-                  className="hover:shadow-lg transition-shadow cursor-pointer group"
+                <Card
+                  key={campaign.id}
+                  className="hover:shadow-google-hover transition-all duration-300 cursor-pointer group border-none shadow-google bg-white overflow-hidden flex flex-col h-full"
                   onClick={() => navigate(`/voting/${campaign.id}`)}
                 >
                   {campaign.imageUrl && (
-                    <div className="aspect-video w-full overflow-hidden rounded-t-lg">
-                      <img 
-                        src={campaign.imageUrl} 
+                    <div className="aspect-video w-full overflow-hidden relative">
+                      <img
+                        src={campaign.imageUrl}
                         alt={campaign.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
+                      <div className="absolute top-3 right-3">
+                        <Badge variant={statusInfo.variant} className="shadow-sm">
+                          {statusInfo.text}
+                        </Badge>
+                      </div>
                     </div>
                   )}
-                  
-                  <CardHeader>
-                    <div className="flex items-start justify-between gap-2">
-                      <CardTitle className="line-clamp-2 group-hover:text-primary transition-colors">
-                        {campaign.title}
-                      </CardTitle>
-                      <Badge variant={statusInfo.variant}>
-                        {statusInfo.text}
-                      </Badge>
-                    </div>
-                    <CardDescription className="line-clamp-3">
+
+                  <CardHeader className="pb-2">
+                    {!campaign.imageUrl && (
+                      <div className="mb-2">
+                        <Badge variant={statusInfo.variant}>
+                          {statusInfo.text}
+                        </Badge>
+                      </div>
+                    )}
+                    <CardTitle className="text-xl text-gray-900 leading-tight group-hover:text-blue-600 transition-colors line-clamp-2">
+                      {campaign.title}
+                    </CardTitle>
+                    <CardDescription className="line-clamp-2 text-gray-500 mt-1">
                       {campaign.description}
                     </CardDescription>
                   </CardHeader>
-                  
-                  <CardContent className="space-y-4">
+
+                  <CardContent className="space-y-4 flex-grow flex flex-col justify-end">
                     {/* Stats */}
-                    <div className="grid grid-cols-3 gap-4 text-center">
+                    <div className="grid grid-cols-3 gap-4 text-center py-4 border-t border-b border-gray-50">
                       <div className="space-y-1">
                         <div className="flex items-center justify-center">
-                          <Trophy className="h-4 w-4 text-muted-foreground" />
+                          <Trophy className="h-4 w-4 text-gray-400" />
                         </div>
-                        <div className="text-sm font-medium">{campaign.entryCount || 0}</div>
-                        <div className="text-xs text-muted-foreground">{t('voting.entries')}</div>
+                        <div className="text-sm font-medium text-gray-900">{campaign.entryCount || 0}</div>
+                        <div className="text-xs text-gray-500 uppercase tracking-wide">{t('voting.entries')}</div>
                       </div>
-                      
+
                       <div className="space-y-1">
                         <div className="flex items-center justify-center">
-                          <Users className="h-4 w-4 text-muted-foreground" />
+                          <Users className="h-4 w-4 text-gray-400" />
                         </div>
-                        <div className="text-sm font-medium">{campaign.totalVotes || 0}</div>
-                        <div className="text-xs text-muted-foreground">{t('voting.votes')}</div>
+                        <div className="text-sm font-medium text-gray-900">{campaign.totalVotes || 0}</div>
+                        <div className="text-xs text-gray-500 uppercase tracking-wide">{t('voting.votes')}</div>
                       </div>
-                      
+
                       <div className="space-y-1">
                         <div className="flex items-center justify-center">
-                          <Vote className="h-4 w-4 text-muted-foreground" />
+                          <Vote className="h-4 w-4 text-gray-400" />
                         </div>
-                        <div className="text-sm font-medium">{campaign.pointsPerVote}</div>
-                        <div className="text-xs text-muted-foreground">{t('voting.points')}</div>
+                        <div className="text-sm font-medium text-gray-900">{campaign.pointsPerVote}</div>
+                        <div className="text-xs text-gray-500 uppercase tracking-wide">{t('voting.points')}</div>
                       </div>
                     </div>
 
-                    {/* Time Info */}
-                    <div className="space-y-2">
-                      {campaign.status === 'active' && campaign.remainingTime ? (
-                        <div className="flex items-center gap-2 text-sm">
-                          <Clock className="h-4 w-4 text-primary" />
-                          <span className="text-primary font-medium">
-                            {formatTimeRemaining(campaign.remainingTime)} {t('voting.remaining')}
-                          </span>
-                        </div>
-                      ) : campaign.status === 'closed' || campaign.status === 'completed' ? (
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Clock className="h-4 w-4" />
-                          <span>{t('voting.ended')} {formatDate(campaign.endDate)}</span>
-                        </div>
-                      ) : campaign.status === 'upcoming' ? (
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Calendar className="h-4 w-4" />
-                          <span>{t('voting.starts')} {formatDate(campaign.startDate)}</span>
-                        </div>
-                      ) : null}
-                    </div>
+                    {/* Time Info & Button */}
+                    <div className="pt-2">
+                      <div className="flex items-center justify-between mb-4">
+                        {campaign.status === 'active' && campaign.remainingTime ? (
+                          <div className="flex items-center gap-2 text-sm text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
+                            <Clock className="h-4 w-4" />
+                            <span className="font-medium">
+                              {formatTimeRemaining(campaign.remainingTime)} {t('voting.remaining')}
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2 text-sm text-gray-500">
+                            <Calendar className="h-4 w-4" />
+                            <span>{formatDate(campaign.endDate)}</span>
+                          </div>
+                        )}
+                      </div>
 
-                    {/* Action Button */}
-                    <Button 
-                      className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
-                      variant="outline"
-                    >
-                      {campaign.status === 'active' ? t('voting.voteNow') :
-                       (campaign.status === 'closed' || campaign.status === 'completed') ? t('voting.viewResults') : t('voting.viewDetails')}
-                      <ChevronRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                    </Button>
+                      <Button
+                        className="w-full bg-white text-blue-600 border border-gray-200 hover:bg-blue-50 shadow-none hover:text-blue-700 hover:border-blue-200"
+
+                      >
+                        {campaign.status === 'active' ? t('voting.voteNow') :
+                          (campaign.status === 'closed' || campaign.status === 'completed') ? t('voting.viewResults') : t('voting.viewDetails')}
+                        <ChevronRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               );
@@ -263,25 +266,27 @@ const VotingCampaignsPage: React.FC = () => {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 mt-8">
+            <div className="flex items-center justify-center gap-2 mt-12">
               <Button
                 variant="outline"
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
+                className="rounded-full w-10 h-10 p-0"
               >
-                {t('common.previous')}
+                &larr;
               </Button>
-              
-              <span className="text-sm text-muted-foreground px-4">
-                {t('common.page')} {currentPage} {t('common.of')} {totalPages}
+
+              <span className="text-sm text-gray-500 px-4 font-medium">
+                {t('common.page')} {currentPage} / {totalPages}
               </span>
-              
+
               <Button
                 variant="outline"
                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                 disabled={currentPage === totalPages}
+                className="rounded-full w-10 h-10 p-0"
               >
-                {t('common.next')}
+                &rarr;
               </Button>
             </div>
           )}
@@ -290,18 +295,18 @@ const VotingCampaignsPage: React.FC = () => {
 
       {/* Call to Action for guests */}
       {!user && campaigns.length > 0 && (
-        <Card className="bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20">
-          <CardContent className="text-center py-8">
-            <Vote className="h-12 w-12 mx-auto text-primary mb-4" />
-            <h3 className="text-xl font-semibold mb-2">{t('voting.readyToVote')}</h3>
-            <p className="text-muted-foreground mb-4">
+        <Card className="border-none shadow-google bg-gradient-to-br from-blue-50 to-indigo-50 mt-12">
+          <CardContent className="text-center py-10">
+            <Vote className="h-12 w-12 mx-auto text-blue-600 mb-4" />
+            <h3 className="text-2xl font-regular mb-2 text-gray-900">{t('voting.readyToVote')}</h3>
+            <p className="text-gray-600 mb-8 max-w-md mx-auto">
               {t('voting.signInToParticipate')}
             </p>
             <div className="flex items-center justify-center gap-4">
-              <Button onClick={() => navigate('/login')}>
+              <Button onClick={() => navigate('/login')} className="px-8 shadow-none bg-blue-600 hover:bg-blue-700 text-white border-none">
                 {t('auth.signIn')}
               </Button>
-              <Button variant="outline" onClick={() => navigate('/register')}>
+              <Button variant="outline" onClick={() => navigate('/register')} className="px-8 bg-white border-gray-200 text-gray-700 hover:bg-gray-50">
                 {t('auth.createAccount')}
               </Button>
             </div>

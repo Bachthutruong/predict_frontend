@@ -168,90 +168,106 @@ const AdminContests: React.FC = () => {
 
   // Debug: log contests dat
   return (
-    <div className="container bg-white rounded-lg shadow-md mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">{t('contests.management')}</h1>
+    <div className="space-y-8 pb-8">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800">{t('contests.management')}</h1>
+          <p className="text-gray-500 mt-2 text-lg">
+            {t('contests.createEditContests')}
+          </p>
+        </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
-            <Button>{t('contests.createNew')}</Button>
+            <Button className="bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg transition-all rounded-full px-6">
+              {t('contests.createNew')}
+            </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>{t('contests.createNew')}</DialogTitle>
+              <DialogTitle className="text-xl font-bold text-gray-800">{t('contests.createNew')}</DialogTitle>
             </DialogHeader>
-            <div className="grid gap-4">
+            <div className="grid gap-6 py-4">
               <div>
-                <Label htmlFor="title">{t('contests.title')}</Label>
+                <Label htmlFor="title" className="text-sm font-medium text-gray-700">{t('contests.title')}</Label>
                 <Input
                   id="title"
                   value={createForm.title}
                   onChange={(e) => setCreateForm({ ...createForm, title: e.target.value })}
                   placeholder={t('contests.enterTitlePlaceholder')}
+                  className="mt-1.5 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <Label htmlFor="description">{t('contests.description')}</Label>
+                <Label htmlFor="description" className="text-sm font-medium text-gray-700">{t('contests.description')}</Label>
                 <Textarea
                   id="description"
                   value={createForm.description}
                   onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })}
                   placeholder={t('contests.enterDescriptionPlaceholder')}
+                  className="mt-1.5 focus:ring-blue-500 min-h-[100px]"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="startDate">{t('contests.startDate')}</Label>
+                  <Label htmlFor="startDate" className="text-sm font-medium text-gray-700">{t('contests.startDate')}</Label>
                   <Input
                     id="startDate"
                     type="datetime-local"
                     value={createForm.startDate}
                     onChange={(e) => setCreateForm({ ...createForm, startDate: e.target.value })}
+                    className="mt-1.5 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="endDate">{t('contests.endDate')}</Label>
+                  <Label htmlFor="endDate" className="text-sm font-medium text-gray-700">{t('contests.endDate')}</Label>
                   <Input
                     id="endDate"
                     type="datetime-local"
                     value={createForm.endDate}
                     onChange={(e) => setCreateForm({ ...createForm, endDate: e.target.value })}
+                    className="mt-1.5 focus:ring-blue-500"
                   />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="pointsPerAnswer">{t('contests.pointsPerAnswer')}</Label>
+                  <Label htmlFor="pointsPerAnswer" className="text-sm font-medium text-gray-700">{t('contests.pointsPerAnswer')}</Label>
                   <Input
                     id="pointsPerAnswer"
                     type="number"
                     value={createForm.pointsPerAnswer}
                     onChange={(e) => setCreateForm({ ...createForm, pointsPerAnswer: parseInt(e.target.value) })}
-                    placeholder={t('contests.pointsPerAnswerPlaceholder')}
+                    placeholder="0"
+                    className="mt-1.5 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="rewardPoints">{t('contests.rewardPoints')}</Label>
+                  <Label htmlFor="rewardPoints" className="text-sm font-medium text-gray-700">{t('contests.rewardPoints')}</Label>
                   <Input
                     id="rewardPoints"
                     type="number"
                     value={createForm.rewardPoints}
                     onChange={(e) => setCreateForm({ ...createForm, rewardPoints: parseInt(e.target.value) })}
-                    placeholder={t('contests.rewardPointsPlaceholder')}
+                    placeholder="0"
+                    className="mt-1.5 focus:ring-blue-500"
                   />
                 </div>
               </div>
               <div>
-                <Label htmlFor="imageUrl">{t('contests.contestImage')}</Label>
-                <ImageUpload
-                  value={createForm.imageUrl}
-                  onChange={(url) => setCreateForm({ ...createForm, imageUrl: url })}
-                  placeholder={t('contests.uploadContestImagePlaceholder')}
-                />
-                <p className="text-xs text-gray-500">{t('contests.optionalImageHint')}</p>
+                <Label htmlFor="imageUrl" className="text-sm font-medium text-gray-700">{t('contests.contestImage')}</Label>
+                <div className="mt-1.5">
+                  <ImageUpload
+                    value={createForm.imageUrl}
+                    onChange={(url) => setCreateForm({ ...createForm, imageUrl: url })}
+                    placeholder={t('contests.uploadContestImagePlaceholder')}
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">{t('contests.optionalImageHint')}</p>
               </div>
-              <div className="flex justify-end gap-2">
+              <div className="flex justify-end gap-3 pt-2">
                 <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>{t('contests.cancel')}</Button>
-                <Button onClick={handleCreateContest}>{t('contests.createContest')}</Button>
+                <Button onClick={handleCreateContest} className="bg-blue-600 hover:bg-blue-700 text-white">{t('contests.createContest')}</Button>
               </div>
             </div>
           </DialogContent>
@@ -260,95 +276,103 @@ const AdminContests: React.FC = () => {
 
       <div className="grid gap-4">
         {contests.length === 0 ? (
-          <Card>
-            <CardContent className="flex items-center justify-center h-32">
-              <p className="text-muted-foreground">{t('contests.noContestsFound')}</p>
+          <Card className="border border-gray-100 shadow-google bg-white">
+            <CardContent className="flex flex-col items-center justify-center h-64 text-center p-8">
+              <div className="h-16 w-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                <Badge className="h-8 w-8 text-gray-400" variant="outline">!</Badge>
+              </div>
+              <p className="text-lg font-medium text-gray-900">{t('contests.noContestsFound')}</p>
+              <p className="text-gray-500 mt-1">{t('contests.createFirstContest')}</p>
             </CardContent>
           </Card>
         ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t('contests.contestImage')}</TableHead>
-                  <TableHead>{t('contests.title')}</TableHead>
-                  <TableHead>{t('contests.description')}</TableHead>
-                  <TableHead>{t('contests.startDate')}</TableHead>
-                  <TableHead>{t('contests.endDate')}</TableHead>
-                  <TableHead>{t('contests.pointsPerAnswer')}</TableHead>
-                  <TableHead>{t('contests.rewardPoints')}</TableHead>
-                  <TableHead className="text-center">{t('contests.status')}</TableHead>
-                  <TableHead className="text-center">{t('contests.actions')}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {contests.map((contest) => (
-                  <TableRow key={contest.id}>
-                    <TableCell>
-                      {contest.imageUrl ? (
-                        <img
-                          src={contest.imageUrl}
-                          alt={contest.title}
-                          className="w-16 h-16 object-cover rounded-md"
-                        />
-                      ) : (
-                        <div className="w-16 h-16 bg-gray-200 rounded-md flex items-center justify-center text-xs text-gray-400">
-                          {t('contests.noImage')}
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell className="font-medium">{contest.title}</TableCell>
-                    <TableCell className="max-w-xs truncate">{contest.description}</TableCell>
-                    <TableCell>{formatUTC(contest.startDate)}</TableCell>
-                    <TableCell>{formatUTC(contest.endDate)}</TableCell>
-                    <TableCell>{contest.pointsPerAnswer}</TableCell>
-                    <TableCell>{contest.rewardPoints}</TableCell>
-                    <TableCell className="text-center">{getStatusBadge(contest)}</TableCell>
-                    <TableCell className="text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        <Tooltip content={t('contests.viewDetails')}>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => navigate(`/admin/contests/${contest.id}`)}
-                            className="h-8 w-8"
-                          >
-                            <Eye className="h-5 w-5" />
-                            <span className="sr-only">{t('contests.viewDetails')}</span>
-                          </Button>
-                        </Tooltip>
-                        <Tooltip content={t('contests.edit')}>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => navigate(`/admin/contests/${contest.id}/edit`)}
-                            className="h-8 w-8"
-                          >
-                            <Edit className="h-5 w-5" />
-                            <span className="sr-only">{t('contests.edit')}</span>
-                          </Button>
-                        </Tooltip>
-                        <Tooltip content={t('contests.delete')}>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => {
-                              setContestToDelete(contest.id);
-                              setDeleteDialogOpen(true);
-                            }}
-                            className="h-8 w-8"
-                          >
-                            <Trash2 className="h-5 w-5 text-destructive" />
-                            <span className="sr-only">{t('contests.delete')}</span>
-                          </Button>
-                        </Tooltip>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <Card className="border-0 shadow-google bg-white overflow-hidden rounded-xl">
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader className="bg-gray-50">
+                    <TableRow>
+                      <TableHead className="w-[100px]">{t('contests.contestImage')}</TableHead>
+                      <TableHead className="min-w-[200px]">{t('contests.title')}</TableHead>
+                      <TableHead className="min-w-[250px] hidden md:table-cell">{t('contests.description')}</TableHead>
+                      <TableHead className="min-w-[150px]">{t('contests.startDate')}</TableHead>
+                      <TableHead className="min-w-[150px]">{t('contests.endDate')}</TableHead>
+                      <TableHead className="text-right hidden sm:table-cell">{t('contests.pointsPerAnswer')}</TableHead>
+                      <TableHead className="text-right hidden sm:table-cell">{t('contests.rewardPoints')}</TableHead>
+                      <TableHead className="text-center">{t('contests.status')}</TableHead>
+                      <TableHead className="text-center w-[120px]">{t('contests.actions')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {contests.map((contest) => (
+                      <TableRow key={contest.id} className="hover:bg-gray-50 transition-colors">
+                        <TableCell>
+                          {contest.imageUrl ? (
+                            <img
+                              src={contest.imageUrl}
+                              alt={contest.title}
+                              className="w-16 h-12 object-cover rounded-md shadow-sm"
+                            />
+                          ) : (
+                            <div className="w-16 h-12 bg-gray-100 rounded-md flex items-center justify-center text-xs text-gray-400 border border-gray-200">
+                              {t('common.noImage')}
+                            </div>
+                          )}
+                        </TableCell>
+                        <TableCell className="font-medium text-gray-900">{contest.title}</TableCell>
+                        <TableCell className="max-w-xs truncate text-gray-500 hidden md:table-cell">{contest.description}</TableCell>
+                        <TableCell className="text-sm">{formatUTC(contest.startDate)}</TableCell>
+                        <TableCell className="text-sm">{formatUTC(contest.endDate)}</TableCell>
+                        <TableCell className="text-right font-medium hidden sm:table-cell">{contest.pointsPerAnswer}</TableCell>
+                        <TableCell className="text-right font-medium hidden sm:table-cell">{contest.rewardPoints}</TableCell>
+                        <TableCell className="text-center">{getStatusBadge(contest)}</TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex items-center justify-center gap-1">
+                            <Tooltip content={t('contests.viewDetails')}>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => navigate(`/admin/contests/${contest.id}`)}
+                                className="h-8 w-8 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-full"
+                              >
+                                <Eye className="h-4 w-4" />
+                                <span className="sr-only">{t('contests.viewDetails')}</span>
+                              </Button>
+                            </Tooltip>
+                            <Tooltip content={t('contests.edit')}>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => navigate(`/admin/contests/${contest.id}/edit`)}
+                                className="h-8 w-8 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-full"
+                              >
+                                <Edit className="h-4 w-4" />
+                                <span className="sr-only">{t('contests.edit')}</span>
+                              </Button>
+                            </Tooltip>
+                            <Tooltip content={t('contests.delete')}>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => {
+                                  setContestToDelete(contest.id);
+                                  setDeleteDialogOpen(true);
+                                }}
+                                className="h-8 w-8 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-full"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                                <span className="sr-only">{t('contests.delete')}</span>
+                              </Button>
+                            </Tooltip>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
         )}
       </div>
       {/* Dialog xác nhận xoá contest */}
@@ -357,8 +381,8 @@ const AdminContests: React.FC = () => {
           <DialogHeader>
             <DialogTitle>{t('contests.delete')}</DialogTitle>
           </DialogHeader>
-          <p>{t('contests.confirmDelete')}</p>
-          <div className="flex justify-end gap-2 mt-4">
+          <p className="text-gray-600">{t('contests.confirmDelete')}</p>
+          <div className="flex justify-end gap-3 mt-4">
             <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
               {t('contests.cancel')}
             </Button>

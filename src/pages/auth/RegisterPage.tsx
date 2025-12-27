@@ -4,7 +4,6 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../hooks/use-toast';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { UserPlus, Loader2 } from 'lucide-react';
 import { useLanguage } from '../../hooks/useLanguage';
 
@@ -17,7 +16,7 @@ const RegisterPage: React.FC = () => {
   const [referralCode, setReferralCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  
+
   const { register } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -68,25 +67,25 @@ const RegisterPage: React.FC = () => {
     setError('');
 
     try {
-      const result = await register({ 
-        name, 
-        email, 
-        password, 
-        referralCode: referralCode || undefined 
+      const result = await register({
+        name,
+        email,
+        password,
+        referralCode: referralCode || undefined
       });
-      
+
       if (result.success) {
         toast({
           title: t('auth.registrationSuccessful'),
           description: result.message || t('auth.accountCreated'),
           variant: "default"
         });
-        
-        navigate('/login', { 
-          state: { 
+
+        navigate('/login', {
+          state: {
             message: result.message,
-            email: email 
-          } 
+            email: email
+          }
         });
       } else {
         setError(result.message || t('auth.registrationFailed'));
@@ -109,26 +108,27 @@ const RegisterPage: React.FC = () => {
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader className="text-center">
-        <CardTitle className="text-2xl flex items-center justify-center gap-2">
-          <UserPlus className="h-6 w-6" />
+    <div className="w-full space-y-6">
+      <div className="text-center space-y-2">
+        <h1 className="text-2xl font-medium tracking-tight flex items-center justify-center gap-2 text-gray-900">
+          <UserPlus className="h-6 w-6 text-blue-600" />
           {t('auth.signUp')}
-        </CardTitle>
-        <CardDescription>
+        </h1>
+        <p className="text-gray-500 text-sm">
           {t('auth.createAccountToStart')}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+        </p>
+      </div>
+
+      <div>
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
             <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
               {error}
             </div>
           )}
-          
-          <div className="space-y-2">
-            <label htmlFor="name" className="text-sm font-medium">
+
+          <div className="space-y-1.5">
+            <label htmlFor="name" className="text-sm font-medium text-gray-700">
               {t('auth.fullName')} *
             </label>
             <Input
@@ -138,11 +138,12 @@ const RegisterPage: React.FC = () => {
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
+              className="h-10 border-gray-200 focus-visible:ring-blue-500"
             />
           </div>
 
-          <div className="space-y-2">
-            <label htmlFor="email" className="text-sm font-medium">
+          <div className="space-y-1.5">
+            <label htmlFor="email" className="text-sm font-medium text-gray-700">
               {t('auth.email')} *
             </label>
             <Input
@@ -152,11 +153,12 @@ const RegisterPage: React.FC = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              className="h-10 border-gray-200 focus-visible:ring-blue-500"
             />
           </div>
 
-          <div className="space-y-2">
-            <label htmlFor="password" className="text-sm font-medium">
+          <div className="space-y-1.5">
+            <label htmlFor="password" className="text-sm font-medium text-gray-700">
               {t('auth.password')} *
             </label>
             <Input
@@ -166,11 +168,12 @@ const RegisterPage: React.FC = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              className="h-10 border-gray-200 focus-visible:ring-blue-500"
             />
           </div>
 
-          <div className="space-y-2">
-            <label htmlFor="confirmPassword" className="text-sm font-medium">
+          <div className="space-y-1.5">
+            <label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
               {t('auth.confirmPassword')} *
             </label>
             <Input
@@ -180,12 +183,13 @@ const RegisterPage: React.FC = () => {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
+              className="h-10 border-gray-200 focus-visible:ring-blue-500"
             />
           </div>
 
-          <div className="space-y-2">
-            <label htmlFor="referralCode" className="text-sm font-medium">
-              {t('auth.referralCode')} ({t('auth.optional')})
+          <div className="space-y-1.5">
+            <label htmlFor="referralCode" className="text-sm font-medium text-gray-700">
+              {t('auth.referralCode')} <span className="text-gray-400 font-normal">({t('auth.optional')})</span>
             </label>
             <Input
               id="referralCode"
@@ -193,10 +197,11 @@ const RegisterPage: React.FC = () => {
               placeholder={t('auth.enterReferralCode')}
               value={referralCode}
               onChange={(e) => setReferralCode(e.target.value)}
+              className="h-10 border-gray-200 focus-visible:ring-blue-500"
             />
           </div>
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button type="submit" className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-sm transition-colors mt-2" disabled={isLoading}>
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -209,15 +214,15 @@ const RegisterPage: React.FC = () => {
         </form>
 
         <div className="mt-6 text-center">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-gray-500">
             {t('auth.alreadyHaveAccount')}{' '}
-            <Link to="/login" className="text-primary hover:underline font-medium">
+            <Link to="/login" className="text-blue-600 hover:text-blue-700 font-medium hover:underline">
               {t('auth.signIn')}
             </Link>
           </p>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 
