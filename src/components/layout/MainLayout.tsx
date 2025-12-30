@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import type { ReactNode } from 'react';
 import { useAuth } from '../../context/AuthContext';
@@ -6,6 +6,7 @@ import { useLanguage } from '../../hooks/useLanguage';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '../ui/dropdown-menu';
+import { cartAPI } from '../../services/shopServices';
 import {
   Trophy,
   Home,
@@ -41,10 +42,58 @@ interface MainLayoutProps {
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
-  const { user, logout } = useAuth();
+  const { user, logout, refreshUser } = useAuth();
   const location = useLocation();
   const { t } = useLanguage();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
+
+  // Fetch cart count only when needed (no polling)
+  // Cart count will update when:
+  // - Component mounts
+  // - Route changes (user navigates, e.g., after adding to cart)
+  // - User ID changes (login/logout) - using user?.id to avoid infinite loop
+  // This avoids unnecessary API calls while keeping cart count accurate
+  useEffect(() => {
+    const fetchCartCount = async () => {
+      try {
+        const res = await cartAPI.get();
+        if (res.data.success) {
+          const count = res.data.data?.items?.length || 0;
+          setCartCount(count);
+        }
+      } catch (error) {
+        console.error('Failed to fetch cart count', error);
+        setCartCount(0);
+      }
+    };
+
+    // Only fetch when route or user ID changes (using user?.id to prevent infinite loop)
+    fetchCartCount();
+  }, [location.pathname, user?.id]);
+
+  // Refresh user points only when needed (no polling)
+  // Points will update when:
+  // - Component mounts (if user is logged in)
+  // - Route changes (user navigates, e.g., after completing actions that award points)
+  // - User ID changes (login/logout) - using user?.id to avoid infinite loop
+  // Note: Points will also be refreshed in specific pages after actions (e.g., OrderDetailPage when order completes)
+  useEffect(() => {
+    if (!user) return;
+    
+    const refreshUserPoints = async () => {
+      try {
+        await refreshUser();
+      } catch (error) {
+        console.error('Failed to refresh user points', error);
+      }
+    };
+
+    // Only refresh when route or user ID changes (using user?.id to prevent infinite loop)
+    // We use user?.id instead of user object to prevent infinite loop when refreshUser updates user
+    refreshUserPoints();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname, user?.id, refreshUser]);
 
   const guestNavigation = useMemo(() => [
     { name: t('navigation.shop'), href: '/shop', icon: Store },
@@ -183,8 +232,18 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             )}
           </div>
 
-          {/* Right: User Actions */}
+          {/* Right: Cart & User Actions */}
           <div className="flex items-center space-x-2 sm:space-x-4">
+            {/* Shopping Cart - Always visible */}
+            <Link to="/shop/cart" className="relative group p-2">
+              <ShoppingBag className="h-6 w-6 text-gray-600 group-hover:text-primary transition-colors" />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold h-5 w-5 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+                  {cartCount > 99 ? '99+' : cartCount}
+                </span>
+              )}
+            </Link>
+
             {user ? (
               <>
                 {/* Points Pill */}

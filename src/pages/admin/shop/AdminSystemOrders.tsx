@@ -44,11 +44,21 @@ export default function AdminSystemOrders() {
 
     const updateStatus = async (status: string) => {
         try {
+            // Check if payment is required for this status
+            const statusesRequiringPayment = ['processing', 'shipped', 'delivered', 'completed'];
+            if (statusesRequiringPayment.includes(status) && selectedOrder.paymentStatus !== 'paid') {
+                toast.error(t('admin.shop.orders.toast.paymentRequired', { status }));
+                return;
+            }
+            
             await adminSystemOrderAPI.updateStatus(selectedOrder.id, status);
             toast.success(t('admin.shop.orders.toast.updated'));
             setSelectedOrder((prev: any) => ({ ...prev, status }));
             fetchOrders();
-        } catch (e) { toast.error('Failed update'); }
+        } catch (e: any) {
+            const errorMessage = e?.response?.data?.message || t('admin.shop.orders.toast.updateFailed');
+            toast.error(errorMessage);
+        }
     };
 
     const updatePaymentStatus = async (status: string) => {
@@ -223,6 +233,20 @@ export default function AdminSystemOrders() {
                                 <div>
                                     <h3 className="font-semibold mb-2">{t('admin.shop.orders.details.orderStatus')}</h3>
                                     <div className="flex items-center gap-2 mb-2">
+                                        <span>{t('admin.shop.orders.details.paymentStatus')}:</span>
+                                        <Select onValueChange={updatePaymentStatus} value={selectedOrder.paymentStatus}>
+                                            <SelectTrigger className="w-[180px]">
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="pending">{t('admin.shop.orders.status.pending')}</SelectItem>
+                                                <SelectItem value="paid">{t('admin.shop.orders.status.paid')}</SelectItem>
+                                                <SelectItem value="failed">{t('admin.shop.orders.status.failed')}</SelectItem>
+                                                <SelectItem value="refunded">{t('admin.shop.orders.status.refunded')}</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="flex items-center gap-2">
                                         <span>{t('admin.shop.orders.details.orderStatus')}:</span>
                                         <Select onValueChange={updateStatus} value={selectedOrder.status}>
                                             <SelectTrigger className="w-[180px]">
@@ -237,20 +261,6 @@ export default function AdminSystemOrders() {
                                                 <SelectItem value="delivered">{t('admin.shop.orders.status.delivered')}</SelectItem>
                                                 <SelectItem value="completed">{t('admin.shop.orders.status.completed')}</SelectItem>
                                                 <SelectItem value="cancelled">{t('admin.shop.orders.status.cancelled')}</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <span>{t('admin.shop.orders.details.paymentStatus')}:</span>
-                                        <Select onValueChange={updatePaymentStatus} value={selectedOrder.paymentStatus}>
-                                            <SelectTrigger className="w-[180px]">
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="pending">{t('admin.shop.orders.status.pending')}</SelectItem>
-                                                <SelectItem value="paid">{t('admin.shop.orders.status.paid')}</SelectItem>
-                                                <SelectItem value="failed">{t('admin.shop.orders.status.failed')}</SelectItem>
-                                                <SelectItem value="refunded">{t('admin.shop.orders.status.refunded')}</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>

@@ -8,11 +8,30 @@ export const shopAPI = {
 };
 
 export const cartAPI = {
-    get: () => api.get('/cart'),
-    add: (productId: string, quantity: number, variant?: any) => api.post('/cart/add', { productId, quantity, variant }),
-    update: (itemId: string, quantity: number) => api.put(`/cart/items/${itemId}`, { quantity }),
-    remove: (itemId: string) => api.delete(`/cart/items/${itemId}`),
-    clear: () => api.delete('/cart'),
+    get: () => {
+        // Header is automatically added by api interceptor
+        return api.get('/cart');
+    },
+    add: (productId: string, quantity: number, variant?: any) => {
+        // Header is automatically added by api interceptor
+        return api.post('/cart/add', { 
+            productId, 
+            quantity, 
+            variant
+        });
+    },
+    update: (itemId: string, quantity: number) => {
+        // Header is automatically added by api interceptor
+        return api.put(`/cart/items/${itemId}`, { quantity });
+    },
+    remove: (itemId: string) => {
+        // Header is automatically added by api interceptor
+        return api.delete(`/cart/items/${itemId}`);
+    },
+    clear: () => {
+        // Header is automatically added by api interceptor
+        return api.delete('/cart/clear');
+    },
 };
 
 export const orderAPI = {

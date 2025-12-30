@@ -252,6 +252,7 @@ export type Order = {
   currency: string;
   paymentMethod: string;
   paymentMethodTitle: string;
+  paymentStatus?: 'pending' | 'waiting_confirmation' | 'paid' | 'failed' | 'refunded';
   transactionId?: string;
   lineItems: OrderLineItem[];
   billingAddress: OrderAddress;

@@ -1,5 +1,6 @@
 import axios from 'axios';
 import type { ApiResponse, LoginCredentials, RegisterData, Prediction, UserPrediction, User, Question, Feedback, Contest, UserContest } from '../types';
+import { getGuestId } from '../utils/guestCart';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://predict-backend-63un.onrender.com/api';
   
@@ -20,11 +21,30 @@ const publicApi = axios.create({
   timeout: 10000, // 10 second timeout
 });
 
-// Request interceptor to add auth token
+// Request interceptor for public API to add guest ID
+publicApi.interceptors.request.use((config) => {
+  const guestId = getGuestId();
+  if (guestId) {
+    config.headers['X-Guest-Id'] = guestId;
+  }
+  return config;
+});
+
+// Request interceptor to add auth token and guest ID
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+    // Remove guest ID header if user is logged in
+    if (config.headers['X-Guest-Id']) {
+      delete config.headers['X-Guest-Id'];
+    }
+  } else {
+    // For guest users, add guest ID
+    const guestId = getGuestId();
+    if (guestId) {
+      config.headers['X-Guest-Id'] = guestId;
+    }
   }
   return config;
 });

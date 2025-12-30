@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { shopAPI, cartAPI } from '../../services/shopServices';
+import { shopAPI } from '../../services/shopServices';
 import { Button } from '../../components/ui/button';
-import { ShoppingBag, Search, Filter, ShoppingCart, List, Star, ChevronLeft, ChevronRight, Store } from 'lucide-react';
+import { ShoppingBag, Search, Filter, List, Star, ChevronLeft, ChevronRight, Store, Coins } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../hooks/useLanguage';
 import ChatWidget from './ChatWidget';
@@ -14,7 +14,6 @@ export default function ShopPage() {
     const [products, setProducts] = useState<any[]>([]);
     const [categories, setCategories] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
-    const [cartCount, setCartCount] = useState(0);
     const [isScrolled, setIsScrolled] = useState(false);
 
     const [filters, setFilters] = useState({
@@ -30,7 +29,6 @@ export default function ShopPage() {
 
     useEffect(() => {
         fetchData();
-        fetchCartCount();
 
         const handleScroll = () => {
             setIsScrolled(window.scrollY > 50);
@@ -64,14 +62,6 @@ export default function ShopPage() {
         setLoading(false);
     };
 
-    const fetchCartCount = async () => {
-        try {
-            const res = await cartAPI.get();
-            if (res.data.success) {
-                setCartCount(res.data.data.items.length);
-            }
-        } catch (e) { }
-    };
 
     const filteredProducts = products.filter(p => {
         const matchCat = !filters.category || p.category === filters.category;
@@ -122,14 +112,7 @@ export default function ShopPage() {
                     </div>
 
                     <div className="flex items-center gap-6">
-                        <Link to="/shop/cart" className="relative group p-2">
-                            <ShoppingCart className={`h-7 w-7 transition-colors ${isScrolled ? 'text-gray-700 group-hover:text-primary' : 'text-white group-hover:text-white/80'}`} />
-                            {cartCount > 0 && (
-                                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold h-5 w-5 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
-                                    {cartCount > 99 ? '99+' : cartCount}
-                                </span>
-                            )}
-                        </Link>
+                        {/* Cart moved to MainLayout header */}
                         <div className={`hidden md:flex flex-col text-xs font-medium cursor-pointer ${isScrolled ? 'text-gray-700 hover:text-primary' : 'text-white/90 hover:text-white'}`}>
                             <span>{t('shop.welcome')}!</span>
                             <span className="font-bold text-sm truncate max-w-[100px]">{user?.name || 'Guest'}</span>
@@ -291,6 +274,13 @@ export default function ShopPage() {
                                                     <span className="text-primary font-bold">₫</span>
                                                     <span className="text-lg font-bold text-primary">{product.price.toLocaleString()}</span>
                                                 </div>
+                                                {/* Points Reward */}
+                                                {product.pointsReward > 0 && (
+                                                    <div className="flex items-center gap-1 text-[10px] text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded-full w-fit">
+                                                        <Coins className="h-3 w-3" />
+                                                        <span className="font-medium">{product.pointsReward} {t('shop.pointsReward') || 'xu'}</span>
+                                                    </div>
+                                                )}
                                                 <div className="flex items-center justify-between text-[10px] text-gray-500">
                                                     <div className="flex items-center gap-0.5">
                                                         <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />

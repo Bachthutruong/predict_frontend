@@ -543,7 +543,8 @@
           "updated": "Order status updated",
           "paymentUpdated": "Payment status updated",
           "updateFailed": "Failed update",
-          "loadFailed": "Failed to load orders"
+          "loadFailed": "Failed to load orders",
+          "paymentRequired": "Cannot change order status to '{{status}}' because payment status is not 'paid'. Please update payment status to 'paid' first."
         }
       },
       "categories": {
@@ -1967,6 +1968,7 @@
     "priceHighToLow": "Price: High to Low",
     "official": "Official",
     "sold": "sold",
+    "pointsReward": "points",
     "outOfStock": "Out of Stock",
     "noProductsFound": "No products found",
     "adjustFilters": "Try adjusting your search or filters to find what you're looking for.",

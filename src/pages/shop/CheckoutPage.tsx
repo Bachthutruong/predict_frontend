@@ -14,6 +14,7 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../hooks/useLanguage';
 import api from '../../services/api';
+import { clearGuestId } from '../../utils/guestCart';
 
 export default function CheckoutPage() {
     const navigate = useNavigate();
@@ -65,11 +66,18 @@ export default function CheckoutPage() {
     const handleApplyCoupon = async () => {
         if (!couponCode.trim()) return;
         try {
-            const subtotal = cart?.items.reduce((acc: number, item: any) => acc + (item.price * item.quantity), 0) || 0;
+            // Get selected items for coupon validation
+            const selectedItemsStr = sessionStorage.getItem('selectedCartItems');
+            const selectedItems = selectedItemsStr ? JSON.parse(selectedItemsStr) : [];
+            const itemsForCoupon = selectedItems.length > 0 
+                ? cart?.items.filter((i: any) => selectedItems.includes(i._id)) || []
+                : cart?.items || [];
+            
+            const subtotal = itemsForCoupon.reduce((acc: number, item: any) => acc + (item.price * item.quantity), 0) || 0;
             const res = await shopAPI.validateCoupon({
                 code: couponCode,
                 orderAmount: subtotal,
-                orderItems: cart.items.map((i: any) => ({ product: i.product._id, quantity: i.quantity }))
+                orderItems: itemsForCoupon.map((i: any) => ({ product: i.product._id, quantity: i.quantity }))
             });
             if (res.data.success) {
                 setCouponDiscount(res.data.data.discountAmount);
@@ -90,8 +98,21 @@ export default function CheckoutPage() {
     };
 
     const handleSubmit = async () => {
+        // Allow guest checkout - no login required
         if (!cart || cart.items.length === 0) return toast.error(t('shop.checkout.cartEmpty'));
 
+        // Get selected items from sessionStorage (set by CartPage)
+        const selectedItemsStr = sessionStorage.getItem('selectedCartItems');
+        const selectedItems = selectedItemsStr ? JSON.parse(selectedItemsStr) : [];
+        
+        // If no items selected, use all items
+        const itemsToOrder = selectedItems.length > 0 
+            ? cart.items.filter((item: any) => selectedItems.includes(item._id))
+            : cart.items;
+
+        if (itemsToOrder.length === 0) {
+            return toast.error(t('shop.checkout.noItemsSelected') || 'Please select items to checkout');
+        }
 
         // Validate
         if (!formData.name || !formData.phone) return toast.error(t('shop.checkout.validationError'));
@@ -102,6 +123,7 @@ export default function CheckoutPage() {
         }
 
         try {
+            const guestId = localStorage.getItem('guestId');
             const orderData = {
                 shippingAddress: {
                     name: formData.name,
@@ -116,12 +138,18 @@ export default function CheckoutPage() {
                 paymentMethod: formData.paymentMethod,
                 deliveryMethod: formData.deliveryMethod,
                 pickupBranchId: formData.pickupBranchId,
-                usePoints: formData.usePoints ? (user?.points || 0) : 0,
-                couponCode: isCouponApplied ? couponCode : undefined
+                usePoints: (formData.usePoints && user) ? (user?.points || 0) : 0, // Only allow points usage if logged in
+                couponCode: isCouponApplied ? couponCode : undefined,
+                guestId: guestId, // Send guestId to merge cart
+                selectedItemIds: selectedItems.length > 0 ? selectedItems : (cart?.items?.map((item: any) => item._id.toString()) || []) // If no selection, send all items (for Buy Now)
             };
 
             const res = await orderAPI.create(orderData);
             if (res.data.success) {
+                // Clear guest ID after successful order
+                if (guestId) {
+                    clearGuestId();
+                }
                 toast.success(t('shop.checkout.orderSuccess'));
                 navigate(`/shop/orders/${res.data.data.id || res.data.data._id}`); // Redirect to order detail/success
             }
@@ -132,7 +160,15 @@ export default function CheckoutPage() {
 
     if (loading) return <div>{t('common.loading')}</div>;
 
-    const subtotal = cart?.items.reduce((acc: number, item: any) => acc + (item.price * item.quantity), 0) || 0;
+    // Get selected items from sessionStorage
+    // If no selected items, show all cart items (for Buy Now flow)
+    const selectedItemsStr = sessionStorage.getItem('selectedCartItems');
+    const selectedItems = selectedItemsStr ? JSON.parse(selectedItemsStr) : [];
+    const itemsToShow = selectedItems.length > 0 
+        ? cart?.items.filter((item: any) => selectedItems.includes(item._id.toString())) || []
+        : cart?.items || []; // If no selection, show all items (for Buy Now)
+
+    const subtotal = itemsToShow.reduce((acc: number, item: any) => acc + (item.price * item.quantity), 0) || 0;
     const shippingCost = formData.deliveryMethod === 'shipping' ? 30000 : 0;
 
     const total = Math.max(0, subtotal - couponDiscount + shippingCost);
@@ -242,7 +278,7 @@ export default function CheckoutPage() {
                     <Card>
                         <CardHeader><CardTitle>{t('shop.checkout.orderSummary')}</CardTitle></CardHeader>
                         <CardContent className="space-y-4">
-                            {cart?.items.map((item: any) => (
+                            {itemsToShow.map((item: any) => (
                                 <div key={item._id} className="flex justify-between items-center text-sm border-b pb-2 last:border-0 last:pb-0">
                                     <div className="flex items-center gap-3">
                                         <div className="h-10 w-10 border rounded overflow-hidden bg-gray-50">
@@ -303,7 +339,9 @@ export default function CheckoutPage() {
                             </div>
 
                             {/* <div className="flex items-center space-x-2 pt-4">
-                                <Checkbox id="points" onCheckedChange={c => setFormData({ ...formData, usePoints: !!c })} checked={formData.usePoints} />
+                                {user && (
+                                    <Checkbox id="points" onCheckedChange={c => setFormData({ ...formData, usePoints: !!c })} checked={formData.usePoints} />
+                                )}
                                 <Label htmlFor="points" className="text-sm cursor-pointer">Use points to get discount (if applicable)</Label>
                             </div> */}
 
@@ -312,6 +350,7 @@ export default function CheckoutPage() {
                     </Card>
                 </div>
             </div>
+
         </div>
     );
 }

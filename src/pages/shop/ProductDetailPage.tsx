@@ -40,12 +40,27 @@ export default function ProductDetailPage() {
         try {
             await cartAPI.add(product.id || product._id, quantity);
             if (isBuyNow) {
-                navigate('/shop/cart');
+                // Fetch cart to get the newly added item ID
+                try {
+                    const cartRes = await cartAPI.get();
+                    if (cartRes.data.success && cartRes.data.data?.items) {
+                        const items = cartRes.data.data.items;
+                        // Get the most recently added item (should be the last one)
+                        const latestItem = items[items.length - 1];
+                        if (latestItem?._id) {
+                            // Store the item ID in sessionStorage for checkout
+                            sessionStorage.setItem('selectedCartItems', JSON.stringify([latestItem._id]));
+                        }
+                    }
+                } catch (err) {
+                    console.error('Failed to fetch cart after adding item', err);
+                }
+                navigate('/shop/checkout');
             } else {
                 toast.success('Added to cart!');
             }
-        } catch (error) {
-            toast.error('Failed to add to cart. Please login.');
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || 'Failed to add to cart');
         }
     };
 

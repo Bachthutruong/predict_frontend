@@ -309,11 +309,9 @@ function AppRoutes() {
         <Route
           path="/shop/checkout"
           element={
-            <ProtectedRoute>
-              <MainLayout>
-                <CheckoutPage />
-              </MainLayout>
-            </ProtectedRoute>
+            <MainLayout>
+              <CheckoutPage />
+            </MainLayout>
           }
         />
 
@@ -330,11 +328,9 @@ function AppRoutes() {
         <Route
           path="/shop/orders/:id"
           element={
-            <ProtectedRoute>
-              <MainLayout>
-                <OrderDetailPage />
-              </MainLayout>
-            </ProtectedRoute>
+            <MainLayout>
+              <OrderDetailPage />
+            </MainLayout>
           }
         />
 

@@ -9,11 +9,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../..
 import { ArrowLeft, CheckCircle, Truck, Package, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useLanguage } from '../../hooks/useLanguage';
+import { useAuth } from '../../context/AuthContext';
 
 export default function OrderDetailPage() {
     const { id } = useParams();
     const navigate = useNavigate();
     const { t } = useLanguage();
+    const { refreshUser } = useAuth();
     const [order, setOrder] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [proofImage, setProofImage] = useState('');
@@ -23,6 +25,13 @@ export default function OrderDetailPage() {
     useEffect(() => {
         fetchOrder();
     }, [id]);
+
+    // Refresh user points when order status changes to completed
+    useEffect(() => {
+        if (order && order.status === 'completed') {
+            refreshUser();
+        }
+    }, [order?.status, refreshUser]);
 
     const fetchOrder = async () => {
         if (!id || id === 'undefined') {

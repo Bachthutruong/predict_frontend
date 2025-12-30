@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import type { AuthUser, LoginCredentials, RegisterData } from '../types';
 import { authAPI, userAPI } from '../services/api';
@@ -100,6 +100,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         localStorage.setItem('user', JSON.stringify(userData));
         setUser(userData);
         
+        // Merge guest cart after login - guestId will be sent in order creation
+        // The backend will handle merging when creating order
+        
         return { success: true };
       } else {
         return { success: false, message: response.message || 'Login failed' };
@@ -142,7 +145,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUser(null);
   };
 
-  const refreshUser = async () => {
+  const refreshUser = useCallback(async () => {
     try {
       const response = await userAPI.getProfile();
       if (response.success && response.data) {
@@ -153,7 +156,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (error) {
       console.error('Failed to refresh user data:', error);
     }
-  };
+  }, []);
 
   const value: AuthContextType = {
     user,

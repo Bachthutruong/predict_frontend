@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { cartAPI } from '../../services/shopServices';
 import { Button } from '../../components/ui/button';
-import { Minus, Plus, Trash2, Ticket, ShoppingCart } from 'lucide-react';
+import { Minus, Plus, Trash2, ShoppingCart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Checkbox } from '../../components/ui/checkbox';
@@ -10,12 +10,20 @@ import { useLanguage } from '../../hooks/useLanguage';
 export default function CartPage() {
     const [cart, setCart] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
     const navigate = useNavigate();
     const { t } = useLanguage();
 
     useEffect(() => {
         fetchCart();
     }, []);
+
+    // Auto-select all items when cart loads
+    useEffect(() => {
+        if (cart?.items) {
+            setSelectedItems(new Set(cart.items.map((item: any) => item._id)));
+        }
+    }, [cart]);
 
     const fetchCart = async () => {
         try {
@@ -41,9 +49,45 @@ export default function CartPage() {
     const removeItem = async (itemId: string) => {
         try {
             await cartAPI.remove(itemId);
+            setSelectedItems(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(itemId);
+                return newSet;
+            });
             fetchCart();
             toast.success(t('cart.itemRemoved'));
         } catch (e) { toast.error(t('cart.removeFailed')); }
+    };
+
+    const toggleItemSelection = (itemId: string) => {
+        setSelectedItems(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(itemId)) {
+                newSet.delete(itemId);
+            } else {
+                newSet.add(itemId);
+            }
+            return newSet;
+        });
+    };
+
+    const toggleSelectAll = () => {
+        if (!cart?.items) return;
+        if (selectedItems.size === cart.items.length) {
+            setSelectedItems(new Set());
+        } else {
+            setSelectedItems(new Set(cart.items.map((item: any) => item._id)));
+        }
+    };
+
+    const handleCheckout = () => {
+        if (selectedItems.size === 0) {
+            toast.error(t('cart.selectItemsToCheckout') || 'Please select items to checkout');
+            return;
+        }
+        // Store selected items in sessionStorage to use in checkout
+        sessionStorage.setItem('selectedCartItems', JSON.stringify(Array.from(selectedItems)));
+        navigate('/shop/checkout');
     };
 
     if (!loading && (!cart || cart.items.length === 0)) {
@@ -60,7 +104,12 @@ export default function CartPage() {
         )
     }
 
-    const subtotal = cart?.items.reduce((acc: number, item: any) => acc + (item.price * item.quantity), 0) || 0;
+    // Calculate subtotal only for selected items
+    const subtotal = cart?.items
+        .filter((item: any) => selectedItems.has(item._id))
+        .reduce((acc: number, item: any) => acc + (item.price * item.quantity), 0) || 0;
+    
+    const selectedCount = selectedItems.size;
 
     return (
         <div className="bg-[#f5f5f5] min-h-screen pb-20 font-sans">
@@ -79,7 +128,10 @@ export default function CartPage() {
                 {/* Header */}
                 <div className="hidden md:grid grid-cols-12 gap-4 bg-white p-4 rounded shadow-sm text-sm text-gray-500 mb-4 items-center font-medium">
                     <div className="col-span-6 flex items-center gap-4">
-                        <Checkbox />
+                        <Checkbox 
+                            checked={cart?.items && selectedItems.size === cart.items.length && cart.items.length > 0}
+                            onCheckedChange={toggleSelectAll}
+                        />
                         <span>{t('cart.product')}</span>
                     </div>
                     <div className="col-span-2 text-center">{t('cart.unitPrice')}</div>
@@ -91,7 +143,10 @@ export default function CartPage() {
                 {/* Shop Items */}
                 <div className="bg-white rounded shadow-sm mb-4">
                     <div className="p-4 border-b flex items-center gap-2">
-                        <Checkbox />
+                        <Checkbox 
+                            checked={cart?.items && selectedItems.size === cart.items.length && cart.items.length > 0}
+                            onCheckedChange={toggleSelectAll}
+                        />
                         <span className="font-bold text-gray-700">{t('cart.officialStore')}</span>
                         <span className="bg-primary text-white text-[10px] px-1 rounded ml-2">{t('shop.official')}</span>
                     </div>
@@ -99,7 +154,10 @@ export default function CartPage() {
                     {cart?.items.map((item: any) => (
                         <div key={item._id} className="grid grid-cols-1 md:grid-cols-12 gap-4 p-4 items-center border-b last:border-0 bg-white hover:bg-gray-50 transition-colors">
                             <div className="col-span-6 flex items-center gap-4">
-                                <Checkbox />
+                                <Checkbox 
+                                    checked={selectedItems.has(item._id)}
+                                    onCheckedChange={() => toggleItemSelection(item._id)}
+                                />
                                 <div className="flex gap-4">
                                     {item.product.images[0] && <img src={item.product.images[0]} className="w-20 h-20 object-cover border rounded-sm" />}
                                     <div className="flex flex-col justify-center">
@@ -138,28 +196,34 @@ export default function CartPage() {
                 {/* Sticky Footer */}
                 <div className="sticky bottom-0 bg-white p-4 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] flex flex-col md:flex-row justify-between items-center z-20 border-t gap-4 md:gap-0">
                     <div className="flex items-center gap-6 w-full md:w-auto justify-between md:justify-start">
-                        <div className="flex items-center gap-2">
+                        {/* <div className="flex items-center gap-2">
                             <Checkbox id="selectAll" />
                             <label htmlFor="selectAll" className="text-sm cursor-pointer select-none">{t('cart.selectAll')} ({cart?.items.length})</label>
-                        </div>
-                        <div className="flex gap-4">
+                        </div> */}
+                        {/* <div className="flex gap-4">
                             <button className="text-sm hover:text-primary hidden md:block">{t('cart.delete')}</button>
                             <button className="text-sm hover:text-primary flex items-center gap-1 text-primary">
                                 <Ticket className="h-4 w-4" /> {t('cart.saveUpTo')} ₫10k
                             </button>
-                        </div>
+                        </div> */}
                     </div>
 
                     <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
                         <div className="text-right flex-1 md:flex-none">
                             <div className="flex items-center justify-end gap-2 text-base">
-                                <span className="hidden md:inline">{t('cart.total')} ({cart?.items.length} {t('cart.items')}):</span>
+                                <span className="hidden md:inline">{t('cart.total')} ({selectedCount} {t('cart.items')}):</span>
                                 <span className="md:hidden">{t('cart.total')}:</span>
                                 <span className="text-primary text-xl font-bold">₫{subtotal.toLocaleString()}</span>
                             </div>
                             <div className="text-xs text-green-600">{t('cart.youSaved')} ₫25.000</div>
                         </div>
-                        <Button className="bg-primary hover:bg-primary/90 h-10 px-8 rounded-sm text-base text-white shadow-md" onClick={() => navigate('/shop/checkout')}>{t('cart.checkOut')}</Button>
+                        <Button 
+                            className="bg-primary hover:bg-primary/90 h-10 px-8 rounded-sm text-base text-white shadow-md disabled:opacity-50 disabled:cursor-not-allowed" 
+                            onClick={handleCheckout}
+                            disabled={selectedCount === 0}
+                        >
+                            {t('cart.checkOut')} {selectedCount > 0 && `(${selectedCount})`}
+                        </Button>
                     </div>
                 </div>
             </div>

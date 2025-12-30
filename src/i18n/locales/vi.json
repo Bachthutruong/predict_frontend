@@ -543,7 +543,8 @@
           "updated": "Đã cập nhật trạng thái đơn hàng",
           "paymentUpdated": "Đã cập nhật trạng thái thanh toán",
           "updateFailed": "Cập nhật thất bại",
-          "loadFailed": "Tải đơn hàng thất bại"
+          "loadFailed": "Tải đơn hàng thất bại",
+          "paymentRequired": "Không thể thay đổi trạng thái đơn hàng sang '{{status}}' vì trạng thái thanh toán chưa là 'paid'. Vui lòng cập nhật trạng thái thanh toán thành 'paid' trước."
         }
       },
       "categories": {
@@ -1972,6 +1973,7 @@
     "priceHighToLow": "Giá: Cao đến Thấp",
     "official": "Chính hãng",
     "sold": "đã bán",
+    "pointsReward": "xu",
     "outOfStock": "Hết hàng",
     "noProductsFound": "Không tìm thấy sản phẩm",
     "adjustFilters": "Thử điều chỉnh tìm kiếm hoặc bộ lọc để tìm những gì bạn đang tìm kiếm.",

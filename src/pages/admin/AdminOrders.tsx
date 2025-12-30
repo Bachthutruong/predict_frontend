@@ -146,6 +146,24 @@ const AdminOrders: React.FC = () => {
   const handleStatusUpdate = async (orderId: string, newStatus: string) => {
     setIsUpdating(true);
     try {
+      // Check if payment is required for this status
+      const statusesRequiringPayment = ['processing', 'shipped', 'delivered', 'completed'];
+      const currentOrder = selectedOrder?.id === orderId ? selectedOrder : orders.find(o => o.id === orderId);
+      
+      if (currentOrder && statusesRequiringPayment.includes(newStatus)) {
+        // Check payment status if it exists, otherwise allow (for backward compatibility)
+        const paymentStatus = currentOrder.paymentStatus;
+        if (paymentStatus && paymentStatus !== 'paid') {
+          toast({
+            title: t('common.error'),
+            description: `Cannot change order status to '${newStatus}' because payment status is '${paymentStatus}'. Please update payment status to 'paid' first.`,
+            variant: "destructive"
+          });
+          setIsUpdating(false);
+          return;
+        }
+      }
+      
       await apiService.patch(`/admin/orders/${orderId}/status`, { status: newStatus });
       toast({
         title: t('common.success'),
