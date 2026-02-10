@@ -9,6 +9,7 @@ import { ImageUpload } from '../../components/ui/image-upload';
 import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
+import { formatDate } from '../../lib/utils';
 
 export default function ReviewSection({ productId }: { productId: string }) {
     const { user } = useAuth();
@@ -223,7 +224,7 @@ export default function ReviewSection({ productId }: { productId: string }) {
                                                     </div>
                                                     <span className="text-xs text-gray-400">•</span>
                                                     <span className="text-xs text-gray-400">
-                                                        {new Date(review.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
+                                                        {formatDate(review.createdAt)}
                                                     </span>
                                                 </div>
                                             </div>
@@ -260,7 +261,7 @@ export default function ReviewSection({ productId }: { productId: string }) {
                                                         <div className="flex justify-between items-center mb-1">
                                                             <span className="text-sm font-bold text-gray-900">Seller Response</span>
                                                             <span className="text-xs text-gray-500">
-                                                                {review.repliedAt ? new Date(review.repliedAt).toLocaleDateString() : 'Recently'}
+                                                                {review.repliedAt ? formatDate(review.repliedAt) : 'Recently'}
                                                             </span>
                                                         </div>
                                                         <p className="text-sm text-gray-700 leading-relaxed">

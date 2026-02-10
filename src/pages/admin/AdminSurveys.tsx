@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import apiService from '@/services/api';
 import type { Survey } from '@/types';
 import { useLanguage } from '@/hooks/useLanguage';
+import { formatDate } from '@/lib/utils';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -164,7 +165,7 @@ const AdminSurveys: React.FC = () => {
                         <TableCell className="px-6 py-4 text-gray-500">
                           <div className="flex items-center gap-2 text-sm">
                             <Calendar className="h-3 w-3 text-gray-400" />
-                            {survey.endDate ? new Date(survey.endDate).toLocaleDateString() : <span className="text-gray-400 italic">{t('adminSurveys.noLimit')}</span>}
+                            {survey.endDate ? formatDate(survey.endDate) : <span className="text-gray-400 italic">{t('adminSurveys.noLimit')}</span>}
                           </div>
                         </TableCell>
                         <TableCell className="px-6 py-4 text-right">
@@ -232,7 +233,7 @@ const AdminSurveys: React.FC = () => {
                         </div>
                         <div className="col-span-2 flex items-center gap-2 text-gray-600">
                           <Calendar className="h-4 w-4 text-gray-400" />
-                          <span>{survey.endDate ? new Date(survey.endDate).toLocaleDateString() : t('adminSurveys.noLimit')}</span>
+                          <span>{survey.endDate ? formatDate(survey.endDate) : t('adminSurveys.noLimit')}</span>
                         </div>
                       </div>
                     </CardContent>

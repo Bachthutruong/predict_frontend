@@ -7,7 +7,7 @@ import { contestAPI } from '../../services/api';
 import type { Contest } from '../../types';
 import { useToast } from '../../hooks/use-toast';
 // import { useAuth } from '../../context/AuthContext';
-import { format } from 'date-fns';
+import { formatDateTime } from '../../lib/utils';
 import { useLanguage } from '../../hooks/useLanguage';
 import { Trophy } from 'lucide-react';
 
@@ -148,13 +148,13 @@ const ContestsPage: React.FC = () => {
                       <div>
                         <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{t('contests.startDate')}</span>
                         <p className="text-gray-700 mt-1 font-medium">
-                          {format(new Date(contest.startDate), 'MMM dd, HH:mm')}
+                          {formatDateTime(contest.startDate)}
                         </p>
                       </div>
                       <div>
                         <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{t('contests.endDate')}</span>
                         <p className="text-gray-700 mt-1 font-medium">
-                          {format(new Date(contest.endDate), 'MMM dd, HH:mm')}
+                          {formatDateTime(contest.endDate)}
                         </p>
                       </div>
                       <div>

@@ -22,6 +22,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../hooks/use-toast';
 import type { Prediction, UserPrediction, User } from '../../types';
 import { AuthModal } from '../../components/auth/AuthModal';
+import { formatDate } from '../../lib/utils';
 
 interface PredictionDetailsResponse {
   prediction: Prediction;
@@ -253,7 +254,7 @@ const PredictionDetailPage: React.FC = () => {
               <div className="flex flex-wrap gap-4 text-sm border-t border-gray-50 pt-6">
                 <div className="flex items-center gap-2 text-gray-600 bg-gray-50 px-3 py-1.5 rounded-full">
                   <span className="text-gray-400">Created:</span>
-                  <span className="font-medium">{new Date(prediction.createdAt).toLocaleDateString()}</span>
+                  <span className="font-medium">{formatDate(prediction.createdAt)}</span>
                 </div>
               </div>
             </CardContent>
@@ -279,7 +280,7 @@ const PredictionDetailPage: React.FC = () => {
                     </p>
                   ) : (
                     <p className="text-gray-500 text-sm">
-                      Submitted on {new Date(currentUserPrediction.createdAt).toLocaleDateString()}
+                      Submitted on {formatDate(currentUserPrediction.createdAt)}
                     </p>
                   )}
                 </div>
@@ -315,7 +316,7 @@ const PredictionDetailPage: React.FC = () => {
                         </p>
                       </div>
                       <div className="text-xs text-gray-400 whitespace-nowrap">
-                        {new Date(userPrediction.createdAt).toLocaleDateString()}
+                        {formatDate(userPrediction.createdAt)}
                       </div>
                     </div>
                   ))}

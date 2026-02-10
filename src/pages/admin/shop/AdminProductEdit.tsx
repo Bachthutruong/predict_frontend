@@ -13,6 +13,23 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { ArrowLeft, Save, Plus, Trash2, Package, DollarSign, Layers, Gift } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useLanguage } from '../../../hooks/useLanguage';
+import { formatDate } from '../../../lib/utils';
+
+/** Format number with comma thousands (e.g. 20000000 -> "20,000,000") for display only. */
+function formatPriceDisplay(value: number | string | undefined): string {
+    if (value === '' || value === undefined || value === null) return '';
+    const n = typeof value === 'string' ? parseInt(value.replace(/\D/g, ''), 10) : value;
+    if (Number.isNaN(n)) return '';
+    return n.toLocaleString('en-US');
+}
+
+/** Parse displayed price string back to number (strip commas). Value sent to API remains numeric. */
+function parsePriceInput(input: string): number | '' {
+    const digits = input.replace(/\D/g, '');
+    if (digits === '') return '';
+    const n = parseInt(digits, 10);
+    return Number.isNaN(n) ? '' : n;
+}
 
 export default function AdminProductEdit() {
     const { t } = useLanguage();
@@ -83,12 +100,17 @@ export default function AdminProductEdit() {
                 toast.error(t('admin.shop.productEdit.toast.selectCategory'));
                 return;
             }
+            const payload = {
+                ...product,
+                price: Number(product.price) || 0,
+                originalPrice: Number(product.originalPrice) || 0
+            };
             if (isNew) {
-                const res = await adminProductAPI.create(product);
+                const res = await adminProductAPI.create(payload);
                 toast.success(t('admin.shop.productEdit.toast.created'));
                 navigate(`/admin/shop/products/${res.data.data.id}/edit`);
             } else {
-                await adminProductAPI.update(id!, product);
+                await adminProductAPI.update(id!, payload);
                 toast.success(t('admin.shop.productEdit.toast.updated'));
             }
         } catch (e: any) {
@@ -220,11 +242,15 @@ export default function AdminProductEdit() {
                                     <div className="relative">
                                         <span className="absolute left-3 top-2.5 text-gray-500">₫</span>
                                         <Input
-                                            type="number"
+                                            type="text"
+                                            inputMode="numeric"
                                             className="pl-8"
-                                            value={product.price}
-                                            onChange={e => setProduct({ ...product, price: e.target.value === '' ? '' : Number(e.target.value) })}
-                                            min={0}
+                                            placeholder="0"
+                                            value={formatPriceDisplay(product.price)}
+                                            onChange={e => {
+                                                const parsed = parsePriceInput(e.target.value);
+                                                setProduct({ ...product, price: parsed });
+                                            }}
                                         />
                                     </div>
                                 </div>
@@ -233,11 +259,15 @@ export default function AdminProductEdit() {
                                     <div className="relative">
                                         <span className="absolute left-3 top-2.5 text-gray-500">₫</span>
                                         <Input
-                                            type="number"
+                                            type="text"
+                                            inputMode="numeric"
                                             className="pl-8"
-                                            value={product.originalPrice}
-                                            onChange={e => setProduct({ ...product, originalPrice: e.target.value === '' ? '' : Number(e.target.value) })}
-                                            min={0}
+                                            placeholder="0"
+                                            value={formatPriceDisplay(product.originalPrice)}
+                                            onChange={e => {
+                                                const parsed = parsePriceInput(e.target.value);
+                                                setProduct({ ...product, originalPrice: parsed });
+                                            }}
                                         />
                                     </div>
                                     <p className="text-[10px] text-gray-500">{t('admin.shop.productEdit.originalPriceDesc')}</p>
@@ -300,7 +330,7 @@ export default function AdminProductEdit() {
                                         <TableBody>
                                             {inventoryHistory.map((h: any) => (
                                                 <TableRow key={h.id}>
-                                                    <TableCell className="py-2 text-xs">{new Date(h.createdAt).toLocaleDateString()}</TableCell>
+                                                    <TableCell className="py-2 text-xs">{formatDate(h.createdAt)}</TableCell>
                                                     <TableCell className="py-2 text-xs capitalize">{h.type}</TableCell>
                                                     <TableCell className={`py-2 text-xs font-medium ${h.changeAmount > 0 ? 'text-green-600' : 'text-red-600'}`}>
                                                         {h.changeAmount > 0 ? '+' : ''}{h.changeAmount}

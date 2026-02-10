@@ -1,4 +1,5 @@
 import api from './api';
+import { getGuestId } from '../utils/guestCart';
 
 export const shopAPI = {
     getProducts: (params: any) => api.get('/shop/products', { params }),
@@ -7,30 +8,34 @@ export const shopAPI = {
     validateCoupon: (data: { code: string; orderAmount: number; orderItems: any[] }) => api.post('/shop/coupons/validate', data),
 };
 
+// Guest: gửi guestId qua query/body để backend luôn nhận (phòng header X-Guest-Id bị strip)
 export const cartAPI = {
     get: () => {
-        // Header is automatically added by api interceptor
-        return api.get('/cart');
+        const token = localStorage.getItem('token');
+        const params = token ? undefined : { guestId: getGuestId() };
+        return api.get('/cart', params ? { params } : {});
     },
     add: (productId: string, quantity: number, variant?: any) => {
-        // Header is automatically added by api interceptor
-        return api.post('/cart/add', { 
-            productId, 
-            quantity, 
-            variant
-        });
+        const token = localStorage.getItem('token');
+        const body: Record<string, unknown> = { productId, quantity, variant };
+        if (!token) body.guestId = getGuestId();
+        return api.post('/cart/add', body);
     },
     update: (itemId: string, quantity: number) => {
-        // Header is automatically added by api interceptor
-        return api.put(`/cart/items/${itemId}`, { quantity });
+        const token = localStorage.getItem('token');
+        const body: Record<string, unknown> = { quantity };
+        if (!token) (body as Record<string, unknown>).guestId = getGuestId();
+        return api.put(`/cart/items/${itemId}`, body);
     },
     remove: (itemId: string) => {
-        // Header is automatically added by api interceptor
-        return api.delete(`/cart/items/${itemId}`);
+        const token = localStorage.getItem('token');
+        const config = token ? {} : { data: { guestId: getGuestId() } };
+        return api.delete(`/cart/items/${itemId}`, config);
     },
     clear: () => {
-        // Header is automatically added by api interceptor
-        return api.delete('/cart/clear');
+        const token = localStorage.getItem('token');
+        const body = token ? undefined : { guestId: getGuestId() };
+        return api.delete('/cart/clear', body ? { data: body } : {});
     },
 };
 

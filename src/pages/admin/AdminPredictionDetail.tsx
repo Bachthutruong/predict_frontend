@@ -18,6 +18,7 @@ import { useToast } from '../../hooks/use-toast';
 import { useLanguage } from '../../hooks/useLanguage';
 import apiService from '../../services/api';
 import type { Prediction, UserPrediction, User } from '../../types';
+import { formatDate, formatDateTime } from '../../lib/utils';
 
 interface PredictionWithDetails extends Prediction {
   userPredictions: (UserPrediction & { user: User })[];
@@ -340,7 +341,7 @@ const AdminPredictionDetail: React.FC = () => {
               <div>
                 <p className="text-sm font-medium text-gray-500 mb-1">{t('admin.createdAt')}</p>
                 <div className="flex items-center gap-2 text-gray-900">
-                  <span className="font-medium">{new Date(prediction.createdAt).toLocaleDateString()}</span>
+                  <span className="font-medium">{formatDate(prediction.createdAt)}</span>
                 </div>
               </div>
               {prediction.answer && (
@@ -380,7 +381,7 @@ const AdminPredictionDetail: React.FC = () => {
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-gray-900 truncate">{userPrediction.user?.name}</p>
                       <p className="text-xs text-gray-500">
-                        {new Date(userPrediction.createdAt).toLocaleDateString()}
+                        {formatDate(userPrediction.createdAt)}
                       </p>
                     </div>
                   </div>
@@ -436,7 +437,7 @@ const AdminPredictionDetail: React.FC = () => {
                   <div className="flex-1 min-w-0">
                     <h3 className="font-medium text-gray-900 truncate">{userPrediction.user?.name}</h3>
                     <p className="text-sm text-gray-500">
-                      {new Date(userPrediction.createdAt).toLocaleString()}
+                      {formatDateTime(userPrediction.createdAt)}
                     </p>
                   </div>
                 </div>

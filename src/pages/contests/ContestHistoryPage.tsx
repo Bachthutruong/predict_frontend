@@ -6,7 +6,7 @@ import { Badge } from '../../components/ui/badge';
 import { contestAPI } from '../../services/api';
 import type { UserContest } from '../../types';
 import { useToast } from '../../hooks/use-toast';
-import { format } from 'date-fns';
+import { formatDateTime } from '../../lib/utils';
 import { useLanguage } from '../../hooks/useLanguage';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/ui/table';
 
@@ -101,7 +101,7 @@ const ContestHistoryPage: React.FC = () => {
                 {submissions.map((submission) => (
                   <TableRow key={submission.id}>
                     <TableCell className="font-medium">{(submission as any).contest?.title || t('contests.contest')}</TableCell>
-                    <TableCell>{format(new Date(submission.createdAt), 'MMM dd, yyyy HH:mm')}</TableCell>
+                    <TableCell>{formatDateTime(submission.createdAt)}</TableCell>
                     <TableCell className="font-mono">{submission.answer}</TableCell>
                     <TableCell>
                       {submission.isCorrect ? (

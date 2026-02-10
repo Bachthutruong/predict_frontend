@@ -11,7 +11,7 @@ import type { Contest, UserContest } from '../../types';
 import { useToast } from '../../hooks/use-toast';
 import { useAuth } from '../../context/AuthContext';
 import { AuthModal } from '../../components/auth/AuthModal';
-import { format } from 'date-fns';
+import { formatDateTime } from '../../lib/utils';
 import { useLanguage } from '../../hooks/useLanguage';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/ui/table';
 
@@ -291,10 +291,10 @@ const ContestDetailPage: React.FC = () => {
               <div>
                 <h3 className="font-medium mb-2">{t('contests.timeline')}</h3>
                 <p className="text-sm">
-                  <span className="font-medium">{t('contests.startDate')}:</span> {format(new Date(contest.startDate), 'MMM dd, yyyy HH:mm')}
+                  <span className="font-medium">{t('contests.startDate')}:</span> {formatDateTime(contest.startDate)}
                 </p>
                 <p className="text-sm">
-                  <span className="font-medium">{t('contests.endDate')}:</span> {format(new Date(contest.endDate), 'MMM dd, yyyy HH:mm')}
+                  <span className="font-medium">{t('contests.endDate')}:</span> {formatDateTime(contest.endDate)}
                 </p>
               </div>
               <div>
@@ -365,7 +365,7 @@ const ContestDetailPage: React.FC = () => {
                     {paginatedSubmissions.map((submission) => (
                       <TableRow key={submission.id}>
                         <TableCell className="font-mono">{submission.answer}</TableCell>
-                        <TableCell>{format(new Date(submission.createdAt), 'MMM dd, yyyy HH:mm')}</TableCell>
+                        <TableCell>{formatDateTime(submission.createdAt)}</TableCell>
                         <TableCell>{
                           (submission.user && typeof submission.user === 'object' && submission.user !== null && 'name' in submission.user)
                             ? (submission.user as any).name

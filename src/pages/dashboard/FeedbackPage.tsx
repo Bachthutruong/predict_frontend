@@ -25,6 +25,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { AuthModal } from '@/components/auth/AuthModal';
 import { useLanguage } from '../../hooks/useLanguage';
+import { formatDate } from '../../lib/utils';
 
 const FeedbackPage: React.FC = () => {
   const [feedback, setFeedback] = useState('');
@@ -223,7 +224,7 @@ const FeedbackPage: React.FC = () => {
                         </Badge>
                       </TableCell>
                       <TableCell className="font-medium text-center">{fb.awardedPoints || 0}</TableCell>
-                      <TableCell className="text-right">{new Date(fb.createdAt).toLocaleDateString()}</TableCell>
+                      <TableCell className="text-right">{formatDate(fb.createdAt)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

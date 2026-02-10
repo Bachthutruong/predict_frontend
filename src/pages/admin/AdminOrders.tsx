@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Alert, AlertDescription } from '../../components/ui/alert';
 // import { Separator } from '../../components/ui/separator';
 
+import { formatDateTime } from '../../lib/utils';
 import {
   Package,
   Search,
@@ -217,15 +218,7 @@ const AdminOrders: React.FC = () => {
     return `${currency} ${parseFloat(amount).toLocaleString()}`;
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('zh-TW', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
+  const formatDate = (dateString: string) => formatDateTime(dateString);
 
   // Reset to page 1 when filters change
   useEffect(() => {

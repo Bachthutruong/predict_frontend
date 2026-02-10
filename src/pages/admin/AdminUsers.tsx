@@ -24,6 +24,7 @@ import { useToast } from '../../hooks/use-toast';
 import { useLanguage } from '../../hooks/useLanguage';
 import apiService from '../../services/api';
 import type { User, PointTransaction } from '../../types';
+import { formatDate } from '../../lib/utils';
 
 interface UserWithStats extends User {
   recentActivity: string;
@@ -94,7 +95,7 @@ const AdminUsers: React.FC = () => {
 
   const getRecentActivityText = (user: User): string => {
     if ((user as any).lastLoginAt) {
-      return `${t('admin.lastLogin')} ${new Date((user as any).lastLoginAt).toLocaleDateString()}`;
+      return `${t('admin.lastLogin')} ${formatDate((user as any).lastLoginAt)}`;
     }
     return t('admin.noRecentActivity');
   };
@@ -491,7 +492,7 @@ const AdminUsers: React.FC = () => {
                     </div>
                     <span className="font-medium text-gray-700">{t('admin.memberSince')}</span>
                   </div>
-                  <p className="text-lg font-semibold text-gray-900 mt-1">{new Date(selectedUser.createdAt).toLocaleDateString()}</p>
+                  <p className="text-lg font-semibold text-gray-900 mt-1">{formatDate(selectedUser.createdAt)}</p>
                 </div>
               </div>
 
@@ -544,7 +545,7 @@ const AdminUsers: React.FC = () => {
                         <div>
                           <p className="text-sm font-medium text-gray-900">{transaction.reason}</p>
                           <p className="text-xs text-gray-500">
-                            {new Date(transaction.createdAt).toLocaleDateString()}
+                            {formatDate(transaction.createdAt)}
                           </p>
                         </div>
                         <span className={`font-bold ${transaction.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>

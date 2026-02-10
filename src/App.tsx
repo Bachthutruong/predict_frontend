@@ -84,10 +84,13 @@ import AdminChat from './pages/admin/shop/AdminChat';
 
 // Email verification
 import EmailVerificationPage from './pages/auth/EmailVerificationPage';
+import ChangePasswordPage from './pages/auth/ChangePasswordPage';
+import { useLocation } from 'react-router-dom';
 
 // Protected Route component
 function ProtectedRoute({ children, roles }: { children: React.ReactNode; roles?: string[] }) {
   const { user, isLoading } = useAuth();
+  const location = useLocation();
 
   if (isLoading) {
     return (
@@ -99,6 +102,11 @@ function ProtectedRoute({ children, roles }: { children: React.ReactNode; roles?
 
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  // First-time login (guest account): must change password before accessing other pages
+  if (user.isAutoCreated && location.pathname !== '/change-password') {
+    return <Navigate to="/change-password" replace />;
   }
 
   if (roles && !roles.includes(user.role)) {
@@ -728,6 +736,16 @@ function AppRoutes() {
         <Route
           path="/verify-email"
           element={<EmailVerificationPage />}
+        />
+
+        {/* Change password (required for auto-created guest accounts on first login) */}
+        <Route
+          path="/change-password"
+          element={
+            <ProtectedRoute>
+              <ChangePasswordPage />
+            </ProtectedRoute>
+          }
         />
 
         {/* Default redirect */}

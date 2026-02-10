@@ -22,6 +22,7 @@ import { useToast } from '../../hooks/use-toast';
 import { useLanguage } from '../../hooks/useLanguage';
 import apiService from '../../services/api';
 import type { Prediction } from '../../types';
+import { formatDate } from '../../lib/utils';
 
 interface PredictionWithStats extends Prediction {
   totalParticipants: number;
@@ -347,7 +348,7 @@ const AdminPredictions: React.FC = () => {
                         </span>
                         <span className="flex items-center gap-1.5 text-gray-400">
                           <Calendar className="h-3 w-3" />
-                          {new Date(prediction.createdAt).toLocaleDateString()}
+                          {formatDate(prediction.createdAt)}
                         </span>
                       </div>
                     </div>

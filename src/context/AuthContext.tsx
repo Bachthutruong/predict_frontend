@@ -17,7 +17,7 @@ const publicApi = axios.create({
 interface AuthContextType {
   user: AuthUser | null;
   isLoading: boolean;
-  login: (credentials: LoginCredentials) => Promise<{ success: boolean; message?: string }>;
+  login: (credentials: LoginCredentials) => Promise<{ success: boolean; message?: string; mustChangePassword?: boolean }>;
   register: (data: RegisterData) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
   refreshUser: () => Promise<void>;
@@ -88,8 +88,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (response.success && response.data) {
         const { token, user: userData } = response.data;
         
-        // Check if email is verified
-        if (!userData.isEmailVerified) {
+        // Allow login without email verification for auto-created (guest order) accounts
+        if (!userData.isAutoCreated && !userData.isEmailVerified) {
           return { 
             success: false, 
             message: 'Please verify your email address before logging in. Check your email for the verification link.' 
@@ -100,10 +100,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         localStorage.setItem('user', JSON.stringify(userData));
         setUser(userData);
         
-        // Merge guest cart after login - guestId will be sent in order creation
-        // The backend will handle merging when creating order
-        
-        return { success: true };
+        return { success: true, mustChangePassword: !!userData.mustChangePassword };
       } else {
         return { success: false, message: response.message || 'Login failed' };
       }

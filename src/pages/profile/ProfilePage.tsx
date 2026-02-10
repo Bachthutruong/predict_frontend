@@ -41,6 +41,7 @@ import { useToast } from '../../hooks/use-toast';
 import type { PointTransaction, Referral } from '../../types';
 import apiService from '../../services/api';
 import { useLanguage } from '../../hooks/useLanguage';
+import { formatDate } from '../../lib/utils';
 
 const ProfilePage: React.FC = () => {
   const { user, refreshUser } = useAuth();
@@ -284,7 +285,7 @@ const ProfilePage: React.FC = () => {
           <CardContent>
             <div className="text-2xl font-medium text-green-600">{t('profile.active')}</div>
             <p className="text-xs text-gray-500 mt-1">
-              {t('profile.memberSince')} {new Date(user.createdAt).toLocaleDateString()}
+              {t('profile.memberSince')} {formatDate(user.createdAt)}
             </p>
           </CardContent>
         </Card>
@@ -340,7 +341,7 @@ const ProfilePage: React.FC = () => {
                               {transaction.amount > 0 ? '+' : ''}{transaction.amount}
                             </TableCell>
                             <TableCell className="text-right text-muted-foreground">
-                              {new Date(transaction.createdAt).toLocaleDateString()}
+                              {formatDate(transaction.createdAt)}
                             </TableCell>
                           </TableRow>
                         ))}
@@ -585,7 +586,7 @@ const ProfilePage: React.FC = () => {
                           <div className="flex-1 min-w-0">
                             <p className="text-sm sm:text-base font-medium truncate">{referral.referredUser?.name || t('profile.user')}</p>
                             <p className="text-xs sm:text-sm text-muted-foreground">
-                              {t('profile.joined')} {new Date(referral.createdAt).toLocaleDateString()}
+                              {t('profile.joined')} {formatDate(referral.createdAt)}
                             </p>
                           </div>
                         </div>

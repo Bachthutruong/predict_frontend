@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '../../hooks/use-toast';
 import { useLanguage } from '../../hooks/useLanguage';
+import { formatDate } from '../../lib/utils';
 import apiService from '../../services/api';
 import { ImageUpload } from '../../components/ui/image-upload';
 import type { User } from '../../types';
@@ -477,7 +478,7 @@ const AdminStaff: React.FC = () => {
                           )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {new Date(member.createdAt).toLocaleDateString()}
+                          {formatDate(member.createdAt)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right">
                           <div className="flex items-center justify-end gap-2">

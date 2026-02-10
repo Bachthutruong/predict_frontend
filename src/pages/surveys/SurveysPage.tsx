@@ -9,6 +9,7 @@ import apiService, { publicApiService } from '@/services/api';
 import type { Survey } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { AuthModal } from '@/components/auth/AuthModal';
+import { formatDate } from '@/lib/utils';
 
 const SurveysPage: React.FC = () => {
     const { toast } = useToast();
@@ -117,7 +118,7 @@ const SurveysPage: React.FC = () => {
                                 {survey.endDate && (
                                     <div className="flex items-center text-sm text-gray-500">
                                         <Calendar className="h-4 w-4 mr-2" />
-                                        <span>{t('surveys.endsOn')}: {new Date(survey.endDate).toLocaleDateString()}</span>
+                                        <span>{t('surveys.endsOn')}: {formatDate(survey.endDate)}</span>
                                     </div>
                                 )}
                             </CardContent>

@@ -99,7 +99,7 @@ export function ImageUpload({
     } catch (error: any) {
       console.error('Upload error:', error);
       const errorMessage = error.message || 'Upload failed';
-      alert(`Upload failed: ${errorMessage}\n\nPlease check:\n1. Internet connection\n2. Cloudinary credentials are configured\n3. You are logged in`);
+      alert(`Upload failed: ${errorMessage}\n\nPlease check:\n1. Internet connection\n2. Cloudinary credentials are configured`);
     } finally {
       setIsUploading(false);
       // Reset input value so we can upload same file again
@@ -132,11 +132,11 @@ export function ImageUpload({
       
       {value ? (
         <div className="relative">
-          <div className="relative h-40 w-full rounded-lg overflow-hidden border border-dashed border-gray-300">
+          <div className="relative min-h-40 w-full rounded-lg overflow-hidden border border-dashed border-gray-300 bg-gray-50 flex items-center justify-center">
             <img
               src={value}
               alt="Upload preview"
-              className="w-full h-full object-cover"
+              className="w-full max-h-[320px] object-contain"
             />
           </div>
           <Button

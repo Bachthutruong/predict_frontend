@@ -18,6 +18,7 @@ import { useToast } from '../../hooks/use-toast';
 import { useLanguage } from '../../hooks/useLanguage';
 import apiService from '../../services/api';
 import { Link } from 'react-router-dom';
+import { formatDate } from '../../lib/utils';
 
 interface DashboardStats {
   totalUsers: number;
@@ -201,7 +202,7 @@ const AdminDashboard: React.FC = () => {
                         <h4 className="font-semibold text-gray-800">{prediction.title}</h4>
                         <p className="text-sm text-gray-500 flex items-center gap-2">
                           <span className="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
-                          {t('admin.created')} {new Date(prediction.createdAt).toLocaleDateString()}
+                          {t('admin.created')} {formatDate(prediction.createdAt)}
                         </p>
                       </div>
                     </div>

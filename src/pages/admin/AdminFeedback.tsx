@@ -22,6 +22,7 @@ import {
 import { useToast } from '../../hooks/use-toast';
 import { useLanguage } from '../../hooks/useLanguage';
 import apiService from '../../services/api';
+import { formatDate } from '../../lib/utils';
 // import type { Feedback } from '../../types';
 
 interface FeedbackWithUser {
@@ -254,7 +255,7 @@ const AdminFeedback: React.FC = () => {
                     <span className="text-gray-300 hidden sm:inline">•</span>
                     <span className="text-xs text-gray-500 flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
-                      {new Date(item.createdAt).toLocaleDateString()}
+                      {formatDate(item.createdAt)}
                     </span>
                     <Badge variant={getStatusVariant(item.status)} className={`capitalize ${item.status === 'approved' ? 'bg-green-100 text-green-700 hover:bg-green-200' : item.status === 'rejected' ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-orange-100 text-orange-700 hover:bg-orange-200'}`}>
                       {t(`admin.${item.status}`)}

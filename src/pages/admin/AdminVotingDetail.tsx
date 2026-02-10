@@ -17,6 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { formatDateTime } from '../../lib/utils';
 import {
   Dialog,
   DialogContent,
@@ -232,15 +233,7 @@ const AdminVotingDetail: React.FC = () => {
     setEntryFormData({ title: '', description: '', imageUrl: '' });
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
+  const formatDate = (dateString: string) => formatDateTime(dateString);
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {

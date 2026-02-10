@@ -37,8 +37,10 @@ export default function ProductDetailPage() {
     };
 
     const handleAddToCart = async (isBuyNow = false) => {
+        const qty = Math.max(1, Math.min(product.stock, quantity));
+        if (qty !== quantity) setQuantity(qty);
         try {
-            await cartAPI.add(product.id || product._id, quantity);
+            await cartAPI.add(product.id || product._id, qty);
             if (isBuyNow) {
                 // Fetch cart to get the newly added item ID
                 try {
@@ -193,9 +195,26 @@ export default function ProductDetailPage() {
                                                 <Minus className="h-3 w-3" />
                                             </button>
                                             <input
-                                                className="w-16 text-center outline-none bg-transparent font-medium"
+                                                type="number"
+                                                min={1}
+                                                max={product.stock}
+                                                className="w-16 text-center outline-none bg-transparent font-medium [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                                 value={quantity}
-                                                readOnly
+                                                onChange={(e) => {
+                                                    const v = e.target.value;
+                                                    if (v === '') {
+                                                        setQuantity(1);
+                                                        return;
+                                                    }
+                                                    const n = parseInt(v, 10);
+                                                    if (!isNaN(n)) {
+                                                        setQuantity(Math.max(1, Math.min(product.stock, n)));
+                                                    }
+                                                }}
+                                                onBlur={() => {
+                                                    if (quantity < 1) setQuantity(1);
+                                                    if (product.stock != null && quantity > product.stock) setQuantity(product.stock);
+                                                }}
                                             />
                                             <button
                                                 onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}

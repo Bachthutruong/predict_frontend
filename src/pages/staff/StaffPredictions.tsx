@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/ta
 import { Trophy, Clock, CheckCircle, Coins, Shield } from 'lucide-react';
 import apiService from '../../services/api';
 import type { Prediction } from '../../types';
+import { formatDate } from '../../lib/utils';
 
 const StaffPredictions: React.FC = () => {
   const [predictions, setPredictions] = useState<Prediction[]>([]);
@@ -330,7 +331,7 @@ const StaffPredictionsTable: React.FC<StaffPredictionsTableProps> = ({ predictio
                   </div>
                 </td>
                 <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
-                  <span className="text-xs sm:text-sm">{new Date(prediction.createdAt).toLocaleDateString()}</span>
+                  <span className="text-xs sm:text-sm">{formatDate(prediction.createdAt)}</span>
                 </td>
                 <td className="px-2 sm:px-4 py-3">
                   <div className="space-y-1">

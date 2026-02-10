@@ -14,7 +14,7 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../hooks/useLanguage';
 import api from '../../services/api';
-import { clearGuestId } from '../../utils/guestCart';
+import { clearGuestId, getGuestId } from '../../utils/guestCart';
 
 export default function CheckoutPage() {
     const navigate = useNavigate();
@@ -27,6 +27,7 @@ export default function CheckoutPage() {
 
     const [formData, setFormData] = useState({
         name: user?.name || '',
+        email: user?.email || '',
         phone: user?.phone || '',
         street: user?.address?.street || '',
         city: user?.address?.city || '',
@@ -114,8 +115,11 @@ export default function CheckoutPage() {
             return toast.error(t('shop.checkout.noItemsSelected') || 'Please select items to checkout');
         }
 
-        // Validate
+        // Validate (guest must provide email for account creation)
         if (!formData.name || !formData.phone) return toast.error(t('shop.checkout.validationError'));
+        const emailTrim = (formData.email || '').trim();
+        if (!emailTrim) return toast.error(t('shop.checkout.emailRequired') || 'Vui lòng nhập email');
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrim)) return toast.error(t('shop.checkout.emailInvalid') || 'Email không hợp lệ');
         if (formData.deliveryMethod === 'shipping') {
             if (!formData.street || !formData.city) return toast.error(t('shop.checkout.addressRequired'));
         } else {
@@ -123,10 +127,11 @@ export default function CheckoutPage() {
         }
 
         try {
-            const guestId = localStorage.getItem('guestId');
+            const guestId = user ? undefined : getGuestId(); // Luôn lấy/tạo guestId cho guest để backend nhận
             const orderData = {
                 shippingAddress: {
                     name: formData.name,
+                    email: emailTrim,
                     phone: formData.phone,
                     street: formData.street,
                     city: formData.city,
@@ -140,7 +145,7 @@ export default function CheckoutPage() {
                 pickupBranchId: formData.pickupBranchId,
                 usePoints: (formData.usePoints && user) ? (user?.points || 0) : 0, // Only allow points usage if logged in
                 couponCode: isCouponApplied ? couponCode : undefined,
-                guestId: guestId, // Send guestId to merge cart
+                guestId: guestId ?? undefined, // Send guestId for guest checkout (required by backend)
                 selectedItemIds: selectedItems.length > 0 ? selectedItems : (cart?.items?.map((item: any) => item._id.toString()) || []) // If no selection, send all items (for Buy Now)
             };
 
@@ -189,6 +194,11 @@ export default function CheckoutPage() {
                                     <Label>{t('shop.checkout.phone')}</Label>
                                     <Input value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
                                 </div>
+                            </div>
+                            <div className="space-y-2">
+                                <Label>{t('shop.checkout.email')}</Label>
+                                <Input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} placeholder="email@example.com" />
+                                {!user && <p className="text-xs text-gray-500">{t('shop.checkout.emailGuestHint')}</p>}
                             </div>
 
                             <div className="space-y-2">

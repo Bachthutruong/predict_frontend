@@ -21,6 +21,7 @@ import { useToast } from '../../hooks/use-toast';
 import { useLanguage } from '../../hooks/useLanguage';
 import apiService from '../../services/api';
 import type { User } from '../../types';
+import { formatDate } from '../../lib/utils';
 
 interface UserWithStats extends User {
   recentActivity: string;
@@ -89,7 +90,7 @@ const StaffUsers: React.FC = () => {
 
   const getRecentActivityText = (user: User): string => {
     if ((user as any).lastLoginAt) {
-      return `${t('staff.lastLogin')} ${new Date((user as any).lastLoginAt).toLocaleDateString()}`;
+      return `${t('staff.lastLogin')} ${formatDate((user as any).lastLoginAt)}`;
     }
     return t('staff.noRecentActivity');
   };
@@ -374,7 +375,7 @@ const StaffUsers: React.FC = () => {
                     <Calendar className="h-5 w-5 text-blue-500" />
                     <span className="font-medium">{t('staff.memberSince')}</span>
                   </div>
-                  <p className="text-sm">{new Date(selectedUser.createdAt).toLocaleDateString()}</p>
+                  <p className="text-sm">{formatDate(selectedUser.createdAt)}</p>
                 </div>
               </div>
 
@@ -400,7 +401,7 @@ const StaffUsers: React.FC = () => {
                     <div>
                       <span className="text-gray-500">{t('staff.lastCheckIn')}:</span>
                       <span className="ml-2">
-                        {selectedUser.lastCheckInDate ? new Date(selectedUser.lastCheckInDate).toLocaleDateString() : t('staff.never')}
+                        {selectedUser.lastCheckInDate ? formatDate(selectedUser.lastCheckInDate) : t('staff.never')}
                       </span>
                     </div>
                   </div>

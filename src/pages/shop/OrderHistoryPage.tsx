@@ -5,9 +5,9 @@ import { Card, CardContent, CardHeader, CardFooter } from '../../components/ui/c
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Loader2, Package, ShoppingBag, Calendar, CreditCard, ChevronRight } from 'lucide-react';
-import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import { useLanguage } from '../../hooks/useLanguage';
+import { formatDate } from '../../lib/utils';
 
 interface OrderItem {
     product: {
@@ -126,7 +126,7 @@ export default function OrderHistoryPage() {
                                             <p className="text-gray-500 mb-1">{t('shop.orders.orderPlaced')}</p>
                                             <p className="font-medium text-gray-900 flex items-center gap-1.5">
                                                 <Calendar className="h-3.5 w-3.5 text-gray-400" />
-                                                {format(new Date(order.createdAt), 'dd MMM yyyy')}
+                                                {formatDate(order.createdAt)}
                                             </p>
                                         </div>
                                         <div>

@@ -20,6 +20,7 @@ import {
 import { useToast } from '../../hooks/use-toast';
 import { useLanguage } from '../../hooks/useLanguage';
 import apiService from '../../services/api';
+import { formatDate } from '../../lib/utils';
 import type { User, Referral } from '../../types';
 
 interface ReferralsData {
@@ -352,7 +353,7 @@ const ReferralsPage: React.FC = () => {
                       <div>
                         <p className="font-medium">{referral.referredUser.name}</p>
                         <p className="text-sm text-gray-500">
-                          {t('referrals.joined')} {new Date(referral.referredUser.createdAt).toLocaleDateString()}
+                          {t('referrals.joined')} {formatDate(referral.referredUser.createdAt)}
                         </p>
                       </div>
                     </div>

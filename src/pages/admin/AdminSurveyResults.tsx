@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { ArrowLeft, Download, Users, CheckCircle, AlertTriangle, FileText, Activity, PieChart } from 'lucide-react';
 import apiService from '../../services/api';
 import { useLanguage } from '../../hooks/useLanguage';
+import { formatDateTime } from '../../lib/utils';
 
 interface SurveyResult {
   id: string;
@@ -316,7 +317,7 @@ const AdminSurveyResults: React.FC = () => {
                         <TableCell className="px-6 py-4 font-medium text-gray-900">{result.user.name}</TableCell>
                         <TableCell className="px-6 py-4 text-gray-600">{result.user.email}</TableCell>
                         <TableCell className="px-6 py-4 text-gray-500">
-                          {new Date(result.submittedAt).toLocaleDateString()} {new Date(result.submittedAt).toLocaleTimeString()}
+                          {formatDateTime(result.submittedAt)}
                         </TableCell>
                         <TableCell className="px-6 py-4">
                           <Badge variant={result.isFraudulent ? 'destructive' : 'default'} className={`font-normal ${result.isFraudulent ? 'bg-red-50 text-red-600 border-red-100 hover:bg-red-100' : 'bg-green-50 text-green-600 border-green-100 hover:bg-green-100'}`}>

@@ -22,6 +22,7 @@ import { Label } from '../../../components/ui/label';
 import { Search, Plus, Edit2, Trash2, Power, Tag, Calendar, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
+import { formatDate as formatDateDisplay } from '../../../lib/utils';
 import { useLanguage } from '../../../hooks/useLanguage';
 
 interface Coupon {
@@ -278,13 +279,13 @@ export default function AdminCoupons() {
                                             {coupon.validFrom && (
                                                 <div className="flex items-center">
                                                     <Calendar className="h-3 w-3 mr-1" />
-                                                    {format(new Date(coupon.validFrom), 'dd/MM/yyyy')}
+                                                    {formatDateDisplay(coupon.validFrom)}
                                                 </div>
                                             )}
                                             {coupon.validUntil && (
                                                 <div className="flex items-center text-red-500">
                                                     <AlertCircle className="h-3 w-3 mr-1" />
-                                                    {format(new Date(coupon.validUntil), 'dd/MM/yyyy')}
+                                                    {formatDateDisplay(coupon.validUntil)}
                                                 </div>
                                             )}
                                         </div>

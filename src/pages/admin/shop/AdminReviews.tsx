@@ -16,6 +16,7 @@ import {
 } from "../../../components/ui/dialog";
 import { Textarea } from '../../../components/ui/textarea';
 import { useLanguage } from '../../../hooks/useLanguage';
+import { formatDate } from '../../../lib/utils';
 
 export default function AdminReviews() {
     const { t } = useLanguage();
@@ -227,7 +228,7 @@ export default function AdminReviews() {
                                         </div>
                                     </TableCell>
                                     <TableCell className="text-xs text-gray-500">
-                                        {new Date(review.createdAt).toLocaleDateString()}
+                                        {formatDate(review.createdAt)}
                                     </TableCell>
                                     <TableCell>
                                         {review.reply ? <Badge variant="default" className="bg-green-500">{t('admin.shop.reviews.table.replied')}</Badge> : <Badge variant="outline">{t('admin.shop.reviews.table.pending')}</Badge>}

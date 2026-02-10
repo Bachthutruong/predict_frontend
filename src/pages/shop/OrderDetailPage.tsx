@@ -10,6 +10,7 @@ import { ArrowLeft, CheckCircle, Truck, Package, AlertCircle } from 'lucide-reac
 import toast from 'react-hot-toast';
 import { useLanguage } from '../../hooks/useLanguage';
 import { useAuth } from '../../context/AuthContext';
+import { formatDate, formatDateTime } from '../../lib/utils';
 
 export default function OrderDetailPage() {
     const { id } = useParams();
@@ -80,7 +81,7 @@ export default function OrderDetailPage() {
             <div className="flex justify-between items-center bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
                 <div>
                     <h1 className="text-2xl font-bold">{t('shop.orderDetail.title', { number: order.orderNumber })}</h1>
-                    <p className="text-gray-500 text-sm">{t('shop.orderDetail.placedOn')} {new Date(order.createdAt).toLocaleDateString()}</p>
+                    <p className="text-gray-500 text-sm">{t('shop.orderDetail.placedOn')} {formatDate(order.createdAt)}</p>
                 </div>
                 <div className="text-right">
                     <Badge className="text-lg px-4 py-1 mb-1">{order.status.replace('_', ' ')}</Badge>
@@ -119,20 +120,31 @@ export default function OrderDetailPage() {
                             <span className="font-semibold block mb-1">{t('shop.orderDetail.method')}:</span>
                             <span className="capitalize flex items-center gap-2">
                                 {order.deliveryMethod === 'pickup' ? <Package className="h-4 w-4" /> : <Truck className="h-4 w-4" />}
-                                {order.deliveryMethod}
+                                {order.deliveryMethod === 'pickup' ? t('shop.orderDetail.pickupAtStore') : t('shop.orderDetail.homeDelivery')}
                             </span>
                         </div>
                         {order.deliveryMethod === 'shipping' ? (
-                            <div className="text-sm text-gray-600">
-                                <p className="font-semibold text-gray-900 mb-1">{t('shop.orderDetail.shippingAddress')}:</p>
-                                <p>{order.shippingAddress.name} - {order.shippingAddress.phone}</p>
-                                <p>{order.shippingAddress.street}, {order.shippingAddress.city}</p>
+                            <div className="text-sm text-gray-600 space-y-1">
+                                <p className="font-semibold text-gray-900 mb-2">{t('shop.orderDetail.shippingAddress')}:</p>
+                                <p><span className="font-medium text-gray-700">{t('shop.orderDetail.recipientName')}:</span> {order.shippingAddress?.name ?? '—'}</p>
+                                <p><span className="font-medium text-gray-700">{t('shop.orderDetail.recipientPhone')}:</span> {order.shippingAddress?.phone ?? '—'}</p>
+                                <p><span className="font-medium text-gray-700">{t('shop.orderDetail.addressLine')}:</span> {[order.shippingAddress?.street, order.shippingAddress?.city, order.shippingAddress?.state, order.shippingAddress?.postalCode].filter(Boolean).join(', ') || '—'}</p>
+                                {order.shippingAddress?.country && <p><span className="font-medium text-gray-700">{t('shop.orderDetail.country')}:</span> {order.shippingAddress.country}</p>}
+                                {order.shippingAddress?.notes && <p className="pt-1 text-gray-500"><span className="font-medium text-gray-700">{t('shop.orderDetail.noteLabel')}:</span> {order.shippingAddress.notes}</p>}
                             </div>
                         ) : (
-                            <div className="text-sm text-gray-600">
+                            <div className="text-sm text-gray-600 space-y-2">
                                 <p className="font-semibold text-gray-900 mb-1">{t('shop.orderDetail.pickupAtStore')}:</p>
-                                {/* Branch details would be populated ideally */}
-                                <p>{t('shop.orderDetail.pickupDesc')}</p>
+                                {order.pickupBranch && typeof order.pickupBranch === 'object' ? (
+                                    <>
+                                        <p><span className="font-medium text-gray-700">{t('shop.orderDetail.branchName')}:</span> {order.pickupBranch.name}</p>
+                                        <p><span className="font-medium text-gray-700">{t('shop.orderDetail.addressLine')}:</span> {order.pickupBranch.address}</p>
+                                        {order.pickupBranch.phone && <p><span className="font-medium text-gray-700">{t('shop.orderDetail.recipientPhone')}:</span> {order.pickupBranch.phone}</p>}
+                                        <p className="pt-2 text-gray-500">{t('shop.orderDetail.pickupDesc')}</p>
+                                    </>
+                                ) : (
+                                    <p>{t('shop.orderDetail.pickupDesc')}</p>
+                                )}
                             </div>
                         )}
                     </CardContent>
@@ -156,16 +168,27 @@ export default function OrderDetailPage() {
                     </CardHeader>
                     <CardContent className="space-y-6 pt-6">
                         {order.paymentConfirmation?.submittedAt && !isEditingProof ? (
-                            <div className="flex flex-col items-center justify-center py-8 bg-white rounded-xl border-2 border-dashed border-green-200">
-                                <CheckCircle className="h-12 w-12 text-green-500 mb-3" />
-                                <p className="font-bold text-green-700 text-lg">{t('shop.orderDetail.proofSubmitted')}</p>
-                                <p className="text-sm text-gray-500 mb-4">{t('shop.orderDetail.waitingApproval')}</p>
-                                <div className="text-xs text-gray-400">
-                                    {t('shop.orderDetail.submittedAt')} {new Date(order.paymentConfirmation.submittedAt).toLocaleString()}
-                                </div>
-                                <div className="flex gap-2 mt-4">
-                                    <Button variant="outline" size="sm" className="opacity-75 cursor-default">{t('shop.orderDetail.statusWaiting')}</Button>
-                                    <Button size="sm" onClick={() => setIsEditingProof(true)} variant="secondary">{t('shop.orderDetail.reUpload')}</Button>
+                            <div className="flex flex-col py-6 px-4 bg-white rounded-xl border-2 border-dashed border-green-200">
+                                {order.paymentConfirmation?.image ? (
+                                    <div className="mb-4 rounded-lg overflow-hidden border border-gray-200 bg-gray-50 flex justify-center">
+                                        <img
+                                            src={order.paymentConfirmation.image}
+                                            alt="Minh chứng thanh toán"
+                                            className="w-full max-h-[420px] object-contain"
+                                        />
+                                    </div>
+                                ) : null}
+                                <div className="flex flex-col items-center justify-center">
+                                    <CheckCircle className="h-12 w-12 text-green-500 mb-3" />
+                                    <p className="font-bold text-green-700 text-lg">{t('shop.orderDetail.proofSubmitted')}</p>
+                                    <p className="text-sm text-gray-500 mb-4">{t('shop.orderDetail.waitingApproval')}</p>
+                                    <div className="text-xs text-gray-400">
+                                        {t('shop.orderDetail.submittedAt')} {formatDateTime(order.paymentConfirmation.submittedAt)}
+                                    </div>
+                                    <div className="flex gap-2 mt-4">
+                                        <Button variant="outline" size="sm" className="opacity-75 cursor-default">{t('shop.orderDetail.statusWaiting')}</Button>
+                                        <Button size="sm" onClick={() => setIsEditingProof(true)} variant="secondary">{t('shop.orderDetail.reUpload')}</Button>
+                                    </div>
                                 </div>
                             </div>
                         ) : (
@@ -180,7 +203,7 @@ export default function OrderDetailPage() {
                                         value={proofImage}
                                         onChange={setProofImage}
                                         placeholder={t('shop.orderDetail.uploadProof')}
-                                        className="h-48"
+                                        className="min-h-[200px]"
                                     />
                                 </div>
                                 <div className="space-y-2">

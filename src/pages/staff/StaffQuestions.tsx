@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import apiService from '../../services/api';
 import { ImageUpload } from '../../components/ui/image-upload';
+import { formatDate } from '../../lib/utils';
 import type { Question } from '../../types';
 
 interface QuestionFormData {
@@ -726,7 +727,7 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
                   </Badge>
                 </td>
                 <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
-                  <span className="text-xs sm:text-sm">{new Date(question.createdAt).toLocaleDateString()}</span>
+                  <span className="text-xs sm:text-sm">{formatDate(question.createdAt)}</span>
                 </td>
                 <td className="px-2 sm:px-4 py-3 whitespace-nowrap">
                   <div className="flex gap-1">

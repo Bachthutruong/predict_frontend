@@ -15,6 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { formatDateTime } from '../../lib/utils';
 import {
   Select,
   SelectContent,
@@ -138,15 +139,7 @@ const AdminVotingCampaigns: React.FC = () => {
     return t(`voting.status.${status}`) || status;
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
+  const formatDate = (dateString: string) => formatDateTime(dateString);
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);

@@ -14,6 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { formatDateTime } from '../../lib/utils';
 import {
   Select,
   SelectContent,
@@ -95,7 +96,7 @@ const AdminVotingStatistics: React.FC = () => {
         Description: entry.description,
         'Vote Count': entry.voteCount || 0,
         Percentage: statistics?.totalVotes > 0 ? ((entry.voteCount || 0) / statistics.totalVotes * 100).toFixed(1) + '%' : '0.0%',
-        'Created At': new Date(entry.createdAt).toLocaleDateString()
+        'Created At': formatDateTime(entry.createdAt)
       }));
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
@@ -107,15 +108,7 @@ const AdminVotingStatistics: React.FC = () => {
     });
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
+  const formatDate = (dateString: string) => formatDateTime(dateString);
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {

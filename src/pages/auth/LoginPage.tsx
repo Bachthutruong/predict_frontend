@@ -58,10 +58,10 @@ const LoginPage: React.FC = () => {
       if (result.success) {
         toast({
           title: t('messages.welcomeBack'),
-          description: t('messages.loginSuccess'),
+          description: result.mustChangePassword ? (t('auth.mustChangePassword') || 'Vui lòng đổi mật khẩu lần đầu.') : t('messages.loginSuccess'),
           variant: "default"
         });
-        navigate('/dashboard');
+        navigate(result.mustChangePassword ? '/change-password' : '/dashboard');
       } else {
         setError(result.message || t('auth.invalidCredentials'));
         toast({

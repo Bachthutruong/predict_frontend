@@ -18,6 +18,7 @@ import { useToast } from '../../hooks/use-toast';
 import { useLanguage } from '../../hooks/useLanguage';
 import apiService from '../../services/api';
 import { Link } from 'react-router-dom';
+import { formatDate } from '../../lib/utils';
 
 interface StaffStats {
   totalUsers: number;
@@ -147,7 +148,7 @@ const StaffDashboard: React.FC = () => {
                     <div>
                       <h4 className="font-medium">{activity.description}</h4>
                       <p className="text-sm text-gray-500">
-                        {t('staff.by')} {activity.userName} • {new Date(activity.createdAt).toLocaleDateString()}
+                        {t('staff.by')} {activity.userName} • {formatDate(activity.createdAt)}
                       </p>
                     </div>
                   </div>

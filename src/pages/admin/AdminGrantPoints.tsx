@@ -21,6 +21,7 @@ import { useToast } from '../../hooks/use-toast';
 import { useLanguage } from '../../hooks/useLanguage';
 import apiService from '../../services/api';
 import type { User as UserType, PointTransaction } from '../../types';
+import { formatDate } from '../../lib/utils';
 
 interface GrantPointsData {
   userId: string;
@@ -416,7 +417,7 @@ const AdminGrantPoints: React.FC = () => {
                               </span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">
-                              {new Date(user.createdAt).toLocaleDateString()}
+                              {formatDate(user.createdAt)}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-right">
                               <Button
@@ -509,7 +510,7 @@ const AdminGrantPoints: React.FC = () => {
                               </span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">
-                              {new Date(transaction.createdAt).toLocaleDateString()}
+                              {formatDate(transaction.createdAt)}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">
                               {transaction.admin?.name || <span className="text-gray-400">{t('admin.unknownAdmin')}</span>}

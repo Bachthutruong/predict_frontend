@@ -8,6 +8,8 @@ export type User = {
   checkInStreak?: number;
   lastCheckIn?: string;
   isEmailVerified: boolean;
+  isAutoCreated?: boolean;
+  mustChangePassword?: boolean;
   referralCode?: string;
   referredBy?: string;
   consecutiveCheckIns: number;
@@ -180,6 +182,7 @@ export type AuthUser = {
   
   // Account Status
   isAutoCreated?: boolean;
+  mustChangePassword?: boolean;
   lastLogin?: string;
   totalOrderValue?: number;
 };

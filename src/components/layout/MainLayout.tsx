@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, Navigate } from 'react-router-dom';
 import type { ReactNode } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../hooks/useLanguage';
@@ -47,6 +47,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { t } = useLanguage();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
+
+  // Guest accounts (auto-created from order) must change password before using the app
+  if (user?.isAutoCreated && location.pathname !== '/change-password') {
+    return <Navigate to="/change-password" replace />;
+  }
 
   // Fetch cart count only when needed (no polling)
   // Cart count will update when:
