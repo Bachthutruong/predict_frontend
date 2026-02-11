@@ -6,11 +6,10 @@ import { useToast } from '../../hooks/use-toast';
 import { useLanguage } from '../../hooks/useLanguage';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
 import { Badge } from '../../components/ui/badge';
+import { Tabs, TabsList, TabsTrigger } from '../../components/ui/tabs';
 import {
   Vote,
-  Search,
   Calendar,
   Users,
   Trophy,
@@ -29,7 +28,7 @@ const VotingCampaignsPage: React.FC = () => {
 
   const [campaigns, setCampaigns] = useState<VotingCampaign[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState('active'); // 'active' or 'finished'
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
@@ -37,26 +36,26 @@ const VotingCampaignsPage: React.FC = () => {
 
   useEffect(() => {
     fetchCampaigns();
-  }, [currentPage, searchTerm]);
+  }, [currentPage, activeTab]);
 
   const fetchCampaigns = async () => {
     try {
       setIsLoading(true);
+      
+      // Map tab value to API status parameter
+      // 'active' tab -> status 'active' (or we could use 'upcoming' too if desired, but 'active' implies currently voting)
+      // 'finished' tab -> status 'finished' (which we mapped to 'closed' and 'completed' in backend)
+      const statusParam = activeTab === 'finished' ? 'finished' : 'active';
+
       const response = await votingAPI.getCampaigns({
         page: currentPage,
         limit,
-        search: searchTerm || undefined
+        status: statusParam
       });
 
       if (response.success && response.data) {
-        // API trả về data trực tiếp trong response.data array
-        const allCampaigns = Array.isArray(response.data) ? response.data : [];
-
-        // Chỉ lấy những campaign có status "active"
-        const activeCampaigns = allCampaigns.filter(campaign => campaign.status === 'active');
-
-        setCampaigns(activeCampaigns);
-        // Pagination nằm ở cùng cấp với data trong response
+        const fetchedCampaigns = Array.isArray(response.data) ? response.data : [];
+        setCampaigns(fetchedCampaigns);
         setTotalPages((response as any).pagination?.pages || 1);
       }
     } catch (error) {
@@ -104,9 +103,9 @@ const VotingCampaignsPage: React.FC = () => {
     }
   };
 
-  const handleSearch = (value: string) => {
-    setSearchTerm(value);
-    setCurrentPage(1); // Reset to first page when searching
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    setCurrentPage(1); // Reset to first page when changing tabs
   };
 
   return (
@@ -115,28 +114,29 @@ const VotingCampaignsPage: React.FC = () => {
       <div className="text-center space-y-4 max-w-2xl mx-auto">
         <h1 className="text-3xl sm:text-4xl font-regular tracking-tight text-gray-900 flex items-center justify-center gap-3">
           <Vote className="h-10 w-10 text-blue-600" />
-          {t('voting.activeCampaigns')}
+          {t('voting.votingCampaignsTitle')}
         </h1>
         <p className="text-gray-500 text-lg">
-          {t('voting.participateDescription')}
-          {!user && ` ${t('voting.signInToVote')}`}
+          {activeTab === 'active' 
+            ? t('voting.participateDescription')
+            : t('voting.finishedDescription')}
+          {!user && (activeTab === 'active') && ` ${t('voting.signInToVote')}`}
         </p>
       </div>
 
-      {/* Search */}
-      <Card className="max-w-md mx-auto border-none shadow-google bg-white overflow-hidden">
-        <CardContent className="p-2">
-          <div className="relative flex items-center">
-            <Search className="absolute left-3 h-5 w-5 text-gray-400" />
-            <Input
-              placeholder={t('voting.searchPlaceholder')}
-              value={searchTerm}
-              onChange={(e) => handleSearch(e.target.value)}
-              className="pl-10 border-none shadow-none focus-visible:ring-0 text-base"
-            />
-          </div>
-        </CardContent>
-      </Card>
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="max-w-md mx-auto">
+        <TabsList className="grid w-full grid-cols-2 h-12 p-1 bg-gray-100 rounded-xl">
+          <TabsTrigger value="active" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-600 font-medium transition-all">
+            <Clock className="h-4 w-4 mr-2" />
+            {t('voting.ongoingTab')}
+          </TabsTrigger>
+          <TabsTrigger value="finished" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-600 font-medium transition-all">
+            <Trophy className="h-4 w-4 mr-2" />
+            {t('voting.finishedTab')}
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
 
       {/* Campaigns Grid */}
       {isLoading ? (
@@ -146,11 +146,11 @@ const VotingCampaignsPage: React.FC = () => {
       ) : campaigns.length === 0 ? (
         <div className="text-center py-16">
           <Vote className="h-16 w-16 mx-auto text-gray-300 mb-4" />
-          <h3 className="text-xl font-medium text-gray-900 mb-2">{t('voting.noActiveCampaigns')}</h3>
+          <h3 className="text-xl font-medium text-gray-900 mb-2">
+            {activeTab === 'active' ? t('voting.noActiveCampaigns') : t('voting.noFinishedCampaigns')}
+          </h3>
           <p className="text-gray-500">
-            {searchTerm
-              ? t('voting.noMatchingCampaigns')
-              : t('voting.noCampaignsAvailable')}
+            {activeTab === 'active' ? t('voting.noCampaignsAvailable') : t('voting.noFinishedCampaignsDesc')}
           </p>
         </div>
       ) : (
@@ -310,4 +310,4 @@ const VotingCampaignsPage: React.FC = () => {
   );
 };
 
-export default VotingCampaignsPage; 
+export default VotingCampaignsPage;

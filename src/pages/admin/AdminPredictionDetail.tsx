@@ -33,7 +33,7 @@ const AdminPredictionDetail: React.FC = () => {
   const { toast } = useToast();
   const { t } = useLanguage();
 
-  const [prediction, setPrediction] = useState<PredictionWithDetails | null>(null);
+  const [prediction, setPrediction] = useState<(PredictionWithDetails & { isAnswerPublished?: boolean; correctAnswer?: string }) | null>(null);
   const [userPredictions, setUserPredictions] = useState<(UserPrediction & { user: User })[]>([]);
   const [stats, setStats] = useState({
     totalPredictions: 0,
@@ -42,7 +42,6 @@ const AdminPredictionDetail: React.FC = () => {
   });
   const [isLoading, setIsLoading] = useState(true);
 
-  // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [showAllParticipants, setShowAllParticipants] = useState(false);

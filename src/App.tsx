@@ -25,10 +25,7 @@ import SurveyDetailPage from './pages/surveys/SurveyDetailPage';
 import VotingCampaignsPage from './pages/voting/VotingCampaignsPage';
 import VotingDetailPage from './pages/voting/VotingDetailPage';
 
-// Contest pages
-import ContestsPage from './pages/contests/ContestsPage';
-import ContestDetailPage from './pages/contests/ContestDetailPage';
-import ContestHistoryPage from './pages/contests/ContestHistoryPage';
+// Contests merged into Predictions - redirect /contests to /predictions
 
 // Admin pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -60,10 +57,7 @@ import AdminBranches from './pages/admin/shop/AdminBranches';
 import AdminPaymentSettings from './pages/admin/shop/AdminPaymentSettings';
 import AdminSystemOrders from './pages/admin/shop/AdminSystemOrders';
 
-// Admin Contest pages
-import AdminContests from './pages/admin/AdminContests';
-import AdminContestDetail from './pages/admin/AdminContestDetail';
-import AdminContestEdit from './pages/admin/AdminContestEdit';
+// Admin contests merged into predictions
 
 // Staff pages
 import StaffDashboard from './pages/staff/StaffDashboard';
@@ -261,33 +255,10 @@ function AppRoutes() {
           }
         />
 
-        {/* Contest Routes */}
-        <Route
-          path="/contests"
-          element={
-            <MainLayout>
-              <ContestsPage />
-            </MainLayout>
-          }
-        />
-        <Route
-          path="/contests/:id"
-          element={
-            <MainLayout>
-              <ContestDetailPage />
-            </MainLayout>
-          }
-        />
-        <Route
-          path="/contests/history"
-          element={
-            <ProtectedRoute>
-              <MainLayout>
-                <ContestHistoryPage />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
+        {/* Contest redirect to predictions (merged) */}
+        <Route path="/contests" element={<Navigate to="/predictions" replace />} />
+        <Route path="/contests/:id" element={<Navigate to="/predictions" replace />} />
+        <Route path="/contests/history" element={<Navigate to="/predictions" replace />} />
 
         {/* Shop Routes */}
         <Route
@@ -658,37 +629,10 @@ function AppRoutes() {
           }
         />
 
-        {/* Admin Contest Routes */}
-        <Route
-          path="/admin/contests"
-          element={
-            <ProtectedRoute roles={['admin']}>
-              <MainLayout>
-                <AdminContests />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/contests/:id"
-          element={
-            <ProtectedRoute roles={['admin']}>
-              <MainLayout>
-                <AdminContestDetail />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/contests/:id/edit"
-          element={
-            <ProtectedRoute roles={['admin']}>
-              <MainLayout>
-                <AdminContestEdit />
-              </MainLayout>
-            </ProtectedRoute>
-          }
-        />
+        {/* Admin contests redirect to predictions */}
+        <Route path="/admin/contests" element={<Navigate to="/admin/predictions" replace />} />
+        <Route path="/admin/contests/:id" element={<Navigate to="/admin/predictions" replace />} />
+        <Route path="/admin/contests/:id/edit" element={<Navigate to="/admin/predictions" replace />} />
 
         {/* Staff Routes */}
         <Route

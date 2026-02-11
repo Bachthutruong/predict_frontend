@@ -14,14 +14,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-// import {
-//   Dialog,
-//   DialogContent,
-//   DialogDescription,
-//   DialogHeader,
-//   DialogTitle,
-//   DialogTrigger,
-// } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { AuthModal } from '../../components/auth/AuthModal';
 import { 
   ArrowLeft, 
@@ -33,12 +31,15 @@ import {
   Clock,
   Shuffle,
   Filter,
-//   ChevronDown,
   Loader2,
   CheckCircle,
-//   AlertCircle
+  ImageIcon,
+  Video,
+  ChevronLeft,
+  ChevronRight,
+  Play
 } from 'lucide-react';
-import type { VotingCampaignDetail } from '../../types';
+import type { VotingCampaignDetail, VoteEntry } from '../../types';
 
 const VotingDetailPage: React.FC = () => {
   const navigate = useNavigate();
@@ -53,6 +54,10 @@ const VotingDetailPage: React.FC = () => {
   const [sortBy, setSortBy] = useState<'random' | 'votes' | 'newest' | 'oldest'>('random');
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [pendingVoteEntry, setPendingVoteEntry] = useState<string | undefined>(undefined);
+  
+  // Entry detail dialog state
+  const [selectedEntry, setSelectedEntry] = useState<VoteEntry | null>(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   useEffect(() => {
     if (id) {
@@ -105,10 +110,7 @@ const VotingDetailPage: React.FC = () => {
           description: t('voting.earnedPoints', { points: response.data?.pointsEarned || 0 }),
         });
         
-        // Refresh user data to update points
         await refreshUser();
-        
-        // Reload campaign data to update vote counts and user votes
         loadCampaignDetail();
       } else {
         toast({
@@ -142,10 +144,7 @@ const VotingDetailPage: React.FC = () => {
           description: t('voting.voteRemovedDescription'),
         });
         
-        // Refresh user data to update points
         await refreshUser();
-        
-        // Reload campaign data
         loadCampaignDetail();
       } else {
         toast({
@@ -174,16 +173,6 @@ const VotingDetailPage: React.FC = () => {
       setPendingVoteEntry(undefined);
     }
   };
-
-//   const formatDate = (dateString: string) => {
-//     return new Date(dateString).toLocaleDateString('vi-VN', {
-//       year: 'numeric',
-//       month: '2-digit',
-//       day: '2-digit',
-//       hour: '2-digit',
-//       minute: '2-digit'
-//     });
-//   };
 
   const formatTimeRemaining = (remainingTime: number) => {
     if (remainingTime <= 0) return t('voting.ended');
@@ -232,6 +221,29 @@ const VotingDetailPage: React.FC = () => {
     if (!user || !campaignData) return 0;
     const userVoteCount = campaignData.userVotes?.length || 0;
     return Math.max(0, campaignData.campaign.maxVotesPerUser - userVoteCount);
+  };
+
+  // Helper to extract YouTube video ID
+  const getYouTubeId = (url: string): string | null => {
+    const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+    return match ? match[1] : null;
+  };
+
+  // Get all images for an entry (combining imageUrl and imageUrls)
+  const getEntryImages = (entry: VoteEntry): string[] => {
+    const images: string[] = [];
+    if (entry.imageUrls && entry.imageUrls.length > 0) {
+      images.push(...entry.imageUrls);
+    } else if (entry.imageUrl) {
+      images.push(entry.imageUrl);
+    }
+    return images;
+  };
+
+  // Open entry detail dialog
+  const openEntryDetail = (entry: VoteEntry) => {
+    setSelectedEntry(entry);
+    setSelectedImageIndex(0);
   };
 
   if (isLoading) {
@@ -422,106 +434,339 @@ const VotingDetailPage: React.FC = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {entries.map((entry) => (
-            <Card key={entry._id} className="overflow-hidden hover:shadow-lg transition-shadow">
-              {entry.imageUrl && (
-                <div className="aspect-video w-full overflow-hidden">
-                  <img 
-                    src={entry.imageUrl} 
-                    alt={entry.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
-              
-              <CardHeader>
-                <div className="flex items-start justify-between gap-2">
-                  <CardTitle className="line-clamp-2">{entry.title}</CardTitle>
-                  {hasUserVoted(entry._id) && (
-                    <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
-                  )}
-                </div>
-                <CardDescription className="line-clamp-3">
-                  {entry.description}
-                </CardDescription>
-              </CardHeader>
-              
-              <CardContent className="space-y-4">
-                {/* Vote Count */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Heart className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">{entry.voteCount || 0} {t('voting.votes')}</span>
-                  </div>
-                  
-                  {campaign.isVotingCompleted && entry.voteCount > 0 && (
-                    <Badge variant="outline">
-                      #{entries
-                        .sort((a, b) => (b.voteCount || 0) - (a.voteCount || 0))
-                        .findIndex(e => e._id === entry._id) + 1}
-                    </Badge>
-                  )}
-                </div>
-
-                {/* Vote Button */}
-                {campaign.status === 'active' ? (
-                  hasUserVoted(entry._id) ? (
-                    <Button 
-                      variant="outline" 
-                      className="w-full"
-                      onClick={() => handleRemoveVote(entry._id)}
-                      disabled={isVoting}
-                    >
-                      {isVoting ? (
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      ) : (
-                        <CheckCircle className="h-4 w-4 mr-2" />
-                      )}
-                      {t('voting.voted')}
-                    </Button>
+          {entries.map((entry) => {
+            const entryImages = getEntryImages(entry);
+            const thumbnailUrl = entryImages.length > 0 ? entryImages[0] : null;
+            
+            return (
+              <Card 
+                key={entry._id} 
+                className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer group border border-gray-100 hover:border-gray-200"
+                onClick={() => openEntryDetail(entry)}
+              >
+                {/* Image/Video Thumbnail */}
+                <div className="aspect-video w-full overflow-hidden bg-gradient-to-br from-gray-100 to-gray-50 relative">
+                  {thumbnailUrl ? (
+                    <img 
+                      src={thumbnailUrl} 
+                      alt={entry.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
                   ) : (
-                    <Button 
-                      className="w-full"
-                      onClick={() => handleVote(entry._id)}
-                      disabled={isVoting || (user ? !canUserVote() : false)}
-                    >
-                      {isVoting ? (
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      ) : (
-                        <Vote className="h-4 w-4 mr-2" />
-                      )}
-                      {!user ? t('voting.vote') : !canUserVote() ? t('voting.maxVotesReached') : t('voting.vote')}
-                    </Button>
-                  )
-                ) : (
-                  <Button variant="outline" className="w-full" disabled>
-                    {campaign.status === 'closed' || campaign.status === 'completed' ? t('voting.votingEnded') : t('voting.votingNotStarted')}
-                  </Button>
-                )}
-
-                {/* Recent Voters (if any) */}
-                {entry.votes && entry.votes.length > 0 && (
-                  <div className="text-xs text-muted-foreground">
-                    <p className="font-medium mb-1">{t('voting.recentVoters')}:</p>
-                    <div className="flex flex-wrap gap-1">
-                      {entry.votes.slice(0, 3).map((vote, index) => (
-                        <span key={index} className="bg-muted px-2 py-1 rounded">
-                          {vote.userName}
-                        </span>
-                      ))}
-                      {entry.votes.length > 3 && (
-                        <span className="text-muted-foreground">
-                          +{entry.votes.length - 3} {t('voting.more')}
-                        </span>
-                      )}
+                    <div className="w-full h-full flex items-center justify-center text-gray-300">
+                      <ImageIcon className="h-16 w-16" />
                     </div>
+                  )}
+                  
+                  {/* Overlay indicators */}
+                  <div className="absolute top-2 right-2 flex gap-1.5">
+                    {entryImages.length > 1 && (
+                      <span className="bg-black/60 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1 backdrop-blur-sm">
+                        <ImageIcon className="h-3 w-3" />
+                        {entryImages.length}
+                      </span>
+                    )}
+                    {entry.videoUrl && (
+                      <span className="bg-red-600/90 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1 backdrop-blur-sm">
+                        <Play className="h-3 w-3" />
+                        Video
+                      </span>
+                    )}
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
+
+                  {/* Voted checkmark overlay */}
+                  {hasUserVoted(entry._id) && (
+                    <div className="absolute top-2 left-2">
+                      <span className="bg-green-500 text-white p-1.5 rounded-full flex items-center justify-center shadow-md">
+                        <CheckCircle className="h-4 w-4" />
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Click to view detail overlay */}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                    <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 text-gray-800 px-4 py-2 rounded-full text-sm font-medium shadow-lg backdrop-blur-sm">
+                      {t('voting.viewDetail')}
+                    </span>
+                  </div>
+                </div>
+                
+                <CardHeader className="pb-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <CardTitle className="line-clamp-2 text-base">{entry.title}</CardTitle>
+                  </div>
+                  <CardDescription className="line-clamp-2 text-sm">
+                    {entry.description}
+                  </CardDescription>
+                </CardHeader>
+                
+                <CardContent className="space-y-3 pt-0">
+                  {/* Vote Count */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Heart className={`h-4 w-4 ${hasUserVoted(entry._id) ? 'text-red-500 fill-red-500' : 'text-muted-foreground'}`} />
+                      <span className="font-medium">{entry.voteCount || 0} {t('voting.votes')}</span>
+                    </div>
+                    
+                    {campaign.isVotingCompleted && entry.voteCount > 0 && (
+                      <Badge variant="outline">
+                        #{entries
+                          .sort((a, b) => (b.voteCount || 0) - (a.voteCount || 0))
+                          .findIndex(e => e._id === entry._id) + 1}
+                      </Badge>
+                    )}
+                  </div>
+
+                  {/* Vote Button */}
+                  <div onClick={(e) => e.stopPropagation()}>
+                    {campaign.status === 'active' ? (
+                      hasUserVoted(entry._id) ? (
+                        <Button 
+                          variant="outline" 
+                          className="w-full border-green-200 text-green-700 hover:bg-green-50"
+                          onClick={() => handleRemoveVote(entry._id)}
+                          disabled={isVoting}
+                        >
+                          {isVoting ? (
+                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          ) : (
+                            <CheckCircle className="h-4 w-4 mr-2" />
+                          )}
+                          {t('voting.voted')}
+                        </Button>
+                      ) : (
+                        <Button 
+                          className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md"
+                          onClick={() => handleVote(entry._id)}
+                          disabled={isVoting || (user ? !canUserVote() : false)}
+                        >
+                          {isVoting ? (
+                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          ) : (
+                            <Vote className="h-4 w-4 mr-2" />
+                          )}
+                          {!user ? t('voting.vote') : !canUserVote() ? t('voting.maxVotesReached') : t('voting.vote')}
+                        </Button>
+                      )
+                    ) : (
+                      <Button variant="outline" className="w-full" disabled>
+                        {campaign.status === 'closed' || campaign.status === 'completed' ? t('voting.votingEnded') : t('voting.votingNotStarted')}
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
+
+      {/* =================== ENTRY DETAIL DIALOG =================== */}
+      <Dialog open={!!selectedEntry} onOpenChange={(open) => !open && setSelectedEntry(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
+          {selectedEntry && (() => {
+            const images = getEntryImages(selectedEntry);
+            const youtubeId = selectedEntry.videoUrl ? getYouTubeId(selectedEntry.videoUrl) : null;
+            
+            return (
+              <>
+                {/* Image Gallery */}
+                {images.length > 0 && (
+                  <div className="relative">
+                    {/* Main Image */}
+                    <div className="aspect-[16/10] w-full bg-gray-900 relative overflow-hidden">
+                      <img
+                        src={images[selectedImageIndex]}
+                        alt={`${selectedEntry.title} - ${selectedImageIndex + 1}`}
+                        className="w-full h-full object-contain"
+                      />
+                      
+                      {/* Navigation arrows */}
+                      {images.length > 1 && (
+                        <>
+                          <button
+                            onClick={() => setSelectedImageIndex(prev => prev > 0 ? prev - 1 : images.length - 1)}
+                            className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full backdrop-blur-sm transition-colors"
+                          >
+                            <ChevronLeft className="h-5 w-5" />
+                          </button>
+                          <button
+                            onClick={() => setSelectedImageIndex(prev => prev < images.length - 1 ? prev + 1 : 0)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full backdrop-blur-sm transition-colors"
+                          >
+                            <ChevronRight className="h-5 w-5" />
+                          </button>
+                        </>
+                      )}
+
+                      {/* Image counter */}
+                      {images.length > 1 && (
+                        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/60 text-white text-sm px-3 py-1 rounded-full backdrop-blur-sm">
+                          {selectedImageIndex + 1} / {images.length}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Thumbnail Strip */}
+                    {images.length > 1 && (
+                      <div className="flex gap-2 p-3 bg-gray-50 overflow-x-auto">
+                        {images.map((img, index) => (
+                          <button
+                            key={index}
+                            onClick={() => setSelectedImageIndex(index)}
+                            className={`flex-shrink-0 h-16 w-16 rounded-lg overflow-hidden border-2 transition-all ${
+                              selectedImageIndex === index 
+                                ? 'border-blue-500 shadow-md scale-105' 
+                                : 'border-transparent opacity-60 hover:opacity-100'
+                            }`}
+                          >
+                            <img src={img} alt={`Thumbnail ${index + 1}`} className="w-full h-full object-cover" />
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Video Player */}
+                {selectedEntry.videoUrl && (
+                  <div className="px-6 pt-4">
+                    <h4 className="text-sm font-medium text-gray-500 flex items-center gap-2 mb-3">
+                      <Video className="h-4 w-4" />
+                      {t('voting.entryVideo')}
+                    </h4>
+                    {youtubeId ? (
+                      <div className="aspect-video w-full rounded-xl overflow-hidden border border-gray-200 shadow-sm">
+                        <iframe
+                          src={`https://www.youtube.com/embed/${youtubeId}`}
+                          className="w-full h-full"
+                          allowFullScreen
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          title={selectedEntry.title}
+                        />
+                      </div>
+                    ) : (
+                      <div className="aspect-video w-full rounded-xl overflow-hidden border border-gray-200 shadow-sm">
+                        <video
+                          src={selectedEntry.videoUrl}
+                          controls
+                          className="w-full h-full"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Entry Info */}
+                <div className="p-6 space-y-5">
+                  <DialogHeader>
+                    <DialogTitle className="text-2xl font-bold text-gray-900 pr-8">
+                      {selectedEntry.title}
+                    </DialogTitle>
+                  </DialogHeader>
+
+                  {/* Stats row */}
+                  <div className="flex items-center gap-4 flex-wrap">
+                    <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg">
+                      <Heart className={`h-4 w-4 ${hasUserVoted(selectedEntry._id) ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} />
+                      <span className="font-semibold text-gray-700">{selectedEntry.voteCount || 0}</span>
+                      <span className="text-gray-500 text-sm">{t('voting.votes')}</span>
+                    </div>
+                    
+                    {images.length > 0 && (
+                      <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg">
+                        <ImageIcon className="h-4 w-4 text-gray-400" />
+                        <span className="text-gray-500 text-sm">{images.length} {t('voting.photos')}</span>
+                      </div>
+                    )}
+                    
+                    {selectedEntry.videoUrl && (
+                      <div className="flex items-center gap-2 bg-red-50 px-3 py-2 rounded-lg">
+                        <Video className="h-4 w-4 text-red-500" />
+                        <span className="text-red-600 text-sm">{t('voting.hasVideo')}</span>
+                      </div>
+                    )}
+
+                    {hasUserVoted(selectedEntry._id) && (
+                      <Badge className="bg-green-100 text-green-700 border-green-200">
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        {t('voting.voted')}
+                      </Badge>
+                    )}
+                  </div>
+
+                  {/* Description */}
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider">{t('voting.entryDescription')}</h4>
+                    <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                      {selectedEntry.description}
+                    </p>
+                  </div>
+
+                  {/* Vote Button in Detail */}
+                  <div className="pt-2 border-t border-gray-100">
+                    {campaign.status === 'active' ? (
+                      hasUserVoted(selectedEntry._id) ? (
+                        <Button 
+                          variant="outline" 
+                          size="lg"
+                          className="w-full border-green-200 text-green-700 hover:bg-green-50"
+                          onClick={() => handleRemoveVote(selectedEntry._id)}
+                          disabled={isVoting}
+                        >
+                          {isVoting ? (
+                            <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                          ) : (
+                            <CheckCircle className="h-5 w-5 mr-2" />
+                          )}
+                          {t('voting.voted')}
+                        </Button>
+                      ) : (
+                        <Button 
+                          size="lg"
+                          className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg text-base"
+                          onClick={() => handleVote(selectedEntry._id)}
+                          disabled={isVoting || (user ? !canUserVote() : false)}
+                        >
+                          {isVoting ? (
+                            <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                          ) : (
+                            <Vote className="h-5 w-5 mr-2" />
+                          )}
+                          {!user ? t('voting.vote') : !canUserVote() ? t('voting.maxVotesReached') : t('voting.voteForEntry')}
+                        </Button>
+                      )
+                    ) : (
+                      <Button variant="outline" size="lg" className="w-full" disabled>
+                        {campaign.status === 'closed' || campaign.status === 'completed' ? t('voting.votingEnded') : t('voting.votingNotStarted')}
+                      </Button>
+                    )}
+                  </div>
+
+                  {/* Recent Voters */}
+                  {selectedEntry.votes && selectedEntry.votes.length > 0 && (
+                    <div className="space-y-2 pt-2">
+                      <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider">{t('voting.recentVoters')}</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedEntry.votes.slice(0, 10).map((vote, index) => (
+                          <span key={index} className="bg-gray-100 text-gray-600 px-3 py-1.5 rounded-full text-sm">
+                            {vote.userName}
+                          </span>
+                        ))}
+                        {selectedEntry.votes.length > 10 && (
+                          <span className="text-muted-foreground text-sm py-1.5">
+                            +{selectedEntry.votes.length - 10} {t('voting.more')}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
 
       {/* Auth Modal */}
       <AuthModal 

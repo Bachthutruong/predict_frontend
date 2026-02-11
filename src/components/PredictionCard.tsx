@@ -26,10 +26,15 @@ export const PredictionCard: React.FC<PredictionCardProps> = ({ prediction }) =>
               <Trophy className="h-12 w-12 text-blue-200" />
             </div>
           )}
-          <div className="absolute top-3 right-3">
-            <Badge variant={prediction.status === 'active' ? 'default' : 'secondary'} className={`shadow-sm ${prediction.status === 'active' ? 'bg-green-500 hover:bg-green-600' : ''}`}>
-              {prediction.status}
+          <div className="absolute top-3 right-3 flex flex-col gap-1">
+            <Badge variant={(prediction as any).isCurrentlyActive !== false && prediction.status === 'active' ? 'default' : 'secondary'} className={`shadow-sm ${(prediction as any).isCurrentlyActive ? 'bg-green-500 hover:bg-green-600' : ''}`}>
+              {(prediction as any).isCurrentlyActive ? 'Đang diễn ra' : 'Kết thúc'}
             </Badge>
+            {((prediction as any).maxWinners > 0) && (
+              <Badge variant="outline" className="bg-white/90 text-gray-700 border-gray-200 text-xs">
+                {(prediction as any).winnerCount ?? 0}/{(prediction as any).maxWinners ?? 1} người trúng
+              </Badge>
+            )}
           </div>
         </Link>
       </CardHeader>
@@ -51,14 +56,27 @@ export const PredictionCard: React.FC<PredictionCardProps> = ({ prediction }) =>
           {prediction.description}
         </CardDescription>
 
-        <div className="mt-auto pt-4 flex items-center justify-between text-sm">
-          <div className="flex items-center gap-1.5 text-gray-600 bg-gray-50 px-2 py-1 rounded-md">
+        <div className="mt-auto pt-4 space-y-2">
+          <div className="flex items-center gap-1.5 text-gray-600 bg-gray-50 px-2 py-1 rounded-md w-fit">
             <Tag className="h-3.5 w-3.5 text-gray-400" />
-            <span className="font-medium">{prediction.pointsCost} points</span>
+            <span className="font-medium">{prediction.pointsCost} điểm/lần</span>
           </div>
-          <div className="flex items-center gap-1.5 text-green-700 bg-green-50 px-2 py-1 rounded-md">
-            <Trophy className="h-3.5 w-3.5 text-green-600" />
-            <span className="font-medium">Win {prediction.rewardPoints || Math.round(prediction.pointsCost * 1.5)}</span>
+          <div className="text-sm">
+            <div className="text-xs text-green-600 font-medium mb-1">Phần thưởng:</div>
+            <div className="flex flex-wrap gap-1.5">
+              {((prediction as any).rewards?.length > 0 ? (prediction as any).rewards : [{ type: 'points', pointsAmount: prediction.rewardPoints || Math.round(prediction.pointsCost * 1.5) }]).map((r: any, i: number) => (
+                r.type === 'points' ? (
+                  <span key={i} className="inline-flex items-center gap-1 text-green-700 bg-green-50 px-2 py-1 rounded-md">
+                    <Trophy className="h-3.5 w-3.5 text-green-600" />
+                    +{r.pointsAmount ?? prediction.rewardPoints ?? Math.round(prediction.pointsCost * 1.5)} xu
+                  </span>
+                ) : r.type === 'product' ? (
+                  <span key={i} className="inline-flex items-center gap-1 text-green-700 bg-green-50 px-2 py-1 rounded-md">
+                    {r.productId?.name || 'Sản phẩm'} x{r.productQuantity || 1}
+                  </span>
+                ) : null
+              ))}
+            </div>
           </div>
         </div>
       </CardContent>

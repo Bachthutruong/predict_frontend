@@ -445,6 +445,7 @@ export const votingAPI = {
     page?: number;
     limit?: number;
     search?: string;
+    status?: string;
   } = {}): Promise<ApiResponse<{
     data: any[];
     pagination: {

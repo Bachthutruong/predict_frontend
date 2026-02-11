@@ -28,7 +28,6 @@ import {
   ListChecks,
   List,
   Vote,
-  Award,
   MapPin,
   CreditCard,
   ShoppingBag,
@@ -102,8 +101,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   const guestNavigation = useMemo(() => [
     { name: t('navigation.shop'), href: '/shop', icon: Store },
-    { name: t('navigation.predictions'), href: '/predictions', icon: Target },
-    { name: t('navigation.contests'), href: '/contests', icon: Award },
+    { name: t('navigation.predictAndWin'), href: '/predictions', icon: Target },
     { name: t('navigation.voting'), href: '/voting', icon: Vote },
     { name: t('navigation.surveys'), href: '/surveys', icon: ListChecks },
     { name: t('navigation.feedback'), href: '/feedback', icon: MessageSquare },
@@ -113,8 +111,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     { name: t('navigation.dashboard'), href: '/dashboard', icon: Home },
     { name: t('navigation.shop'), href: '/shop', icon: Store },
     { name: t('navigation.myOrders'), href: '/shop/orders', icon: ShoppingBag },
-    { name: t('navigation.predictions'), href: '/predictions', icon: Target },
-    { name: t('navigation.contests'), href: '/contests', icon: Award },
+    { name: t('navigation.predictAndWin'), href: '/predictions', icon: Target },
     { name: t('navigation.voting'), href: '/voting', icon: Vote },
     { name: t('navigation.checkIn'), href: '/check-in', icon: Calendar },
     { name: t('navigation.surveys'), href: '/surveys', icon: ListChecks },
@@ -130,8 +127,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const moreMenu = navigation.slice(6);
 
   const adminNavigation = useMemo(() => [
-    { name: t('admin.managePredictions'), href: '/admin/predictions', icon: Trophy },
-    { name: t('admin.manageContests'), href: '/admin/contests', icon: Award },
+    { name: t('admin.managePredictAndWin'), href: '/admin/predictions', icon: Trophy },
     { name: t('admin.manageVoting'), href: '/admin/voting/campaigns', icon: Vote },
     // { name: t('navigation.orders'), href: '/admin/orders', icon: Package },
     { name: t('admin.manageSurveys'), href: '/admin/surveys', icon: ListChecks },

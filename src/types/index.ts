@@ -393,6 +393,8 @@ export interface VoteEntry {
   title: string;
   description: string;
   imageUrl?: string;
+  imageUrls?: string[]; // Multiple images for gallery
+  videoUrl?: string; // YouTube or any video link
   submittedBy: string | {
     id: string;
     name: string;
@@ -487,4 +489,6 @@ export interface CreateVoteEntryData {
   title: string;
   description: string;
   imageUrl?: string;
+  imageUrls?: string[];
+  videoUrl?: string;
 } 

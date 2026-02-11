@@ -38,7 +38,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { ImageUpload } from '../../components/ui/image-upload';
+import { MultiImageUpload } from '../../components/ui/multi-image-upload';
 import {
   ArrowLeft,
   Plus,
@@ -54,7 +54,8 @@ import {
   FileText,
   ImageIcon,
   User,
-  Vote
+  Vote,
+  Video
 } from 'lucide-react';
 import type { VotingCampaign, VoteEntry, CreateVoteEntryData } from '../../types';
 
@@ -74,7 +75,9 @@ const AdminVotingDetail: React.FC = () => {
   const [entryFormData, setEntryFormData] = useState<CreateVoteEntryData>({
     title: '',
     description: '',
-    imageUrl: ''
+    imageUrl: '',
+    imageUrls: [],
+    videoUrl: ''
   });
 
   const loadCampaignDetails = async () => {
@@ -132,7 +135,7 @@ const AdminVotingDetail: React.FC = () => {
           description: t('adminVoting.entryAddedSuccessfully')
         });
 
-        setEntryFormData({ title: '', description: '', imageUrl: '' });
+        setEntryFormData({ title: '', description: '', imageUrl: '', imageUrls: [], videoUrl: '' });
         setIsAddingEntry(false);
         loadCampaignDetails();
       } else {
@@ -171,7 +174,7 @@ const AdminVotingDetail: React.FC = () => {
           description: t('adminVoting.entryUpdatedSuccessfully')
         });
 
-        setEntryFormData({ title: '', description: '', imageUrl: '' });
+        setEntryFormData({ title: '', description: '', imageUrl: '', imageUrls: [], videoUrl: '' });
         setEditingEntry(null);
         loadCampaignDetails();
       } else {
@@ -223,14 +226,31 @@ const AdminVotingDetail: React.FC = () => {
     setEntryFormData({
       title: entry.title,
       description: entry.description,
-      imageUrl: entry.imageUrl || ''
+      imageUrl: entry.imageUrl || '',
+      imageUrls: entry.imageUrls || [],
+      videoUrl: entry.videoUrl || ''
     });
   };
 
   const closeEntryDialog = () => {
     setIsAddingEntry(false);
     setEditingEntry(null);
-    setEntryFormData({ title: '', description: '', imageUrl: '' });
+    setEntryFormData({ title: '', description: '', imageUrl: '', imageUrls: [], videoUrl: '' });
+  };
+
+  // Handle imageUrls change from MultiImageUpload
+  const handleImageUrlsChange = (urls: string[]) => {
+    setEntryFormData(prev => ({
+      ...prev,
+      imageUrls: urls,
+      imageUrl: urls.length > 0 ? urls[0] : ''
+    }));
+  };
+
+  // Helper to extract YouTube video ID
+  const getYouTubeId = (url: string): string | null => {
+    const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+    return match ? match[1] : null;
   };
 
   const formatDate = (dateString: string) => formatDateTime(dateString);
@@ -417,7 +437,7 @@ const AdminVotingDetail: React.FC = () => {
                 {t('adminVoting.addEntry')}
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-xl">
+            <DialogContent className="sm:max-w-xl max-h-[85vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{t('adminVoting.addNewEntry')}</DialogTitle>
                 <DialogDescription>
@@ -449,13 +469,36 @@ const AdminVotingDetail: React.FC = () => {
                   />
                 </div>
 
+                {/* Multiple Images */}
                 <div className="space-y-2">
-                  <Label htmlFor="imageUrl" className="text-sm font-medium text-gray-700 flex items-center gap-2"><ImageIcon className="h-4 w-4 text-gray-500" /> {t('adminVoting.entryImage')}</Label>
-                  <ImageUpload
-                    value={entryFormData.imageUrl}
-                    onChange={(url) => setEntryFormData(prev => ({ ...prev, imageUrl: url }))}
-                    className="w-full"
+                  <Label className="text-sm font-medium text-gray-700 flex items-center gap-2"><ImageIcon className="h-4 w-4 text-gray-500" /> {t('adminVoting.entryImages')}</Label>
+                  <MultiImageUpload
+                    values={entryFormData.imageUrls || []}
+                    onChange={handleImageUrlsChange}
+                    placeholder={t('adminVoting.multipleImagesHint')}
                   />
+                </div>
+
+                {/* Video URL */}
+                <div className="space-y-2">
+                  <Label htmlFor="videoUrl" className="text-sm font-medium text-gray-700 flex items-center gap-2"><Video className="h-4 w-4 text-gray-500" /> {t('adminVoting.videoUrl')}</Label>
+                  <Input
+                    id="videoUrl"
+                    value={entryFormData.videoUrl || ''}
+                    onChange={(e) => setEntryFormData(prev => ({ ...prev, videoUrl: e.target.value }))}
+                    placeholder="https://www.youtube.com/watch?v=... or video URL"
+                    className="h-11 border-gray-200"
+                  />
+                  {entryFormData.videoUrl && getYouTubeId(entryFormData.videoUrl) && (
+                    <div className="aspect-video rounded-lg overflow-hidden border border-gray-200">
+                      <iframe
+                        src={`https://www.youtube.com/embed/${getYouTubeId(entryFormData.videoUrl)}`}
+                        className="w-full h-full"
+                        allowFullScreen
+                        title="Video preview"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -510,6 +553,12 @@ const AdminVotingDetail: React.FC = () => {
                                 alt={entry.title}
                                 className="w-full h-full object-cover"
                               />
+                            ) : entry.imageUrls && entry.imageUrls.length > 0 ? (
+                              <img
+                                src={entry.imageUrls[0]}
+                                alt={entry.title}
+                                className="w-full h-full object-cover"
+                              />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-gray-400">
                                 <ImageIcon className="h-6 w-6" />
@@ -517,7 +566,19 @@ const AdminVotingDetail: React.FC = () => {
                             )}
                           </div>
                           <div>
-                            <div className="font-medium text-gray-900">{entry.title}</div>
+                            <div className="font-medium text-gray-900 flex items-center gap-2">
+                              {entry.title}
+                              {((entry.imageUrls && entry.imageUrls.length > 1)) && (
+                                <span className="inline-flex items-center gap-1 text-xs text-gray-400" title={`${entry.imageUrls.length} images`}>
+                                  <ImageIcon className="h-3 w-3" />{entry.imageUrls.length}
+                                </span>
+                              )}
+                              {entry.videoUrl && (
+                                <span className="inline-flex items-center gap-1 text-xs text-blue-500" title="Has video">
+                                  <Video className="h-3 w-3" />
+                                </span>
+                              )}
+                            </div>
                             <div className="text-xs text-gray-500 line-clamp-1 mt-0.5">
                               {entry.description}
                             </div>
@@ -566,7 +627,7 @@ const AdminVotingDetail: React.FC = () => {
                                 <Edit className="h-4 w-4" />
                               </Button>
                             </DialogTrigger>
-                            <DialogContent className="sm:max-w-xl">
+                            <DialogContent className="sm:max-w-xl max-h-[85vh] overflow-y-auto">
                               <DialogHeader>
                                 <DialogTitle>{t('adminVoting.editEntry')}</DialogTitle>
                                 <DialogDescription>
@@ -598,13 +659,36 @@ const AdminVotingDetail: React.FC = () => {
                                   />
                                 </div>
 
+                                {/* Multiple Images */}
                                 <div className="space-y-2">
-                                  <Label htmlFor="edit-imageUrl" className="text-sm font-medium text-gray-700 flex items-center gap-2"><ImageIcon className="h-4 w-4 text-gray-500" /> {t('adminVoting.entryImage')}</Label>
-                                  <ImageUpload
-                                    value={entryFormData.imageUrl}
-                                    onChange={(url) => setEntryFormData(prev => ({ ...prev, imageUrl: url }))}
-                                    className="w-full"
+                                  <Label className="text-sm font-medium text-gray-700 flex items-center gap-2"><ImageIcon className="h-4 w-4 text-gray-500" /> {t('adminVoting.entryImages')}</Label>
+                                  <MultiImageUpload
+                                    values={entryFormData.imageUrls || []}
+                                    onChange={handleImageUrlsChange}
+                                    placeholder={t('adminVoting.multipleImagesHint')}
                                   />
+                                </div>
+
+                                {/* Video URL */}
+                                <div className="space-y-2">
+                                  <Label htmlFor="edit-videoUrl" className="text-sm font-medium text-gray-700 flex items-center gap-2"><Video className="h-4 w-4 text-gray-500" /> {t('adminVoting.videoUrl')}</Label>
+                                  <Input
+                                    id="edit-videoUrl"
+                                    value={entryFormData.videoUrl || ''}
+                                    onChange={(e) => setEntryFormData(prev => ({ ...prev, videoUrl: e.target.value }))}
+                                    placeholder="https://www.youtube.com/watch?v=... or video URL"
+                                    className="h-11 border-gray-200"
+                                  />
+                                  {entryFormData.videoUrl && getYouTubeId(entryFormData.videoUrl) && (
+                                    <div className="aspect-video rounded-lg overflow-hidden border border-gray-200">
+                                      <iframe
+                                        src={`https://www.youtube.com/embed/${getYouTubeId(entryFormData.videoUrl)}`}
+                                        className="w-full h-full"
+                                        allowFullScreen
+                                        title="Video preview"
+                                      />
+                                    </div>
+                                  )}
                                 </div>
                               </div>
 

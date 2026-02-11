@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
@@ -7,6 +7,7 @@ import { Textarea } from '../../components/ui/textarea';
 import { Label } from '../../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { ImageUpload } from '../../components/ui/image-upload';
+import { Switch } from '../../components/ui/switch';
 import {
   ArrowLeft,
   Save,
@@ -16,51 +17,110 @@ import {
   FileText,
   Key,
   ShieldCheck,
-  ImageIcon
+  ImageIcon,
+  Clock,
+  Users,
+  Gift,
+  Plus,
+  Trash2
 } from 'lucide-react';
 import { useToast } from '../../hooks/use-toast';
 import { useLanguage } from '../../hooks/useLanguage';
 import apiService from '../../services/api';
+import { adminProductAPI } from '../../services/adminShopServices';
+
+interface Product { id: string; name: string; stock: number; images?: string[] }
+interface RewardItem { type: 'points' | 'product'; pointsAmount?: number; productId?: string; productQuantity?: number }
 
 const AdminPredictionCreate: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t } = useLanguage();
   const [isSaving, setIsSaving] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
 
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     pointsCost: 10,
-    rewardPoints: 15, // Default to 1.5x pointsCost
+    rewardPoints: 15,
     status: 'active',
     answer: '',
-    imageUrl: ''
+    imageUrl: '',
+    startDate: '' as string,
+    endDate: '' as string,
+    useTimeLimit: false,
+    maxWinners: 1,
+    maxAttemptsPerUser: 999,
+    rewards: [] as RewardItem[]
   });
+
+  useEffect(() => {
+    adminProductAPI.getAll({ limit: 200 }).then((res: any) => {
+      const data = res?.data?.data ?? res?.data;
+      setProducts(Array.isArray(data) ? data : []);
+    }).catch(() => {});
+  }, []);
+
+  const addPointsReward = () => {
+    setFormData(prev => ({
+      ...prev,
+      rewards: [...prev.rewards, { type: 'points', pointsAmount: prev.rewardPoints || 15 }]
+    }));
+  };
+  const addProductReward = () => {
+    setFormData(prev => ({
+      ...prev,
+      rewards: [...prev.rewards, { type: 'product', productId: '', productQuantity: 1 }]
+    }));
+  };
+  const removeReward = (idx: number) => {
+    setFormData(prev => ({ ...prev, rewards: prev.rewards.filter((_, i) => i !== idx) }));
+  };
+  const updateReward = (idx: number, field: string, value: any) => {
+    setFormData(prev => {
+      const next = [...prev.rewards];
+      (next[idx] as any)[field] = value;
+      return { ...prev, rewards: next };
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!formData.title.trim() || !formData.description.trim()) {
-      toast({
-        title: t('common.error'),
-        description: t('admin.fillAllFields'),
-        variant: 'destructive',
-      });
+      toast({ title: t('common.error'), description: t('admin.fillAllFields'), variant: 'destructive' });
       return;
     }
 
+    const rewardsToSend = formData.rewards.length > 0
+      ? formData.rewards.map(r => {
+          if (r.type === 'points') return { type: 'points', pointsAmount: r.pointsAmount || formData.rewardPoints };
+          if (r.type === 'product' && r.productId) return { type: 'product', productId: r.productId, productQuantity: r.productQuantity || 1 };
+          return null;
+        }).filter(Boolean)
+      : [{ type: 'points', pointsAmount: formData.rewardPoints }];
+
     setIsSaving(true);
     try {
-      const response = await apiService.post('/admin/predictions', {
+      const payload: any = {
         title: formData.title,
         description: formData.description,
         pointsCost: formData.pointsCost,
         rewardPoints: formData.rewardPoints,
         status: formData.status,
         correctAnswer: formData.answer,
-        imageUrl: formData.imageUrl
-      });
+        imageUrl: formData.imageUrl,
+        maxWinners: formData.maxWinners,
+        maxAttemptsPerUser: formData.maxAttemptsPerUser,
+        rewards: rewardsToSend
+      };
+      if (formData.useTimeLimit) {
+        payload.startDate = formData.startDate || null;
+        payload.endDate = formData.endDate || null;
+      }
+
+      const response = await apiService.post('/admin/predictions', payload);
 
       if (response.data?.success) {
         toast({
@@ -207,34 +267,18 @@ const AdminPredictionCreate: React.FC = () => {
                         className="pl-6 h-11 border-gray-200"
                       />
                     </div>
-                    <p className="text-xs text-gray-500">Điểm người chơi bị trừ khi dự đoán sai</p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="rewardPoints" className="text-sm font-medium text-gray-700">Điểm thưởng <span className="text-red-500">*</span></Label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-green-500 font-semibold">+</span>
-                      <Input
-                        id="rewardPoints"
-                        type="number"
-                        min="1"
-                        value={formData.rewardPoints}
-                        onChange={(e) => handleInputChange('rewardPoints', parseInt(e.target.value) || 0)}
-                        required
-                        className="pl-6 h-11 border-gray-200"
-                      />
-                    </div>
-                    <p className="text-xs text-gray-500">Điểm người chơi nhận được khi dự đoán đúng</p>
+                    <p className="text-xs text-gray-500">Điểm bị trừ mỗi lần tham gia dự đoán (đúng hay sai đều trừ)</p>
                   </div>
                 </div>
               </div>
 
-              {/* Status & Answer */}
+              {/* Đáp án và Trạng thái */}
               <div className="space-y-6">
                 <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider flex items-center gap-2 border-b border-gray-100 pb-2">
                   <ShieldCheck className="h-4 w-4" />
-                  {t('admin.controlSettings')}
+                  {t('admin.answerAndStatus')}
                 </h3>
+                <p className="text-xs text-gray-500 -mt-2">{t('admin.answerAndStatusDesc')}</p>
 
                 <div className="space-y-4">
                   <div className="space-y-2">
@@ -245,11 +289,10 @@ const AdminPredictionCreate: React.FC = () => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="active" className="text-green-600 focus:text-green-700">{t('admin.active')}</SelectItem>
-                        <SelectItem value="inactive" className="text-gray-600 focus:text-gray-700">{t('admin.inactive')}</SelectItem>
-                        <SelectItem value="pending" className="text-orange-600 focus:text-orange-700">{t('admin.pending')}</SelectItem>
-                        <SelectItem value="completed" className="text-blue-600 focus:text-blue-700">{t('admin.completed')}</SelectItem>
+                        <SelectItem value="finished" className="text-gray-600 focus:text-gray-700">Kết thúc</SelectItem>
                       </SelectContent>
                     </Select>
+                    <p className="text-xs text-gray-500">{t('admin.statusActiveDesc')}</p>
                   </div>
 
                   <div className="space-y-2">
@@ -264,10 +307,95 @@ const AdminPredictionCreate: React.FC = () => {
                         className="pl-9 h-11 border-gray-200"
                       />
                     </div>
-                    <p className="text-xs text-gray-500">
-                      {t('admin.answerDescription')}
-                    </p>
+                    <p className="text-xs text-gray-500">{t('admin.answerDescription')}</p>
                   </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Thời gian & Giới hạn */}
+            <div className="space-y-6 border-t border-gray-100 pt-8">
+              <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider flex items-center gap-2 border-b border-gray-100 pb-2">
+                <Clock className="h-4 w-4" />
+                Thời gian & Giới hạn
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="flex items-center gap-4">
+                  <Switch checked={formData.useTimeLimit} onCheckedChange={(v) => setFormData(p => ({ ...p, useTimeLimit: v }))} />
+                  <Label>Giới hạn thời gian (không cài = không thời hạn)</Label>
+                </div>
+                {formData.useTimeLimit && (
+                  <>
+                    <div className="space-y-2">
+                      <Label>Thời gian bắt đầu</Label>
+                      <Input type="datetime-local" value={formData.startDate} onChange={(e) => setFormData(p => ({ ...p, startDate: e.target.value }))} className="border-gray-200" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Thời gian kết thúc</Label>
+                      <Input type="datetime-local" value={formData.endDate} onChange={(e) => setFormData(p => ({ ...p, endDate: e.target.value }))} className="border-gray-200" />
+                    </div>
+                  </>
+                )}
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2"><Users className="h-4 w-4" />Số người trúng thưởng tối đa</Label>
+                  <Input type="number" min={1} value={formData.maxWinners} onChange={(e) => setFormData(p => ({ ...p, maxWinners: parseInt(e.target.value) }))} className="border-gray-200" />
+                  <p className="text-xs text-gray-500">Hiển thị x/a người đã trúng trên trang user</p>
+                </div>
+                <div className="space-y-2">
+                  <Label>Số lượt dự đoán mỗi người</Label>
+                  <Input type="number" min={1} value={formData.maxAttemptsPerUser} onChange={(e) => setFormData(p => ({ ...p, maxAttemptsPerUser: parseInt(e.target.value) }))} className="border-gray-200" />
+                  <p className="text-xs text-gray-500">Ví dụ: 3 = mỗi người chỉ được dự đoán 3 lần</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Phần thưởng (xu + sản phẩm) */}
+            <div className="space-y-6 border-t border-gray-100 pt-8">
+              <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider flex items-center gap-2 border-b border-gray-100 pb-2">
+                <Gift className="h-4 w-4" />
+                Phần thưởng (xu + sản phẩm)
+              </h3>
+              <p className="text-sm text-gray-500">Xu thưởng khi trúng. Có thể thêm sản phẩm từ cửa hàng (hiển thị tồn kho chính xác).</p>
+              <div className="space-y-3">
+                {(formData.rewards.length === 0 ? [{ type: 'points' as const, pointsAmount: formData.rewardPoints }] : formData.rewards).map((r, idx) => (
+                  <div key={idx} className="flex flex-wrap items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                    {r.type === 'points' ? (
+                      <>
+                        <span className="text-sm font-medium">Xu:</span>
+                        <Input
+                          type="number"
+                          min={0}
+                          value={formData.rewards.length === 0 ? formData.rewardPoints : (r.pointsAmount || 0)}
+                          onChange={(e) => {
+                            const v = parseInt(e.target.value) || 0;
+                            if (formData.rewards.length === 0) setFormData(p => ({ ...p, rewardPoints: v }));
+                            else updateReward(idx, 'pointsAmount', v);
+                          }}
+                          className="w-24 border-gray-200"
+                        />
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-sm font-medium">Sản phẩm:</span>
+                        <Select value={(r as any).productId} onValueChange={(v) => updateReward(idx, 'productId', v)}>
+                          <SelectTrigger className="w-48 border-gray-200"><SelectValue placeholder="Chọn sản phẩm" /></SelectTrigger>
+                          <SelectContent>
+                            {products.map(p => (
+                              <SelectItem key={p.id} value={p.id}>{p.name} (còn {p.stock})</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Input type="number" min={1} placeholder="SL" value={(r as any).productQuantity || 1} onChange={(e) => updateReward(idx, 'productQuantity', parseInt(e.target.value) || 1)} className="w-16 border-gray-200" />
+                      </>
+                    )}
+                    {formData.rewards.length > 0 && (
+                      <Button type="button" variant="ghost" size="icon" onClick={() => removeReward(idx)}><Trash2 className="h-4 w-4" /></Button>
+                    )}
+                  </div>
+                ))}
+                <div className="flex gap-2">
+                  <Button type="button" variant="outline" size="sm" onClick={addPointsReward}><Plus className="h-4 w-4 mr-1" /> Thêm xu</Button>
+                  <Button type="button" variant="outline" size="sm" onClick={addProductReward}><Plus className="h-4 w-4 mr-1" /> Thêm sản phẩm</Button>
                 </div>
               </div>
             </div>

@@ -55,8 +55,8 @@ const PredictionsPage: React.FC = () => {
     });
   };
 
-  const activePredictions = predictions.filter(p => p.status === 'active');
-  const finishedPredictions = predictions.filter(p => p.status === 'finished');
+  const activePredictions = predictions.filter((p: any) => p.isCurrentlyActive === true || (p.status === 'active' && p.isCurrentlyActive === undefined));
+  const finishedPredictions = predictions.filter((p: any) => p.status === 'finished' || p.isCurrentlyActive === false);
 
   // Skeleton loading component
   const SkeletonCard = () => (
